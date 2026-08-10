@@ -1,0 +1,84 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store";
+import { User } from "../types";
+import { apiFetch } from "../api/client";
+
+interface AuthContextType {
+  token: string | null;
+  user: User | null;
+  loading: boolean;
+  login: (token: string, user: User) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const bootstrapAsync = async () => {
+      try {
+        const storedToken = await SecureStore.getItemAsync("user-token");
+        const storedUser = await SecureStore.getItemAsync("user-data");
+
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        console.warn("Lỗi khôi phục session đăng nhập:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    bootstrapAsync();
+  }, []);
+
+  const login = async (newToken: string, newUser: User) => {
+    try {
+      await SecureStore.setItemAsync("user-token", newToken);
+      await SecureStore.setItemAsync("user-data", JSON.stringify(newUser));
+      setToken(newToken);
+      setUser(newUser);
+    } catch (e) {
+      console.error("Lỗi lưu trữ thông tin đăng nhập:", e);
+      throw new Error("Không thể lưu trữ session đăng nhập");
+    }
+  };
+
+  const logout = async () => {
+    try {
+      if (token) {
+        try {
+          await apiFetch("/auth/logout", { method: "POST", token });
+        } catch {
+          // ignore
+        }
+      }
+      await SecureStore.deleteItemAsync("user-token");
+      await SecureStore.deleteItemAsync("user-data");
+      setToken(null);
+      setUser(null);
+    } catch (e) {
+      console.error("Lỗi xóa thông tin đăng nhập:", e);
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth phải được sử dụng bên trong AuthProvider");
+  }
+  return context;
+};
