@@ -2,11 +2,12 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
-import { BookOpen, Headphones } from 'lucide-react-native';
+import { BookOpen, Headphones, Brain } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import VocabularyScreen from '../screens/VocabularyScreen';
 import ListeningScreen from '../screens/ListeningScreen';
+import ReviewScreen from '../screens/ReviewScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -15,6 +16,7 @@ export type RootStackParamList = {
 
 export type MainTabParamList = {
   VocabularyTab: undefined;
+  ReviewTab: undefined;
   ListeningTab: undefined;
 };
 
@@ -29,6 +31,8 @@ const MainTabNavigator = () => {
         tabBarIcon: ({ color, size }) => {
           if (route.name === 'VocabularyTab') {
             return <BookOpen size={size - 2} color={color} />;
+          } else if (route.name === 'ReviewTab') {
+            return <Brain size={size - 2} color={color} />;
           } else if (route.name === 'ListeningTab') {
             return <Headphones size={size - 2} color={color} />;
           }
@@ -51,6 +55,11 @@ const MainTabNavigator = () => {
         name="VocabularyTab"
         component={VocabularyScreen}
         options={{ title: 'Từ vựng' }}
+      />
+      <Tab.Screen
+        name="ReviewTab"
+        component={ReviewScreen}
+        options={{ title: 'Ôn tập' }}
       />
       <Tab.Screen
         name="ListeningTab"

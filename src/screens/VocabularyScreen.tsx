@@ -9,7 +9,7 @@ import {
   StatusBar,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
 import {
   Search,
@@ -81,6 +81,7 @@ const getWordTypeStyle = (type?: string | null) => {
 
 export default function VocabularyScreen() {
   const { user, token, logout } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // State
   const [items, setItems] = useState<VocabularyItem[]>([]);
@@ -300,7 +301,7 @@ export default function VocabularyScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-zinc-50/60">
+    <View style={{ paddingTop: insets.top }} className="flex-1 bg-zinc-50/60">
       <StatusBar barStyle="dark-content" />
 
       {/* Top Header Bar */}
@@ -348,6 +349,6 @@ export default function VocabularyScreen() {
           onEndReachedThreshold={0.25}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

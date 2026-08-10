@@ -1,14 +1,15 @@
 import React from "react";
 import { View, Text, StatusBar, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Headphones, LogOut } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
 
 export default function ListeningScreen() {
   const { user, logout } = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-zinc-50/60">
+    <View style={{ paddingTop: insets.top }} className="flex-1 bg-zinc-50/60">
       <StatusBar barStyle="dark-content" />
 
       {/* Top Header Bar */}
@@ -41,6 +42,6 @@ export default function ListeningScreen() {
           Nội dung luyện nghe đang được phát triển và sẽ sớm được ra mắt trong phiên bản tiếp theo.
         </Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

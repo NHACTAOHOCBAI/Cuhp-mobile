@@ -1,4 +1,4 @@
-import { VocabularyListParams, VocabularyListResponse, User } from "../types";
+import { VocabularyListParams, VocabularyListResponse, User, VocabularyReviewResponse } from "../types";
 
 export const API_URL = "http://localhost:8000/api/v1";
 
@@ -65,8 +65,25 @@ export async function fetchVocabularies(
   if (params.page_size) search.set("page_size", String(params.page_size));
   if (params.q) search.set("q", params.q);
   if (params.word_type) search.set("word_type", params.word_type);
+  if (params.due !== undefined) search.set("due", String(params.due));
 
   const qs = search.toString();
   const path = qs ? `/vocabulary?${qs}` : "/vocabulary";
   return apiFetch<VocabularyListResponse>(path, { token, method: "GET" });
+}
+
+export async function reviewVocabulary(
+  vocabId: string,
+  known: boolean,
+  token: string | null
+): Promise<VocabularyReviewResponse> {
+  return apiFetch<VocabularyReviewResponse>(`/vocabulary/${vocabId}/review`, {
+    token,
+    method: "POST",
+    body: JSON.stringify({ known }),
+  });
+}
+
+export async function fetchUserProfile(token: string | null): Promise<User> {
+  return apiFetch<User>("/users/me", { token, method: "GET" });
 }
