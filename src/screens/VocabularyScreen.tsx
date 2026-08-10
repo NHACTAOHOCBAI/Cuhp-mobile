@@ -33,6 +33,7 @@ const WORD_TYPES = [
   { value: "preposition", label: "Giới từ" },
   { value: "conjunction", label: "Liên từ" },
   { value: "interjection", label: "Thán từ" },
+  { value: "other", label: "Khác" },
 ] as const;
 
 // Grayscale Badge helper for Light theme
@@ -64,6 +65,9 @@ const getWordTypeStyle = (type?: string | null) => {
       break;
     case "interjection":
       label = "Thán từ";
+      break;
+    case "other":
+      label = "Khác";
       break;
   }
 
@@ -253,6 +257,7 @@ export default function VocabularyScreen() {
               }`}
             >
               <Text
+                numberOfLines={1}
                 className={`text-sm font-bold ${
                   isSelected ? "text-white" : "text-zinc-500"
                 }`}
