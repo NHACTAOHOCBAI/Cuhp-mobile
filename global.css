@@ -4,10 +4,10 @@
 @import "nativewind/theme";
 
 @theme {
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-background-dark: #0f172a;
-  --color-card-dark: #1e293b;
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
+  --color-primary: #000000;
+  --color-primary-hover: #27272a;
+  --color-background-dark: #ffffff;
+  --color-card-dark: #ffffff;
+  --color-text-primary: #09090b;
+  --color-text-secondary: #71717a;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,10 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   StatusBar,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
 import {
   Search,
@@ -35,28 +35,44 @@ const WORD_TYPES = [
   { value: "interjection", label: "Thán từ" },
 ] as const;
 
-// Helper to get color code for word type badge
+// Grayscale Badge helper for Light theme
 const getWordTypeStyle = (type?: string | null) => {
-  switch (type?.toLowerCase()) {
+  const normalized = type?.toLowerCase() || "";
+  let label = "Khác";
+
+  switch (normalized) {
     case "noun":
-      return { bg: "bg-blue-500/10", border: "border-blue-500/25", text: "text-blue-400", label: "Danh từ" };
+      label = "Danh từ";
+      break;
     case "verb":
-      return { bg: "bg-emerald-500/10", border: "border-emerald-500/25", text: "text-emerald-400", label: "Động từ" };
+      label = "Động từ";
+      break;
     case "adjective":
-      return { bg: "bg-amber-500/10", border: "border-amber-500/25", text: "text-amber-400", label: "Tính từ" };
+      label = "Tính từ";
+      break;
     case "adverb":
-      return { bg: "bg-violet-500/10", border: "border-violet-500/25", text: "text-violet-400", label: "Trạng từ" };
+      label = "Trạng từ";
+      break;
     case "pronoun":
-      return { bg: "bg-pink-500/10", border: "border-pink-500/25", text: "text-pink-400", label: "Đại từ" };
+      label = "Đại từ";
+      break;
     case "preposition":
-      return { bg: "bg-cyan-500/10", border: "border-cyan-500/25", text: "text-cyan-400", label: "Giới từ" };
+      label = "Giới từ";
+      break;
     case "conjunction":
-      return { bg: "bg-teal-500/10", border: "border-teal-500/25", text: "text-teal-400", label: "Liên từ" };
+      label = "Liên từ";
+      break;
     case "interjection":
-      return { bg: "bg-rose-500/10", border: "border-rose-500/25", text: "text-rose-400", label: "Thán từ" };
-    default:
-      return { bg: "bg-slate-500/10", border: "border-slate-500/25", text: "text-slate-400", label: "Khác" };
+      label = "Thán từ";
+      break;
   }
+
+  return {
+    bg: "bg-zinc-100",
+    border: "border-zinc-200/60",
+    text: "text-zinc-600",
+    label,
+  };
 };
 
 export default function VocabularyScreen() {
@@ -75,7 +91,6 @@ export default function VocabularyScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
 
-  // Load vocabulary function
   const loadData = async (pageNum: number, isRefresh = false) => {
     if (pageNum > 1 && !hasMore && !isRefresh) return;
 
@@ -108,7 +123,7 @@ export default function VocabularyScreen() {
       setHasMore(loadedCount < response.total);
       setPage(pageNum);
     } catch (error) {
-      console.error("Lỗi khi tải từ vựng:", error);
+      console.error("Lỗi tải từ vựng:", error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -116,7 +131,6 @@ export default function VocabularyScreen() {
     }
   };
 
-  // Reload when query or filter changes
   useEffect(() => {
     loadData(1);
   }, [searchQuery, selectedType]);
@@ -144,22 +158,22 @@ export default function VocabularyScreen() {
     const style = getWordTypeStyle(item.word_type);
 
     return (
-      <View className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 mb-4 shadow-sm shadow-slate-950/20">
+      <View className="bg-white border border-zinc-200/80 rounded-2xl p-5 mb-4 shadow-sm shadow-zinc-100/50">
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1 pr-4">
             <View className="flex-row items-center flex-wrap">
-              <Text className="text-xl font-bold text-white mr-3">
+              <Text className="text-xl font-bold text-zinc-900 mr-3">
                 {item.word}
               </Text>
               <TouchableOpacity
                 onPress={() => speakWord(item.word)}
-                className="bg-indigo-600/10 p-2 rounded-full active:bg-indigo-600/25"
+                className="bg-zinc-100 p-2 rounded-full active:bg-zinc-200"
               >
-                <Volume2 size={16} color="#6366f1" />
+                <Volume2 size={16} color="#000000" />
               </TouchableOpacity>
             </View>
             {item.pronunciation ? (
-              <Text className="text-slate-400 text-sm italic mt-1">
+              <Text className="text-zinc-500 text-sm italic mt-1 font-medium">
                 {item.pronunciation}
               </Text>
             ) : null}
@@ -172,21 +186,21 @@ export default function VocabularyScreen() {
           </View>
         </View>
 
-        <View className="border-t border-slate-800/60 pt-3 mt-2">
-          <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
+        <View className="border-t border-zinc-100 pt-3 mt-2">
+          <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
             Nghĩa của từ
           </Text>
-          <Text className="text-slate-200 text-base font-medium">
+          <Text className="text-zinc-800 text-base font-semibold">
             {item.meaning}
           </Text>
         </View>
 
         {item.notes ? (
-          <View className="bg-slate-800/40 border border-slate-800/40 p-3 rounded-xl mt-3">
-            <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
+          <View className="bg-zinc-50 border border-zinc-100/80 p-3 rounded-xl mt-3">
+            <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
               Ghi chú
             </Text>
-            <Text className="text-slate-300 text-sm leading-relaxed">
+            <Text className="text-zinc-600 text-sm leading-relaxed">
               {item.notes}
             </Text>
           </View>
@@ -197,27 +211,27 @@ export default function VocabularyScreen() {
 
   const renderHeader = () => (
     <View className="mb-4">
-      {/* Search Input */}
-      <View className="flex-row items-center bg-slate-900 border border-slate-800 rounded-2xl px-4 h-14 mb-4">
-        <Search size={20} color="#64748b" />
+      {/* Search Input - Light theme style */}
+      <View className="flex-row items-center bg-white border border-zinc-200 rounded-2xl px-4 h-14 mb-4 shadow-sm shadow-zinc-100/30">
+        <Search size={20} color="#71717a" />
         <TextInput
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Tìm kiếm từ vựng..."
-          placeholderTextColor="#475569"
-          className="flex-1 text-white ml-3 text-base h-full"
+          placeholderTextColor="#a1a1aa"
+          className="flex-1 text-zinc-900 ml-3 text-base h-full"
         />
         {searchQuery ? (
           <TouchableOpacity onPress={() => setSearchQuery("")} className="p-1">
-            <X size={18} color="#64748b" />
+            <X size={18} color="#71717a" />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Horizontal Word Types Slider */}
       <View className="flex-row items-center mb-2">
-        <Filter size={14} color="#94a3b8" />
-        <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider ml-1.5">
+        <Filter size={14} color="#71717a" />
+        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
           Lọc theo loại từ
         </Text>
       </View>
@@ -234,13 +248,13 @@ export default function VocabularyScreen() {
               onPress={() => setSelectedType(item.value)}
               className={`mr-2.5 px-4 py-2.5 rounded-full border ${
                 isSelected
-                  ? "bg-indigo-600 border-indigo-600"
-                  : "bg-slate-900 border-slate-800"
+                  ? "bg-black border-black"
+                  : "bg-white border-zinc-200"
               }`}
             >
               <Text
-                className={`text-sm font-semibold ${
-                  isSelected ? "text-white" : "text-slate-400"
+                className={`text-sm font-bold ${
+                  isSelected ? "text-white" : "text-zinc-500"
                 }`}
               >
                 {item.label}
@@ -256,7 +270,7 @@ export default function VocabularyScreen() {
     if (!loadingMore) return <View className="h-6" />;
     return (
       <View className="py-4 justify-center items-center">
-        <ActivityIndicator color="#6366f1" />
+        <ActivityIndicator color="#000000" />
       </View>
     );
   };
@@ -265,13 +279,13 @@ export default function VocabularyScreen() {
     if (loading) return null;
     return (
       <View className="items-center justify-center py-20 px-6">
-        <View className="h-16 w-16 bg-slate-900 border border-slate-800 rounded-full items-center justify-center mb-4">
-          <BookOpen size={28} color="#475569" />
+        <View className="h-16 w-16 bg-zinc-100 border border-zinc-200 rounded-full items-center justify-center mb-4">
+          <BookOpen size={28} color="#71717a" />
         </View>
-        <Text className="text-slate-300 text-lg font-bold text-center">
+        <Text className="text-zinc-800 text-lg font-bold text-center">
           Không tìm thấy từ vựng nào
         </Text>
-        <Text className="text-slate-500 text-sm text-center mt-2">
+        <Text className="text-zinc-500 text-sm text-center mt-2 leading-relaxed">
           {searchQuery || selectedType !== "all"
             ? "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc loại từ của bạn."
             : "Sổ từ vựng của bạn hiện tại đang trống."}
@@ -281,22 +295,22 @@ export default function VocabularyScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0f172a]">
-      <StatusBar barStyle="light-content" />
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-zinc-50/60">
+      <StatusBar barStyle="dark-content" />
 
       {/* Top Header Bar */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-900">
+      <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
         <View className="flex-1 pr-4">
-          <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+          <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             Xin chào, {user?.name || "Học viên"}
           </Text>
-          <Text className="text-2xl font-bold text-white tracking-tight mt-0.5">
+          <Text className="text-2xl font-bold text-zinc-900 tracking-tight mt-0.5">
             Sổ Từ Vựng
           </Text>
         </View>
         <TouchableOpacity
           onPress={logout}
-          className="bg-slate-900 border border-slate-800 p-3 rounded-full active:bg-slate-800"
+          className="bg-white border border-zinc-200 p-3 rounded-full active:bg-zinc-100 shadow-sm shadow-zinc-100/50"
         >
           <LogOut size={18} color="#ef4444" />
         </TouchableOpacity>
@@ -305,8 +319,8 @@ export default function VocabularyScreen() {
       {/* Main List */}
       {loading && page === 1 ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#6366f1" />
-          <Text className="text-slate-400 text-sm mt-3">Đang tải danh sách từ vựng...</Text>
+          <ActivityIndicator size="large" color="#000000" />
+          <Text className="text-zinc-500 text-sm mt-3 font-medium">Đang tải danh sách từ vựng...</Text>
         </View>
       ) : (
         <FlatList
@@ -321,8 +335,8 @@ export default function VocabularyScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor="#6366f1"
-              colors={["#6366f1"]}
+              tintColor="#000000"
+              colors={["#000000"]}
             />
           }
           onEndReached={handleLoadMore}
