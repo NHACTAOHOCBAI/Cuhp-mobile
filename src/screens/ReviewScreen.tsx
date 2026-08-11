@@ -24,10 +24,9 @@ import {
   Flame,
   Target,
   Sparkles,
-  Keyboard as KeyboardIcon,
+  Keyboard,
 } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
-console.log("DEBUG: useAuth in ReviewScreen module:", typeof useAuth, useAuth);
 import { fetchVocabularies, reviewVocabulary, fetchUserProfile } from "../api/client";
 import { VocabularyItem, User } from "../types";
 
@@ -140,7 +139,7 @@ export default function ReviewScreen() {
     try {
       // Submit result to Backend to recalculate Leitner interval and update user progress
       const response = await reviewVocabulary(currentItem.id, known, token);
-      
+
       // Update local profile progress and streak
       if (currentUser) {
         const updatedUser: User = {
@@ -275,20 +274,16 @@ export default function ReviewScreen() {
           {/* Flashcard Option */}
           <TouchableOpacity
             onPress={() => setReviewMode("flashcard")}
-            className="flex-1 border p-4 rounded-2xl items-center"
-            style={{
-              backgroundColor: reviewMode === "flashcard" ? "#000000" : "#ffffff",
-              borderColor: reviewMode === "flashcard" ? "#000000" : "#e4e4e7",
-            }}
+            className={`flex-1 border p-4 rounded-2xl items-center ${reviewMode === "flashcard"
+                ? "bg-black border-black shadow-sm"
+                : "bg-white border-zinc-200"
+              }`}
           >
             <BookOpen size={24} color={reviewMode === "flashcard" ? "#ffffff" : "#000000"} />
-            <Text
-              className="text-sm font-bold mt-2"
-              style={{ color: reviewMode === "flashcard" ? "#ffffff" : "#3f3f46" }}
-            >
+            <Text className={`text-sm font-bold mt-2 ${reviewMode === "flashcard" ? "text-white" : "text-zinc-700"}`}>
               Thẻ ghi nhớ
             </Text>
-            <Text className="text-[10px] text-center mt-1 leading-relaxed text-zinc-400">
+            <Text className={`text-[10px] text-center mt-1 leading-relaxed ${reviewMode === "flashcard" ? "text-zinc-400" : "text-zinc-400"}`}>
               Nhìn chữ đoán nghĩa
             </Text>
           </TouchableOpacity>
@@ -296,20 +291,16 @@ export default function ReviewScreen() {
           {/* Spelling Option */}
           <TouchableOpacity
             onPress={() => setReviewMode("spelling")}
-            className="flex-1 border p-4 rounded-2xl items-center"
-            style={{
-              backgroundColor: reviewMode === "spelling" ? "#000000" : "#ffffff",
-              borderColor: reviewMode === "spelling" ? "#000000" : "#e4e4e7",
-            }}
+            className={`flex-1 border p-4 rounded-2xl items-center ${reviewMode === "spelling"
+                ? "bg-black border-black shadow-sm"
+                : "bg-white border-zinc-200"
+              }`}
           >
-            <KeyboardIcon size={24} color={reviewMode === "spelling" ? "#ffffff" : "#000000"} />
-            <Text
-              className="text-sm font-bold mt-2"
-              style={{ color: reviewMode === "spelling" ? "#ffffff" : "#3f3f46" }}
-            >
+            <Keyboard size={24} color={reviewMode === "spelling" ? "#ffffff" : "#000000"} />
+            <Text className={`text-sm font-bold mt-2 ${reviewMode === "spelling" ? "text-white" : "text-zinc-700"}`}>
               Gõ chính tả
             </Text>
-            <Text className="text-[10px] text-center mt-1 leading-relaxed text-zinc-400">
+            <Text className={`text-[10px] text-center mt-1 leading-relaxed ${reviewMode === "spelling" ? "text-zinc-400" : "text-zinc-400"}`}>
               Nghe âm gõ từ vựng
             </Text>
           </TouchableOpacity>
@@ -319,9 +310,8 @@ export default function ReviewScreen() {
         <TouchableOpacity
           onPress={startSession}
           disabled={vocabList.length === 0}
-          className={`w-full h-14 rounded-xl flex-row items-center justify-center shadow-lg shadow-black/10 mb-6 ${
-            vocabList.length === 0 ? "bg-zinc-300" : "bg-black active:bg-zinc-800"
-          }`}
+          className={`w-full h-14 rounded-xl flex-row items-center justify-center shadow-lg shadow-black/10 mb-6 ${vocabList.length === 0 ? "bg-zinc-300" : "bg-black active:bg-zinc-800"
+            }`}
         >
           <Text className="text-white text-base font-bold mr-2">Bắt đầu ôn tập</Text>
           <ArrowRight size={18} color="#ffffff" />
@@ -500,19 +490,12 @@ export default function ReviewScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!spellingChecked}
-                    className="w-full border h-14 rounded-xl px-4 text-center font-bold text-lg text-zinc-900"
-                    style={{
-                      backgroundColor: spellingChecked
+                    className={`w-full border h-14 rounded-xl px-4 text-center font-bold text-lg text-zinc-900 ${spellingChecked
                         ? isSpellingCorrect
-                          ? "#f0fdf4" // bg-green-50
-                          : "#fef2f2" // bg-red-50
-                        : "#fafafa", // bg-zinc-50
-                      borderColor: spellingChecked
-                        ? isSpellingCorrect
-                          ? "#86efac" // border-green-300
-                          : "#fca5a5" // border-red-300
-                        : "#e4e4e7", // border-zinc-200
-                    }}
+                          ? "bg-green-50 border-green-300"
+                          : "bg-red-50 border-red-300"
+                        : "bg-zinc-50/50 border-zinc-200"
+                      }`}
                   />
                 </View>
 
@@ -542,17 +525,10 @@ export default function ReviewScreen() {
               <TouchableOpacity
                 onPress={checkSpellingAnswer}
                 disabled={!spellingInput.trim()}
-                className="w-full h-12 rounded-xl items-center justify-center mt-4"
-                style={{
-                  backgroundColor: !spellingInput.trim() ? "#e4e4e7" : "#000000",
-                }}
+                className={`w-full h-12 rounded-xl items-center justify-center mt-4 ${!spellingInput.trim() ? "bg-zinc-200" : "bg-black active:bg-zinc-800"
+                  }`}
               >
-                <Text
-                  className="text-sm font-bold"
-                  style={{
-                    color: !spellingInput.trim() ? "#a1a1aa" : "#ffffff",
-                  }}
-                >
+                <Text className={`text-sm font-bold ${!spellingInput.trim() ? "text-zinc-400" : "text-white"}`}>
                   Kiểm tra
                 </Text>
               </TouchableOpacity>

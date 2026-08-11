@@ -251,17 +251,15 @@ export default function VocabularyScreen() {
           return (
             <TouchableOpacity
               onPress={() => setSelectedType(item.value)}
-              className={`mr-2.5 px-4 py-2.5 rounded-full border ${
-                isSelected
+              className={`mr-2.5 px-4 py-2.5 rounded-full border ${isSelected
                   ? "bg-black border-black"
                   : "bg-white border-zinc-200"
-              }`}
+                }`}
             >
               <Text
                 numberOfLines={1}
-                className={`text-sm font-bold ${
-                  isSelected ? "text-white" : "text-zinc-500"
-                }`}
+                className={`text-sm font-bold ${isSelected ? "text-white" : "text-zinc-500"
+                  }`}
               >
                 {item.label}
               </Text>
