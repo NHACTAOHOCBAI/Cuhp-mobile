@@ -43,14 +43,15 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top', 'bottom', 'left', 'right']} className="flex-1 bg-white">
+    <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+          style={{ flex: 1 }}
           className="px-6 py-12"
           keyboardShouldPersistTaps="handled"
         >
