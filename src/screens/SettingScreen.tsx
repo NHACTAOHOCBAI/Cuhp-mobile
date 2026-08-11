@@ -1,14 +1,24 @@
 import React from "react";
-import { View, Text, StatusBar, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StatusBar, TouchableOpacity, ScrollView, Switch, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LogOut, Flame, Sparkles, Check, Volume2, User, Settings } from "lucide-react-native";
+import { LogOut, Flame, Sparkles, Check, Volume2, User, Settings, Bell } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
 import { useSettings, SpeechAccent } from "../context/SettingsContext";
 import * as Speech from "expo-speech";
+import { scheduleTestNotification } from "../api/notificationService";
 
 export default function SettingScreen() {
   const { user, logout } = useAuth();
-  const { accent, speechRate, setAccent, setSpeechRate } = useSettings();
+  const {
+    accent,
+    speechRate,
+    reminderEnabled,
+    reminderInterval,
+    setAccent,
+    setSpeechRate,
+    setReminderEnabled,
+    setReminderInterval,
+  } = useSettings();
   const insets = useSafeAreaInsets();
 
   const handleAccentChange = async (newAccent: SpeechAccent) => {
@@ -182,6 +192,73 @@ export default function SettingScreen() {
               );
             })}
           </View>
+        </View>
+
+        {/* Vocabulary Reminders Options */}
+        <View className="flex-row items-center mb-3">
+          <Bell size={14} color="#71717a" />
+          <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
+            Nhắc nhở học từ vựng
+          </Text>
+        </View>
+
+        {/* Toggle Reminder Switch */}
+        <View className="bg-white border border-zinc-200/80 rounded-3xl p-5 mb-6 shadow-sm shadow-zinc-100/50">
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-1 pr-4">
+              <Text className="text-zinc-800 text-sm font-bold">Thông báo nhắc nhở</Text>
+              <Text className="text-zinc-400 text-xs mt-1">
+                Tự động gửi thông báo kèm nghĩa & phiên âm từ vựng cần học định kỳ trên màn hình khóa.
+              </Text>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+              trackColor={{ false: "#e4e4e7", true: "#000000" }}
+              thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
+            />
+          </View>
+
+          {reminderEnabled && (
+            <View className="border-t border-zinc-100 pt-4 mt-2">
+              <Text className="text-zinc-800 text-sm font-bold mb-3">Tần suất nhắc nhở</Text>
+              <View className="flex-row space-x-2 gap-2">
+                {[
+                  { label: "Mỗi 2h", value: 2 },
+                  { label: "Mỗi 4h", value: 4 },
+                  { label: "Mỗi 8h", value: 8 },
+                  { label: "Mỗi 12h", value: 12 },
+                ].map((item) => {
+                  const isSelected = reminderInterval === item.value;
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      onPress={() => setReminderInterval(item.value)}
+                      className={`flex-1 py-3 rounded-xl border items-center justify-center ${
+                        isSelected
+                          ? "bg-black border-black"
+                          : "bg-zinc-50 border-zinc-200"
+                      }`}
+                    >
+                      <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-zinc-600"}`}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {/* Test Notification Button */}
+          {reminderEnabled && (
+            <TouchableOpacity
+              onPress={scheduleTestNotification}
+              className="mt-4 bg-zinc-100/80 border border-zinc-200/50 py-3 rounded-2xl items-center justify-center active:bg-zinc-200/50"
+            >
+              <Text className="text-zinc-700 text-xs font-bold">🔔 Gửi thử thông báo kiểm tra (sau 3s)</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* System Options */}
