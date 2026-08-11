@@ -490,7 +490,8 @@ export default function ReviewScreen() {
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!spellingChecked}
-                    className={`w-full border h-14 rounded-xl px-4 text-center font-bold text-lg text-zinc-900 ${spellingChecked
+                    textAlign="center"
+                    className={`w-full border h-14 rounded-xl px-4 font-bold text-lg text-zinc-900 ${spellingChecked
                         ? isSpellingCorrect
                           ? "bg-green-50 border-green-300"
                           : "bg-red-50 border-red-300"
