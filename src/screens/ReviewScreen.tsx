@@ -20,13 +20,13 @@ import {
   RotateCw,
   Trophy,
   ArrowRight,
-  LogOut,
   Flame,
   Target,
   Sparkles,
   Keyboard,
 } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { fetchVocabularies, reviewVocabulary, fetchUserProfile } from "../api/client";
 import { VocabularyItem, User } from "../types";
 
@@ -47,7 +47,8 @@ const getWordTypeLabel = (type?: string | null) => {
 };
 
 export default function ReviewScreen() {
-  const { user, token, logout, login } = useAuth();
+  const { user, token, login } = useAuth();
+  const { accent, speechRate } = useSettings();
   const insets = useSafeAreaInsets();
 
   // Core Data State
@@ -128,7 +129,7 @@ export default function ReviewScreen() {
 
   // Speak word
   const speakWord = (word: string) => {
-    Speech.speak(word, { language: "en-US", pitch: 1.0, rate: 0.9 });
+    Speech.speak(word, { language: accent, pitch: 1.0, rate: speechRate });
   };
 
   // Answer action - submits review to BE
@@ -647,7 +648,7 @@ export default function ReviewScreen() {
 
       {/* Top Header Bar */}
       <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1 pr-4">
+        <View className="flex-1">
           <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             Xin chào, {user?.name || "Học viên"}
           </Text>
@@ -655,12 +656,6 @@ export default function ReviewScreen() {
             Ôn Tập Từ Vựng
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={logout}
-          className="bg-white border border-zinc-200 p-3 rounded-full active:bg-zinc-100 shadow-sm shadow-zinc-100/50"
-        >
-          <LogOut size={18} color="#ef4444" />
-        </TouchableOpacity>
       </View>
 
       {/* Main Container */}

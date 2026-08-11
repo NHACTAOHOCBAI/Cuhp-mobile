@@ -14,12 +14,12 @@ import * as Speech from "expo-speech";
 import {
   Search,
   Volume2,
-  LogOut,
   X,
   BookOpen,
   Filter,
 } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { fetchVocabularies } from "../api/client";
 import { VocabularyItem } from "../types";
 
@@ -80,7 +80,8 @@ const getWordTypeStyle = (type?: string | null) => {
 };
 
 export default function VocabularyScreen() {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
+  const { accent, speechRate } = useSettings();
   const insets = useSafeAreaInsets();
 
   // State
@@ -153,9 +154,9 @@ export default function VocabularyScreen() {
 
   const speakWord = (word: string) => {
     Speech.speak(word, {
-      language: "en-US",
+      language: accent,
       pitch: 1.0,
-      rate: 0.9,
+      rate: speechRate,
     });
   };
 
@@ -304,7 +305,7 @@ export default function VocabularyScreen() {
 
       {/* Top Header Bar */}
       <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1 pr-4">
+        <View className="flex-1">
           <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             Xin chào, {user?.name || "Học viên"}
           </Text>
@@ -312,12 +313,6 @@ export default function VocabularyScreen() {
             Sổ Từ Vựng
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={logout}
-          className="bg-white border border-zinc-200 p-3 rounded-full active:bg-zinc-100 shadow-sm shadow-zinc-100/50"
-        >
-          <LogOut size={18} color="#ef4444" />
-        </TouchableOpacity>
       </View>
 
       {/* Main List */}

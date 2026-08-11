@@ -1,11 +1,11 @@
 import React from "react";
-import { View, Text, StatusBar, TouchableOpacity } from "react-native";
+import { View, Text, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Headphones, LogOut } from "lucide-react-native";
+import { Headphones } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
 
 export default function ListeningScreen() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
   return (
@@ -14,7 +14,7 @@ export default function ListeningScreen() {
 
       {/* Top Header Bar */}
       <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1 pr-4">
+        <View className="flex-1">
           <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
             Xin chào, {user?.name || "Học viên"}
           </Text>
@@ -22,12 +22,6 @@ export default function ListeningScreen() {
             Luyện Nghe
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={logout}
-          className="bg-white border border-zinc-200 p-3 rounded-full active:bg-zinc-100 shadow-sm shadow-zinc-100/50"
-        >
-          <LogOut size={18} color="#ef4444" />
-        </TouchableOpacity>
       </View>
 
       {/* Placeholder Content */}
@@ -45,3 +39,4 @@ export default function ListeningScreen() {
     </View>
   );
 }
+

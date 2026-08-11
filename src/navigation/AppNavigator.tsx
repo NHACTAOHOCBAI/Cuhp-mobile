@@ -2,12 +2,13 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View } from 'react-native';
-import { BookOpen, Headphones, Brain } from 'lucide-react-native';
+import { BookOpen, Headphones, Brain, Settings } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import VocabularyScreen from '../screens/VocabularyScreen';
 import ListeningScreen from '../screens/ListeningScreen';
 import ReviewScreen from '../screens/ReviewScreen';
+import SettingScreen from '../screens/SettingScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -18,6 +19,7 @@ export type MainTabParamList = {
   VocabularyTab: undefined;
   ReviewTab: undefined;
   ListeningTab: undefined;
+  SettingsTab: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -35,6 +37,8 @@ const MainTabNavigator = () => {
             return <Brain size={size - 2} color={color} />;
           } else if (route.name === 'ListeningTab') {
             return <Headphones size={size - 2} color={color} />;
+          } else if (route.name === 'SettingsTab') {
+            return <Settings size={size - 2} color={color} />;
           }
           return null;
         },
@@ -66,9 +70,15 @@ const MainTabNavigator = () => {
         component={ListeningScreen}
         options={{ title: 'Bài nghe' }}
       />
+      <Tab.Screen
+        name="SettingsTab"
+        component={SettingScreen}
+        options={{ title: 'Cài đặt' }}
+      />
     </Tab.Navigator>
   );
 };
+
 
 // Platform helper for tabbar padding
 import { Platform } from 'react-native';
