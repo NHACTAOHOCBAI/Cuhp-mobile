@@ -4,12 +4,9 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
   RefreshControl,
-  TextInput,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
 import {
   Volume2,
@@ -29,8 +26,13 @@ import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { fetchVocabularies, reviewVocabulary, fetchUserProfile } from "../api/client";
 import { VocabularyItem, User } from "../types";
+import { ScreenWrapper } from "../components/ScreenWrapper";
+import { Header } from "../components/Header";
+import { Button, triggerHaptic } from "../components/Button";
+import { Card } from "../components/Card";
+import { Badge } from "../components/Badge";
+import { Input } from "../components/Input";
 
-// Grayscale badge helper matching the VocabularyScreen styling
 const getWordTypeLabel = (type?: string | null) => {
   const normalized = type?.toLowerCase() || "";
   switch (normalized) {
@@ -49,7 +51,6 @@ const getWordTypeLabel = (type?: string | null) => {
 export default function ReviewScreen() {
   const { user, token, login } = useAuth();
   const { accent, speechRate } = useSettings();
-  const insets = useSafeAreaInsets();
 
   // Core Data State
   const [vocabList, setVocabList] = useState<VocabularyItem[]>([]);
@@ -75,19 +76,15 @@ export default function ReviewScreen() {
   const loadData = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
-      // 1. Fetch fresh user profile (to sync streak & words_reviewed_today)
       const freshUser = await fetchUserProfile(token);
       setCurrentUser(freshUser);
-      // Update AuthContext to sync globally
       if (token) {
         await login(token, freshUser);
       }
 
-      // 2. Fetch vocabulary list
       const allResponse = await fetchVocabularies({ page: 1, page_size: 100 }, token);
       setVocabList(allResponse.items || []);
 
-      // 3. Fetch due vocabulary items
       const dueResponse = await fetchVocabularies({ page: 1, page_size: 100, due: true }, token);
       setDueVocabList(dueResponse.items || []);
     } catch (e) {
@@ -107,13 +104,10 @@ export default function ReviewScreen() {
     setRefreshing(false);
   };
 
-  // Start a new review session
   const startSession = () => {
-    // Select from due items first; if none, fall back to all items
     const pool = dueVocabList.length > 0 ? dueVocabList : vocabList;
     if (pool.length === 0) return;
 
-    // Shuffle and take max 15 words
     const shuffled = [...pool]
       .sort(() => Math.random() - 0.5)
       .slice(0, 15);
@@ -127,21 +121,20 @@ export default function ReviewScreen() {
     setGameState("review");
   };
 
-  // Speak word
   const speakWord = (word: string) => {
     Speech.speak(word, { language: accent, pitch: 1.0, rate: speechRate });
   };
 
-  // Answer action - submits review to BE
   const handleAnswerSubmit = async (known: boolean) => {
+    // Trực tiếp kích hoạt rung phản hồi Đúng/Sai dựa theo kết quả người dùng chọn
+    triggerHaptic(known ? 'success' : 'error');
+
     const currentItem = sessionItems[currentIndex];
     if (!currentItem) return;
 
     try {
-      // Submit result to Backend to recalculate Leitner interval and update user progress
       const response = await reviewVocabulary(currentItem.id, known, token);
 
-      // Update local profile progress and streak
       if (currentUser) {
         const updatedUser: User = {
           ...currentUser,
@@ -158,7 +151,6 @@ export default function ReviewScreen() {
       setScore((prev) => prev + 1);
     }
 
-    // Move to next word
     if (currentIndex < sessionItems.length - 1) {
       setIsFlipped(false);
       setSpellingInput("");
@@ -169,7 +161,6 @@ export default function ReviewScreen() {
     }
   };
 
-  // Spelling Check Action
   const checkSpellingAnswer = () => {
     const currentItem = sessionItems[currentIndex];
     if (!currentItem) return;
@@ -180,11 +171,13 @@ export default function ReviewScreen() {
 
     setIsSpellingCorrect(isMatched);
     setSpellingChecked(true);
-    // Auto speak correct answer
+
+    // Kích hoạt rung phản hồi Đúng/Sai
+    triggerHaptic(isMatched ? 'success' : 'error');
+
     speakWord(currentItem.word);
   };
 
-  // Render Start State
   const renderStart = () => {
     const dailyGoalMet = currentUser ? currentUser.words_reviewed_today >= currentUser.daily_target : false;
     const progressPercent = currentUser ? Math.min(100, (currentUser.words_reviewed_today / currentUser.daily_target) * 100) : 0;
@@ -206,7 +199,7 @@ export default function ReviewScreen() {
         {/* Streak & Daily Progress Cards */}
         <View className="flex-row justify-between gap-4 mb-6 mt-4">
           {/* Streak Box */}
-          <View className="flex-1 bg-white border border-zinc-200 rounded-2xl p-4 flex-row items-center shadow-sm shadow-zinc-100/50">
+          <Card className="flex-1 flex-row items-center mb-0 p-4">
             <View className="h-10 w-10 bg-orange-50 rounded-full items-center justify-center mr-3">
               <Flame size={20} color="#f97316" />
             </View>
@@ -214,10 +207,10 @@ export default function ReviewScreen() {
               <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider">Chuỗi liên tục</Text>
               <Text className="text-zinc-900 text-lg font-black">{currentUser?.current_streak || 0} ngày</Text>
             </View>
-          </View>
+          </Card>
 
           {/* Daily Goal Box */}
-          <View className="flex-1 bg-white border border-zinc-200 rounded-2xl p-4 flex-row items-center shadow-sm shadow-zinc-100/50">
+          <Card className="flex-1 flex-row items-center mb-0 p-4">
             <View className="h-10 w-10 bg-zinc-100 rounded-full items-center justify-center mr-3">
               <Target size={20} color="#000000" />
             </View>
@@ -227,11 +220,11 @@ export default function ReviewScreen() {
                 {currentUser?.words_reviewed_today || 0}/{currentUser?.daily_target || 10}
               </Text>
             </View>
-          </View>
+          </Card>
         </View>
 
         {/* Progress Bar under cards */}
-        <View className="bg-white border border-zinc-200 rounded-2xl p-4 mb-6 shadow-sm shadow-zinc-100/50">
+        <Card className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-zinc-500 text-xs font-semibold">Tiến trình ngày hôm nay</Text>
             <Text className="text-zinc-900 text-xs font-bold">{Math.round(progressPercent)}%</Text>
@@ -250,35 +243,37 @@ export default function ReviewScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </Card>
 
         {/* Learning status box */}
-        <View className="bg-zinc-50 border border-zinc-200 rounded-2xl p-5 mb-6">
+        <Card variant="flat" className="mb-6 p-5">
           <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2">Trạng thái từ vựng</Text>
           <View className="flex-row justify-between items-center mb-3">
             <Text className="text-zinc-600 text-sm font-medium">Số từ cần ôn tập hôm nay:</Text>
-            <View className={`px-3 py-1 rounded-full ${dueVocabList.length > 0 ? "bg-red-50 border border-red-100" : "bg-green-50 border border-green-100"}`}>
-              <Text className={`text-xs font-bold ${dueVocabList.length > 0 ? "text-red-600" : "text-green-600"}`}>
-                {dueVocabList.length} từ đến hạn
-              </Text>
-            </View>
+            <Badge
+              label={`${dueVocabList.length} từ đến hạn`}
+              variant={dueVocabList.length > 0 ? "red" : "green"}
+            />
           </View>
           <View className="flex-row justify-between items-center">
             <Text className="text-zinc-600 text-sm font-medium">Tổng số từ học tập:</Text>
             <Text className="text-zinc-900 text-sm font-bold">{vocabList.length} từ</Text>
           </View>
-        </View>
+        </Card>
 
         {/* Mode Selector */}
         <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-2 ml-1">Chọn chế độ ôn tập</Text>
         <View className="flex-row justify-between gap-3 mb-8">
           {/* Flashcard Option */}
           <TouchableOpacity
-            onPress={() => setReviewMode("flashcard")}
+            onPress={() => {
+              triggerHaptic('selection');
+              setReviewMode("flashcard");
+            }}
             className={`flex-1 border p-4 rounded-2xl items-center ${reviewMode === "flashcard"
-                ? "bg-black border-black shadow-sm"
-                : "bg-white border-zinc-200"
-              }`}
+              ? "bg-black border-black shadow-sm"
+              : "bg-white border-zinc-200"
+            }`}
           >
             <BookOpen size={24} color={reviewMode === "flashcard" ? "#ffffff" : "#000000"} />
             <Text className={`text-sm font-bold mt-2 ${reviewMode === "flashcard" ? "text-white" : "text-zinc-700"}`}>
@@ -291,11 +286,14 @@ export default function ReviewScreen() {
 
           {/* Spelling Option */}
           <TouchableOpacity
-            onPress={() => setReviewMode("spelling")}
+            onPress={() => {
+              triggerHaptic('selection');
+              setReviewMode("spelling");
+            }}
             className={`flex-1 border p-4 rounded-2xl items-center ${reviewMode === "spelling"
-                ? "bg-black border-black shadow-sm"
-                : "bg-white border-zinc-200"
-              }`}
+              ? "bg-black border-black shadow-sm"
+              : "bg-white border-zinc-200"
+            }`}
           >
             <Keyboard size={24} color={reviewMode === "spelling" ? "#ffffff" : "#000000"} />
             <Text className={`text-sm font-bold mt-2 ${reviewMode === "spelling" ? "text-white" : "text-zinc-700"}`}>
@@ -308,15 +306,13 @@ export default function ReviewScreen() {
         </View>
 
         {/* Start Button */}
-        <TouchableOpacity
-          onPress={startSession}
+        <Button
+          title="Bắt đầu ôn tập"
           disabled={vocabList.length === 0}
-          className={`w-full h-14 rounded-xl flex-row items-center justify-center shadow-lg shadow-black/10 mb-6 ${vocabList.length === 0 ? "bg-zinc-300" : "bg-black active:bg-zinc-800"
-            }`}
-        >
-          <Text className="text-white text-base font-bold mr-2">Bắt đầu ôn tập</Text>
-          <ArrowRight size={18} color="#ffffff" />
-        </TouchableOpacity>
+          onPress={startSession}
+          icon={<ArrowRight size={18} color="#ffffff" />}
+          className="mb-6"
+        />
 
         {vocabList.length === 0 && (
           <Text className="text-red-500 text-xs text-center">
@@ -327,7 +323,6 @@ export default function ReviewScreen() {
     );
   };
 
-  // Render Review State
   const renderReview = () => {
     const currentItem = sessionItems[currentIndex];
     if (!currentItem) return null;
@@ -356,17 +351,16 @@ export default function ReviewScreen() {
           /* ==================== FLASHCARD MODE ==================== */
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => setIsFlipped(!isFlipped)}
+            onPress={() => {
+              triggerHaptic('light');
+              setIsFlipped(!isFlipped);
+            }}
             className="flex-1 bg-white border border-zinc-200 rounded-3xl p-6 items-center justify-center shadow-sm shadow-zinc-200/40 my-4 min-h-[320px]"
           >
             {!isFlipped ? (
               /* FRONT CARD */
               <View className="w-full flex-1 items-center justify-between py-6">
-                <View className="bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200/50">
-                  <Text className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
-                    Mặt trước
-                  </Text>
-                </View>
+                <Badge label="Mặt trước" variant="zinc" />
 
                 <View className="items-center w-full px-4">
                   <Text className="text-3xl font-extrabold text-zinc-900 text-center select-text">
@@ -378,15 +372,17 @@ export default function ReviewScreen() {
                     </Text>
                   ) : null}
 
-                  <TouchableOpacity
+                  <Button
+                    variant="ghost"
+                    hapticType="light"
                     onPress={(e) => {
                       e.stopPropagation(); // prevent flipping
                       speakWord(currentItem.word);
                     }}
+                    title=""
+                    icon={<Volume2 size={20} color="#000000" />}
                     className="bg-zinc-100 p-3 rounded-full active:bg-zinc-200 mt-6"
-                  >
-                    <Volume2 size={20} color="#000000" />
-                  </TouchableOpacity>
+                  />
                 </View>
 
                 <View className="flex-row items-center justify-center">
@@ -403,11 +399,7 @@ export default function ReviewScreen() {
                 showsVerticalScrollIndicator={false}
                 className="w-full py-6"
               >
-                <View className="bg-zinc-950 px-3 py-1 rounded-full border border-zinc-800">
-                  <Text className="text-white text-[10px] font-bold uppercase tracking-wider">
-                    Mặt sau
-                  </Text>
-                </View>
+                <Badge label="Mặt sau" variant="dark" />
 
                 <View className="items-center w-full my-6 px-4">
                   <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1.5">
@@ -417,21 +409,19 @@ export default function ReviewScreen() {
                     {currentItem.meaning}
                   </Text>
 
-                  <View className="bg-zinc-100 border border-zinc-200/60 px-3 py-1 rounded-full mt-4">
-                    <Text className="text-zinc-600 text-xs font-bold">
-                      {getWordTypeLabel(currentItem.word_type)}
-                    </Text>
+                  <View className="mt-4">
+                    <Badge label={getWordTypeLabel(currentItem.word_type)} variant="zinc" />
                   </View>
 
                   {currentItem.notes ? (
-                    <View className="bg-zinc-50 border border-zinc-100 p-4 rounded-xl mt-6 w-full">
+                    <Card variant="flat" className="p-4 mt-6 w-full mb-0">
                       <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
                         Ghi chú
                       </Text>
                       <Text className="text-zinc-600 text-sm text-center leading-relaxed">
                         {currentItem.notes}
                       </Text>
-                    </View>
+                    </Card>
                   ) : null}
                 </View>
 
@@ -446,17 +436,13 @@ export default function ReviewScreen() {
           </TouchableOpacity>
         ) : (
           /* ==================== SPELLING MODE ==================== */
-          <View className="flex-1 bg-white border border-zinc-200 rounded-3xl p-6 justify-between my-4 min-h-[320px] shadow-sm shadow-zinc-200/40">
+          <Card className="flex-1 justify-between my-4 min-h-[320px] p-6 mb-0">
             <ScrollView
               contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}
               showsVerticalScrollIndicator={false}
               className="w-full"
             >
-              <View className="bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200/50 mb-4">
-                <Text className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
-                  Hãy viết từ tiếng Anh tương ứng
-                </Text>
-              </View>
+              <Badge label="Hãy viết từ tiếng Anh tương ứng" variant="zinc" className="mb-4" />
 
               <View className="items-center w-full my-4 px-4">
                 <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
@@ -466,56 +452,57 @@ export default function ReviewScreen() {
                   {currentItem.meaning}
                 </Text>
 
-                <View className="bg-zinc-100 border border-zinc-200/60 px-3 py-1 rounded-full mb-6">
-                  <Text className="text-zinc-600 text-xs font-bold">
-                    {getWordTypeLabel(currentItem.word_type)}
-                  </Text>
+                <View className="mb-6">
+                  <Badge label={getWordTypeLabel(currentItem.word_type)} variant="zinc" />
                 </View>
 
                 {/* Speaker pronunciation helper */}
-                <TouchableOpacity
+                <Button
+                  variant="secondary"
+                  hapticType="light"
                   onPress={() => speakWord(currentItem.word)}
-                  className="bg-zinc-100 p-4 rounded-full active:bg-zinc-200 mb-6 flex-row items-center gap-2 px-6"
-                >
-                  <Volume2 size={20} color="#000000" />
-                  <Text className="text-zinc-800 text-xs font-bold">Nghe phát âm</Text>
-                </TouchableOpacity>
+                  title="Nghe phát âm"
+                  icon={<Volume2 size={20} color="#000000" />}
+                  className="mb-6 flex-row items-center gap-2 px-6 h-12 w-auto"
+                />
 
-                {/* TextInput for answer */}
-                <View className="w-full">
-                  <TextInput
-                    value={spellingInput}
-                    onChangeText={setSpellingInput}
-                    placeholder="Nhập từ tiếng Anh..."
-                    placeholderTextColor="#a1a1aa"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!spellingChecked}
-                    textAlign="center"
-                    className={`w-full border h-14 rounded-xl px-4 font-bold text-lg text-zinc-900 ${spellingChecked
-                        ? isSpellingCorrect
-                          ? "bg-green-50 border-green-300"
-                          : "bg-red-50 border-red-300"
-                        : "bg-zinc-50/50 border-zinc-200"
-                      }`}
-                  />
-                </View>
+                {/* Input for answer */}
+                <Input
+                  value={spellingInput}
+                  onChangeText={text => {
+                    if (!spellingChecked) {
+                      setSpellingInput(text);
+                    }
+                  }}
+                  placeholder="Nhập từ tiếng Anh..."
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!spellingChecked}
+                  inputClassName="text-center font-bold text-lg"
+                  className={
+                    spellingChecked
+                      ? isSpellingCorrect
+                        ? "bg-green-50 border-green-300"
+                        : "bg-red-50 border-red-300"
+                      : ""
+                  }
+                />
 
                 {/* Explanation / Correction feedback */}
                 {spellingChecked && (
                   <View className="w-full mt-4">
                     {isSpellingCorrect ? (
-                      <View className="bg-green-50 border border-green-200 p-3.5 rounded-xl items-center">
+                      <Card variant="green" className="p-3.5 rounded-xl items-center mb-0">
                         <Text className="text-green-800 text-sm font-bold">Chính xác!</Text>
-                      </View>
+                      </Card>
                     ) : (
-                      <View className="bg-red-50 border border-red-200 p-3.5 rounded-xl items-center">
+                      <Card variant="red" className="p-3.5 rounded-xl items-center mb-0">
                         <Text className="text-red-800 text-xs font-bold uppercase tracking-wider">Từ đúng là:</Text>
                         <Text className="text-red-900 text-lg font-black mt-0.5">{currentItem.word}</Text>
                         {currentItem.pronunciation ? (
                           <Text className="text-red-700 text-sm italic mt-0.5">{currentItem.pronunciation}</Text>
                         ) : null}
-                      </View>
+                      </Card>
                     )}
                   </View>
                 )}
@@ -524,57 +511,53 @@ export default function ReviewScreen() {
 
             {/* Check Button for spelling */}
             {!spellingChecked && (
-              <TouchableOpacity
-                onPress={checkSpellingAnswer}
+              <Button
+                title="Kiểm tra"
                 disabled={!spellingInput.trim()}
-                className={`w-full h-12 rounded-xl items-center justify-center mt-4 ${!spellingInput.trim() ? "bg-zinc-200" : "bg-black active:bg-zinc-800"
-                  }`}
-              >
-                <Text className={`text-sm font-bold ${!spellingInput.trim() ? "text-zinc-400" : "text-white"}`}>
-                  Kiểm tra
-                </Text>
-              </TouchableOpacity>
+                onPress={checkSpellingAnswer}
+                className="mt-4 h-12"
+              />
             )}
-          </View>
+          </Card>
         )}
 
         {/* Action Buttons (Submit results to SRS) */}
         {reviewMode === "flashcard" ? (
           /* Buttons for Flashcards mode */
-          <View className="flex-row w-full justify-between space-x-4 mb-4">
-            <TouchableOpacity
+          <View className="flex-row w-full justify-between gap-4 mb-4 mt-2">
+            <Button
+              variant="outline"
+              hapticType="none" // handle custom in handleAnswerSubmit
               onPress={() => handleAnswerSubmit(false)}
-              className="flex-1 border border-zinc-200 bg-white h-14 rounded-xl flex-row items-center justify-center active:bg-zinc-50"
-            >
-              <X size={18} color="#ef4444" />
-              <Text className="text-zinc-700 text-base font-bold ml-2">Chưa thuộc</Text>
-            </TouchableOpacity>
+              title="Chưa thuộc"
+              icon={<X size={18} color="#ef4444" />}
+              className="flex-1 h-14"
+            />
 
-            <TouchableOpacity
+            <Button
+              variant="primary"
+              hapticType="none" // handle custom in handleAnswerSubmit
               onPress={() => handleAnswerSubmit(true)}
-              className="flex-1 bg-black h-14 rounded-xl flex-row items-center justify-center active:bg-zinc-800"
-            >
-              <Check size={18} color="#ffffff" />
-              <Text className="text-white text-base font-bold ml-2">Đã thuộc</Text>
-            </TouchableOpacity>
+              title="Đã thuộc"
+              icon={<Check size={18} color="#ffffff" />}
+              className="flex-1 h-14"
+            />
           </View>
         ) : (
           /* Action Buttons for spelling mode after checking */
           spellingChecked && (
-            <TouchableOpacity
+            <Button
               onPress={() => handleAnswerSubmit(isSpellingCorrect)}
-              className="w-full bg-black h-14 rounded-xl flex-row items-center justify-center mb-4 active:bg-zinc-800"
-            >
-              <Text className="text-white text-base font-bold mr-2">Tiếp theo</Text>
-              <ArrowRight size={18} color="#ffffff" />
-            </TouchableOpacity>
+              title="Tiếp theo"
+              icon={<ArrowRight size={18} color="#ffffff" />}
+              className="mb-4 mt-2 h-14"
+            />
           )
         )}
       </View>
     );
   };
 
-  // Render Result State
   const renderResult = () => {
     const ratio = score / sessionItems.length;
     const isExcellent = ratio >= 0.8;
@@ -594,7 +577,7 @@ export default function ReviewScreen() {
         </View>
 
         {/* Results Info Box */}
-        <View className="bg-white border border-zinc-200 rounded-2xl p-6 mb-8 shadow-sm shadow-zinc-100/50 items-center">
+        <Card className="items-center p-6 mb-8">
           <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-1">
             Số từ đã thuộc lượt này
           </Text>
@@ -604,10 +587,10 @@ export default function ReviewScreen() {
           <Text className="text-zinc-500 text-xs mt-2">
             Đạt tỉ lệ chính xác {Math.round(ratio * 100)}%
           </Text>
-        </View>
+        </Card>
 
         {/* Streak Increment Result Message */}
-        <View className="bg-orange-50/50 border border-orange-100 p-5 rounded-2xl mb-8 items-center flex-row">
+        <Card variant="orange" className="p-5 mb-8 items-center flex-row">
           <View className="mr-3">
             <Flame size={32} color="#f97316" />
           </View>
@@ -617,46 +600,32 @@ export default function ReviewScreen() {
               Mục tiêu học ngày hôm nay: {currentUser?.words_reviewed_today || 0}/{currentUser?.daily_target || 10} từ.
             </Text>
           </View>
-        </View>
+        </Card>
 
         {/* End-game Action Buttons */}
-        <View className="space-y-4">
-          <TouchableOpacity
+        <View className="gap-3">
+          <Button
             onPress={startSession}
-            className="w-full bg-black h-14 rounded-xl items-center justify-center active:bg-zinc-800"
-          >
-            <Text className="text-white text-base font-bold">Ôn tập tiếp lượt mới</Text>
-          </TouchableOpacity>
+            title="Ôn tập tiếp lượt mới"
+          />
 
-          <TouchableOpacity
+          <Button
+            variant="outline"
             onPress={async () => {
               await loadData(true);
               setGameState("start");
             }}
-            className="w-full border border-zinc-200 bg-white h-14 rounded-xl items-center justify-center active:bg-zinc-50"
-          >
-            <Text className="text-zinc-700 text-base font-bold">Quay lại trang chủ</Text>
-          </TouchableOpacity>
+            title="Quay lại trang chủ"
+          />
         </View>
       </View>
     );
   };
 
   return (
-    <View style={{ paddingTop: insets.top }} className="flex-1 bg-zinc-50/60">
-      <StatusBar barStyle="dark-content" />
-
+    <ScreenWrapper scroll={false}>
       {/* Top Header Bar */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1">
-          <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-            Xin chào, {user?.name || "Học viên"}
-          </Text>
-          <Text className="text-2xl font-bold text-zinc-900 tracking-tight mt-0.5">
-            Ôn Tập Từ Vựng
-          </Text>
-        </View>
-      </View>
+      <Header title="Ôn Tập Từ Vựng" />
 
       {/* Main Container */}
       {loading ? (
@@ -671,6 +640,6 @@ export default function ReviewScreen() {
           {gameState === "result" && renderResult()}
         </View>
       )}
-    </View>
+    </ScreenWrapper>
   );
 }

@@ -87,3 +87,14 @@ export async function reviewVocabulary(
 export async function fetchUserProfile(token: string | null): Promise<User> {
   return apiFetch<User>("/users/me", { token, method: "GET" });
 }
+
+export async function updateUserProfile(
+  data: { name?: string; daily_target?: number },
+  token: string | null
+): Promise<User> {
+  return apiFetch<User>("/users/me", {
+    token,
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}

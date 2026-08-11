@@ -1,14 +1,33 @@
 import React from "react";
-import { View, Text, StatusBar, TouchableOpacity, ScrollView, Switch, Platform } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LogOut, Flame, Sparkles, Check, Volume2, User, Settings, Bell } from "lucide-react-native";
+import { View, Text, Switch, Platform, ScrollView } from "react-native";
+import { LogOut, Flame, Sparkles, Volume2, Settings, Bell, User as UserIcon, Target, Plus, Minus } from "lucide-react-native";
 import { useAuth } from "../context/AuthContext";
 import { useSettings, SpeechAccent } from "../context/SettingsContext";
 import * as Speech from "expo-speech";
 import { scheduleTestNotification } from "../api/notificationService";
+import { ScreenWrapper } from "../components/ScreenWrapper";
+import { Header } from "../components/Header";
+import { Button, triggerHaptic } from "../components/Button";
+import { Card } from "../components/Card";
+import { updateUserProfile } from "../api/client";
 
 export default function SettingScreen() {
-  const { user, logout } = useAuth();
+  const { user, token, login, logout } = useAuth();
+
+  const handleTargetChange = async (newTarget: number) => {
+    if (newTarget < 1) return;
+    try {
+      const updatedUser = await updateUserProfile({ daily_target: newTarget }, token);
+      if (token) {
+        await login(token, updatedUser);
+      }
+      triggerHaptic('success');
+    } catch (err) {
+      console.error("Lỗi khi cập nhật mục tiêu hàng ngày:", err);
+      triggerHaptic('error');
+    }
+  };
+
   const {
     accent,
     speechRate,
@@ -19,11 +38,9 @@ export default function SettingScreen() {
     setReminderEnabled,
     setReminderInterval,
   } = useSettings();
-  const insets = useSafeAreaInsets();
 
   const handleAccentChange = async (newAccent: SpeechAccent) => {
     await setAccent(newAccent);
-    // Play test speech automatically so user can hear the pronunciation difference
     const testPhrase = newAccent === "en-US" ? "Welcome" : "Welcome";
     Speech.speak(testPhrase, {
       language: newAccent,
@@ -41,7 +58,6 @@ export default function SettingScreen() {
     });
   };
 
-  // Get user avatar initials
   const getInitials = (name: string) => {
     if (!name) return "U";
     return name
@@ -53,230 +69,242 @@ export default function SettingScreen() {
   };
 
   return (
-    <View style={{ paddingTop: insets.top }} className="flex-1 bg-zinc-50/60">
-      <StatusBar barStyle="dark-content" />
-
+    <ScreenWrapper scroll={false}>
       {/* Top Header Bar */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1">
-          <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-            Cấu hình ứng dụng
-          </Text>
-          <Text className="text-2xl font-bold text-zinc-900 tracking-tight mt-0.5">
-            Cài Đặt
-          </Text>
+      <Header title="Cài Đặt" />
+
+      <ScrollView 
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Card */}
+      <Card className="mt-4">
+        <View className="flex-row items-center">
+          <Card variant="dark" className="h-16 w-16 items-center justify-center p-0 rounded-2xl mb-0">
+            <Text className="text-white text-xl font-bold">
+              {getInitials(user?.name || "Học Viên")}
+            </Text>
+          </Card>
+          <View className="ml-4 flex-1">
+            <Text className="text-zinc-900 text-lg font-bold">
+              {user?.name || "Học viên"}
+            </Text>
+            <Text className="text-zinc-400 text-xs mt-0.5">
+              @{user?.username || "username"}
+            </Text>
+          </View>
         </View>
+
+        {/* Stats Bar */}
+        <View className="flex-row border-t border-zinc-100 mt-5 pt-4">
+          <View className="flex-1 flex-row items-center justify-center border-r border-zinc-100">
+            <Flame size={18} color="#f97316" />
+            <View className="ml-2">
+              <Text className="text-zinc-900 text-sm font-bold">
+                {user?.current_streak || 0} ngày
+              </Text>
+              <Text className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">
+                Học liên tục
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-1 flex-row items-center justify-center">
+            <Sparkles size={18} color="#a855f7" />
+            <View className="ml-2">
+              <Text className="text-zinc-900 text-sm font-bold">
+                {user?.words_reviewed_today || 0} từ
+              </Text>
+              <Text className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">
+                Đã học hôm nay
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Card>
+
+      {/* Section Title - Mục tiêu ngày */}
+      <View className="flex-row items-center mb-3">
+        <Target size={14} color="#71717a" />
+        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
+          Mục tiêu học tập
+        </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}>
-        {/* Profile Card */}
-        <View className="bg-white border border-zinc-200/80 rounded-3xl p-6 mb-6 shadow-sm shadow-zinc-100/50">
-          <View className="flex-row items-center">
-            <View className="h-16 w-16 bg-zinc-900 rounded-2xl items-center justify-center shadow-md shadow-zinc-900/10">
-              <Text className="text-white text-xl font-bold">
-                {getInitials(user?.name || "Học Viên")}
-              </Text>
-            </View>
-            <View className="ml-4 flex-1">
-              <Text className="text-zinc-900 text-lg font-bold">
-                {user?.name || "Học viên"}
-              </Text>
-              <Text className="text-zinc-400 text-xs mt-0.5">
-                @{user?.username || "username"}
-              </Text>
-            </View>
-          </View>
-
-          {/* Stats Bar */}
-          <View className="flex-row border-t border-zinc-100 mt-5 pt-4">
-            <View className="flex-1 flex-row items-center justify-center border-r border-zinc-100">
-              <Flame size={18} color="#f97316" />
-              <View className="ml-2">
-                <Text className="text-zinc-900 text-sm font-bold">
-                  {user?.current_streak || 0} ngày
-                </Text>
-                <Text className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">
-                  Học liên tục
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-1 flex-row items-center justify-center">
-              <Sparkles size={18} color="#a855f7" />
-              <View className="ml-2">
-                <Text className="text-zinc-900 text-sm font-bold">
-                  {user?.words_reviewed_today || 0} từ
-                </Text>
-                <Text className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">
-                  Đã học hôm nay
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Section Title */}
-        <View className="flex-row items-center mb-3">
-          <Settings size={14} color="#71717a" />
-          <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
-            Cài đặt phát âm (TTS)
-          </Text>
-        </View>
-
-        {/* Accent Selection */}
-        <View className="bg-white border border-zinc-200/80 rounded-3xl p-5 mb-6 shadow-sm shadow-zinc-100/50">
-          <Text className="text-zinc-800 text-sm font-bold mb-3">Giọng đọc tiếng Anh</Text>
+      {/* Daily Target Selection */}
+      <Card>
+        <Text className="text-zinc-800 text-sm font-bold mb-3">Mục tiêu ôn tập mỗi ngày</Text>
+        <Text className="text-zinc-400 text-xs mb-4">
+          Số lượng từ vựng bạn muốn ôn tập tối thiểu hàng ngày.
+        </Text>
+        
+        <View className="flex-row items-center justify-between bg-zinc-50/50 border border-zinc-200/80 rounded-2xl p-4">
+          <Button
+            variant="outline"
+            hapticType="none"
+            onPress={() => handleTargetChange((user?.daily_target || 10) - 1)}
+            disabled={user ? user.daily_target <= 1 : true}
+            title=""
+            icon={<Minus size={18} color={user && user.daily_target <= 1 ? "#a1a1aa" : "#09090b"} />}
+            className="w-12 h-12 rounded-full border-zinc-200/80 bg-white"
+          />
           
-          <View className="flex-row space-x-3 gap-3">
-            <TouchableOpacity
-              onPress={() => handleAccentChange("en-US")}
-              className={`flex-1 flex-row items-center justify-between px-4 py-3.5 rounded-2xl border ${
-                accent === "en-US"
-                  ? "bg-black border-black"
-                  : "bg-zinc-50 border-zinc-200"
-              }`}
-            >
-              <View className="flex-row items-center">
-                <Volume2 size={16} color={accent === "en-US" ? "#ffffff" : "#71717a"} />
-                <Text className={`text-sm font-bold ml-2 ${accent === "en-US" ? "text-white" : "text-zinc-700"}`}>
-                  Giọng Anh - Mỹ (US)
-                </Text>
-              </View>
-              {accent === "en-US" && <Check size={16} color="#ffffff" />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => handleAccentChange("en-GB")}
-              className={`flex-1 flex-row items-center justify-between px-4 py-3.5 rounded-2xl border ${
-                accent === "en-GB"
-                  ? "bg-black border-black"
-                  : "bg-zinc-50 border-zinc-200"
-              }`}
-            >
-              <View className="flex-row items-center">
-                <Volume2 size={16} color={accent === "en-GB" ? "#ffffff" : "#71717a"} />
-                <Text className={`text-sm font-bold ml-2 ${accent === "en-GB" ? "text-white" : "text-zinc-700"}`}>
-                  Giọng Anh - Anh (UK)
-                </Text>
-              </View>
-              {accent === "en-GB" && <Check size={16} color="#ffffff" />}
-            </TouchableOpacity>
+          <View className="flex-row items-baseline justify-center">
+            <Text className="text-3xl font-black text-zinc-900">
+              {user?.daily_target || 10}
+            </Text>
+            <Text className="text-zinc-400 text-xs font-bold uppercase tracking-wider ml-1.5">
+              Từ / Ngày
+            </Text>
           </View>
-        </View>
-
-        {/* Speed Rate Selection */}
-        <View className="bg-white border border-zinc-200/80 rounded-3xl p-5 mb-6 shadow-sm shadow-zinc-100/50">
-          <Text className="text-zinc-800 text-sm font-bold mb-3">Tốc độ phát âm</Text>
           
-          <View className="flex-row space-x-2 gap-2">
-            {[
-              { label: "Chậm (0.75x)", value: 0.75 },
-              { label: "Bình thường (0.9x)", value: 0.9 },
-              { label: "Nhanh (1.1x)", value: 1.1 },
-            ].map((item) => {
-              const isSelected = speechRate === item.value;
-              return (
-                <TouchableOpacity
-                  key={item.value}
-                  onPress={() => handleRateChange(item.value)}
-                  className={`flex-1 py-3.5 rounded-xl border items-center justify-center ${
-                    isSelected
-                      ? "bg-black border-black"
-                      : "bg-zinc-50 border-zinc-200"
-                  }`}
-                >
-                  <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-zinc-600"}`}>
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          <Button
+            variant="outline"
+            hapticType="none"
+            onPress={() => handleTargetChange((user?.daily_target || 10) + 1)}
+            title=""
+            icon={<Plus size={18} color="#09090b" />}
+            className="w-12 h-12 rounded-full border-zinc-200/80 bg-white"
+          />
+        </View>
+      </Card>
+
+      {/* Section Title */}
+      <View className="flex-row items-center mb-3">
+        <Settings size={14} color="#71717a" />
+        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
+          Cài đặt phát âm (TTS)
+        </Text>
+      </View>
+
+      {/* Accent Selection */}
+      <Card>
+        <Text className="text-zinc-800 text-sm font-bold mb-3">Giọng đọc tiếng Anh</Text>
+        
+        <View className="flex-row gap-3">
+          <Button
+            variant={accent === "en-US" ? "primary" : "outline"}
+            onPress={() => handleAccentChange("en-US")}
+            title="Anh - Mỹ (US)"
+            icon={<Volume2 size={16} color={accent === "en-US" ? "#ffffff" : "#71717a"} />}
+            className="flex-1 h-12"
+            textClassName="text-xs"
+          />
+
+          <Button
+            variant={accent === "en-GB" ? "primary" : "outline"}
+            onPress={() => handleAccentChange("en-GB")}
+            title="Anh - Anh (UK)"
+            icon={<Volume2 size={16} color={accent === "en-GB" ? "#ffffff" : "#71717a"} />}
+            className="flex-1 h-12"
+            textClassName="text-xs"
+          />
+        </View>
+      </Card>
+
+      {/* Speed Rate Selection */}
+      <Card>
+        <Text className="text-zinc-800 text-sm font-bold mb-3">Tốc độ phát âm</Text>
+        
+        <View className="flex-row gap-2">
+          {[
+            { label: "Chậm (0.75x)", value: 0.75 },
+            { label: "Thường (0.9x)", value: 0.9 },
+            { label: "Nhanh (1.1x)", value: 1.1 },
+          ].map((item) => {
+            const isSelected = speechRate === item.value;
+            return (
+              <Button
+                key={item.value}
+                variant={isSelected ? "primary" : "outline"}
+                onPress={() => handleRateChange(item.value)}
+                title={item.label}
+                className="flex-1 h-11"
+                textClassName="text-xs"
+              />
+            );
+          })}
+        </View>
+      </Card>
+
+      {/* Vocabulary Reminders Options */}
+      <View className="flex-row items-center mb-3">
+        <Bell size={14} color="#71717a" />
+        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
+          Nhắc nhở học từ vựng
+        </Text>
+      </View>
+
+      {/* Toggle Reminder Switch */}
+      <Card>
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-1 pr-4">
+            <Text className="text-zinc-800 text-sm font-bold">Thông báo nhắc nhở</Text>
+            <Text className="text-zinc-400 text-xs mt-1">
+              Tự động gửi thông báo kèm nghĩa & phiên âm từ vựng cần học định kỳ trên màn hình khóa.
+            </Text>
           </View>
+          <Switch
+            value={reminderEnabled}
+            onValueChange={setReminderEnabled}
+            trackColor={{ false: "#e4e4e7", true: "#000000" }}
+            thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
+          />
         </View>
 
-        {/* Vocabulary Reminders Options */}
-        <View className="flex-row items-center mb-3">
-          <Bell size={14} color="#71717a" />
-          <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
-            Nhắc nhở học từ vựng
-          </Text>
-        </View>
-
-        {/* Toggle Reminder Switch */}
-        <View className="bg-white border border-zinc-200/80 rounded-3xl p-5 mb-6 shadow-sm shadow-zinc-100/50">
-          <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-1 pr-4">
-              <Text className="text-zinc-800 text-sm font-bold">Thông báo nhắc nhở</Text>
-              <Text className="text-zinc-400 text-xs mt-1">
-                Tự động gửi thông báo kèm nghĩa & phiên âm từ vựng cần học định kỳ trên màn hình khóa.
-              </Text>
+        {reminderEnabled && (
+          <View className="border-t border-zinc-100 pt-4 mt-2">
+            <Text className="text-zinc-800 text-sm font-bold mb-3">Tần suất nhắc nhở</Text>
+            <View className="flex-row gap-2">
+              {[
+                { label: "Mỗi 2h", value: 2 },
+                { label: "Mỗi 4h", value: 4 },
+                { label: "Mỗi 8h", value: 8 },
+                { label: "Mỗi 12h", value: 12 },
+              ].map((item) => {
+                const isSelected = reminderInterval === item.value;
+                return (
+                  <Button
+                    key={item.value}
+                    variant={isSelected ? "primary" : "outline"}
+                    onPress={() => setReminderInterval(item.value)}
+                    title={item.label}
+                    className="flex-1 h-10"
+                    textClassName="text-xs"
+                  />
+                );
+              })}
             </View>
-            <Switch
-              value={reminderEnabled}
-              onValueChange={setReminderEnabled}
-              trackColor={{ false: "#e4e4e7", true: "#000000" }}
-              thumbColor={Platform.OS === "android" ? "#ffffff" : undefined}
-            />
           </View>
+        )}
 
-          {reminderEnabled && (
-            <View className="border-t border-zinc-100 pt-4 mt-2">
-              <Text className="text-zinc-800 text-sm font-bold mb-3">Tần suất nhắc nhở</Text>
-              <View className="flex-row space-x-2 gap-2">
-                {[
-                  { label: "Mỗi 2h", value: 2 },
-                  { label: "Mỗi 4h", value: 4 },
-                  { label: "Mỗi 8h", value: 8 },
-                  { label: "Mỗi 12h", value: 12 },
-                ].map((item) => {
-                  const isSelected = reminderInterval === item.value;
-                  return (
-                    <TouchableOpacity
-                      key={item.value}
-                      onPress={() => setReminderInterval(item.value)}
-                      className={`flex-1 py-3 rounded-xl border items-center justify-center ${
-                        isSelected
-                          ? "bg-black border-black"
-                          : "bg-zinc-50 border-zinc-200"
-                      }`}
-                    >
-                      <Text className={`text-xs font-bold ${isSelected ? "text-white" : "text-zinc-600"}`}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
+        {/* Test Notification Button */}
+        {reminderEnabled && (
+          <Button
+            variant="outline"
+            onPress={scheduleTestNotification}
+            title="🔔 Gửi thử thông báo kiểm tra (sau 3s)"
+            className="mt-4 h-12"
+            textClassName="text-xs"
+          />
+        )}
+      </Card>
 
-          {/* Test Notification Button */}
-          {reminderEnabled && (
-            <TouchableOpacity
-              onPress={scheduleTestNotification}
-              className="mt-4 bg-zinc-100/80 border border-zinc-200/50 py-3 rounded-2xl items-center justify-center active:bg-zinc-200/50"
-            >
-              <Text className="text-zinc-700 text-xs font-bold">🔔 Gửi thử thông báo kiểm tra (sau 3s)</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      {/* System Options */}
+      <View className="flex-row items-center mb-3">
+        <UserIcon size={14} color="#71717a" />
+        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
+          Hệ thống
+        </Text>
+      </View>
 
-        {/* System Options */}
-        <View className="flex-row items-center mb-3">
-          <User size={14} color="#71717a" />
-          <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1.5">
-            Hệ thống
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          onPress={logout}
-          className="bg-white border border-red-100 rounded-3xl p-5 flex-row items-center justify-center shadow-sm shadow-red-50/30 active:bg-red-50/30"
-        >
-          <LogOut size={18} color="#ef4444" />
-          <Text className="text-red-500 font-bold text-base ml-2">Đăng xuất tài khoản</Text>
-        </TouchableOpacity>
+      <Button
+        variant="danger"
+        onPress={logout}
+        title="Đăng xuất tài khoản"
+        icon={<LogOut size={18} color="#ffffff" />}
+      />
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }

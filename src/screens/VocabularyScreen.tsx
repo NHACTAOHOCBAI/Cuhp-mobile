@@ -3,13 +3,10 @@ import {
   View,
   Text,
   FlatList,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
 import {
   Search,
@@ -22,6 +19,12 @@ import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
 import { fetchVocabularies } from "../api/client";
 import { VocabularyItem } from "../types";
+import { ScreenWrapper } from "../components/ScreenWrapper";
+import { Header } from "../components/Header";
+import { Input } from "../components/Input";
+import { Card } from "../components/Card";
+import { Badge } from "../components/Badge";
+import { Button } from "../components/Button";
 
 const WORD_TYPES = [
   { value: "all", label: "Tất cả" },
@@ -36,53 +39,24 @@ const WORD_TYPES = [
   { value: "other", label: "Khác" },
 ] as const;
 
-// Grayscale Badge helper for Light theme
-const getWordTypeStyle = (type?: string | null) => {
+const getWordTypeLabel = (type?: string | null) => {
   const normalized = type?.toLowerCase() || "";
-  let label = "Khác";
-
   switch (normalized) {
-    case "noun":
-      label = "Danh từ";
-      break;
-    case "verb":
-      label = "Động từ";
-      break;
-    case "adjective":
-      label = "Tính từ";
-      break;
-    case "adverb":
-      label = "Trạng từ";
-      break;
-    case "pronoun":
-      label = "Đại từ";
-      break;
-    case "preposition":
-      label = "Giới từ";
-      break;
-    case "conjunction":
-      label = "Liên từ";
-      break;
-    case "interjection":
-      label = "Thán từ";
-      break;
-    case "other":
-      label = "Khác";
-      break;
+    case "noun": return "Danh từ";
+    case "verb": return "Động từ";
+    case "adjective": return "Tính từ";
+    case "adverb": return "Trạng từ";
+    case "pronoun": return "Đại từ";
+    case "preposition": return "Giới từ";
+    case "conjunction": return "Liên từ";
+    case "interjection": return "Thán từ";
+    default: return "Khác";
   }
-
-  return {
-    bg: "bg-zinc-100",
-    border: "border-zinc-200/60",
-    text: "text-zinc-600",
-    label,
-  };
 };
 
 export default function VocabularyScreen() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const { accent, speechRate } = useSettings();
-  const insets = useSafeAreaInsets();
 
   // State
   const [items, setItems] = useState<VocabularyItem[]>([]);
@@ -161,22 +135,24 @@ export default function VocabularyScreen() {
   };
 
   const renderItem = ({ item }: { item: VocabularyItem }) => {
-    const style = getWordTypeStyle(item.word_type);
+    const wordTypeLabel = getWordTypeLabel(item.word_type);
 
     return (
-      <View className="bg-white border border-zinc-200/80 rounded-2xl p-5 mb-4 shadow-sm shadow-zinc-100/50">
+      <Card className="mb-4">
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-1 pr-4">
             <View className="flex-row items-center flex-wrap">
               <Text className="text-xl font-bold text-zinc-900 mr-3">
                 {item.word}
               </Text>
-              <TouchableOpacity
+              <Button
+                variant="ghost"
+                hapticType="light"
                 onPress={() => speakWord(item.word)}
+                title=""
+                icon={<Volume2 size={16} color="#000000" />}
                 className="bg-zinc-100 p-2 rounded-full active:bg-zinc-200"
-              >
-                <Volume2 size={16} color="#000000" />
-              </TouchableOpacity>
+              />
             </View>
             {item.pronunciation ? (
               <Text className="text-zinc-500 text-sm italic mt-1 font-medium">
@@ -185,11 +161,7 @@ export default function VocabularyScreen() {
             ) : null}
           </View>
 
-          <View className={`${style.bg} border ${style.border} px-3 py-1 rounded-full`}>
-            <Text className={`${style.text} text-xs font-semibold`}>
-              {style.label}
-            </Text>
-          </View>
+          <Badge label={wordTypeLabel} variant="zinc" />
         </View>
 
         <View className="border-t border-zinc-100 pt-3 mt-2">
@@ -202,37 +174,39 @@ export default function VocabularyScreen() {
         </View>
 
         {item.notes ? (
-          <View className="bg-zinc-50 border border-zinc-100/80 p-3 rounded-xl mt-3">
+          <Card variant="flat" className="p-3 mt-3 mb-0 rounded-xl">
             <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
               Ghi chú
             </Text>
             <Text className="text-zinc-600 text-sm leading-relaxed">
               {item.notes}
             </Text>
-          </View>
+          </Card>
         ) : null}
-      </View>
+      </Card>
     );
   };
 
   const renderHeader = () => (
     <View className="mb-4">
-      {/* Search Input - Light theme style */}
-      <View className="flex-row items-center bg-white border border-zinc-200 rounded-2xl px-4 h-14 mb-4 shadow-sm shadow-zinc-100/30">
-        <Search size={20} color="#71717a" />
-        <TextInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Tìm kiếm từ vựng..."
-          placeholderTextColor="#a1a1aa"
-          className="flex-1 text-zinc-900 ml-3 text-base h-full"
-        />
-        {searchQuery ? (
-          <TouchableOpacity onPress={() => setSearchQuery("")} className="p-1">
-            <X size={18} color="#71717a" />
-          </TouchableOpacity>
-        ) : null}
-      </View>
+      {/* Search Input */}
+      <Input
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Tìm kiếm từ vựng..."
+        icon={<Search size={20} color="#71717a" />}
+        rightElement={
+          searchQuery ? (
+            <Button
+              variant="ghost"
+              hapticType="selection"
+              onPress={() => setSearchQuery("")}
+              title=""
+              icon={<X size={18} color="#71717a" />}
+            />
+          ) : undefined
+        }
+      />
 
       {/* Horizontal Word Types Slider */}
       <View className="flex-row items-center mb-2">
@@ -253,14 +227,14 @@ export default function VocabularyScreen() {
             <TouchableOpacity
               onPress={() => setSelectedType(item.value)}
               className={`mr-2.5 px-4 py-2.5 rounded-full border ${isSelected
-                  ? "bg-black border-black"
-                  : "bg-white border-zinc-200"
-                }`}
+                ? "bg-black border-black"
+                : "bg-white border-zinc-200"
+              }`}
             >
               <Text
                 numberOfLines={1}
                 className={`text-sm font-bold ${isSelected ? "text-white" : "text-zinc-500"
-                  }`}
+                }`}
               >
                 {item.label}
               </Text>
@@ -300,24 +274,13 @@ export default function VocabularyScreen() {
   };
 
   return (
-    <View style={{ paddingTop: insets.top }} className="flex-1 bg-zinc-50/60">
-      <StatusBar barStyle="dark-content" />
-
+    <ScreenWrapper scroll={false}>
       {/* Top Header Bar */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-100 bg-white">
-        <View className="flex-1">
-          <Text className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-            Xin chào, {user?.name || "Học viên"}
-          </Text>
-          <Text className="text-2xl font-bold text-zinc-900 tracking-tight mt-0.5">
-            Sổ Từ Vựng
-          </Text>
-        </View>
-      </View>
+      <Header title="Sổ Từ Vựng" />
 
       {/* Main List */}
       {loading && page === 1 ? (
-        <View className="flex-1 justify-center items-center">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#000000" />
           <Text className="text-zinc-500 text-sm mt-3 font-medium">Đang tải danh sách từ vựng...</Text>
         </View>
@@ -342,6 +305,6 @@ export default function VocabularyScreen() {
           onEndReachedThreshold={0.25}
         />
       )}
-    </View>
+    </ScreenWrapper>
   );
 }
