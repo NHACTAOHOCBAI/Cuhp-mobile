@@ -27,6 +27,7 @@ export interface VocabularyItem {
   meaning: string;
   word_type?: string | null;
   notes?: string | null;
+  context_sentence?: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;

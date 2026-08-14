@@ -413,6 +413,17 @@ export default function ReviewScreen() {
                     <Badge label={getWordTypeLabel(currentItem.word_type)} variant="zinc" />
                   </View>
 
+                  {currentItem.context_sentence ? (
+                    <Card variant="flat" className="p-4 mt-6 w-full mb-0 bg-zinc-50 border-zinc-100">
+                      <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1 text-center">
+                        Ngữ cảnh (Câu chứa từ)
+                      </Text>
+                      <Text className="text-zinc-700 text-sm text-center italic leading-relaxed">
+                        "{currentItem.context_sentence}"
+                      </Text>
+                    </Card>
+                  ) : null}
+
                   {currentItem.notes ? (
                     <Card variant="flat" className="p-4 mt-6 w-full mb-0">
                       <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">

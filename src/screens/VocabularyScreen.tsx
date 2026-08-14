@@ -173,6 +173,17 @@ export default function VocabularyScreen() {
           </Text>
         </View>
 
+        {item.context_sentence ? (
+          <Card variant="flat" className="p-3 mt-3 mb-0 rounded-xl bg-zinc-50 border-zinc-100">
+            <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
+              Ngữ cảnh (Câu chứa từ)
+            </Text>
+            <Text className="text-zinc-700 text-sm italic leading-relaxed">
+              "{item.context_sentence}"
+            </Text>
+          </Card>
+        ) : null}
+
         {item.notes ? (
           <Card variant="flat" className="p-3 mt-3 mb-0 rounded-xl">
             <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">
