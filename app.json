@@ -16,7 +16,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.phuc20112005.mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +31,11 @@
           "color": "#18181b"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9ab44a75-2924-48cd-9048-4204efedca7b"
+      }
+    }
   }
 }

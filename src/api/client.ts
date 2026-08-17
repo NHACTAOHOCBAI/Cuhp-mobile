@@ -1,6 +1,6 @@
 import { VocabularyListParams, VocabularyListResponse, User, VocabularyReviewResponse } from "../types";
 
-export const API_URL = "http://localhost:8000/api/v1";
+export const API_URL = "https://cuhp-backend.onrender.com/api/v1";
 
 interface FetchOptions extends RequestInit {
   token?: string | null;
