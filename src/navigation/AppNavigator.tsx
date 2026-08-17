@@ -1,9 +1,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { BookOpen, Headphones, Brain, Settings } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { Colors } from '../theme';
 import LoginScreen from '../screens/LoginScreen';
 import VocabularyScreen from '../screens/VocabularyScreen';
 import ListeningScreen from '../screens/ListeningScreen';
@@ -42,11 +43,11 @@ const MainTabNavigator = () => {
           }
           return null;
         },
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#a1a1aa',
+        tabBarActiveTintColor: Colors.foreground,
+        tabBarInactiveTintColor: Colors.iconMuted,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#e4e4e7',
+          backgroundColor: Colors.background,
+          borderTopColor: Colors.border,
           borderTopWidth: 1,
         },
         tabBarLabelStyle: {
@@ -79,17 +80,13 @@ const MainTabNavigator = () => {
   );
 };
 
-
-// Platform helper for tabbar padding
-import { Platform } from 'react-native';
-
 export const AppNavigator = () => {
   const { token, loading } = useAuth();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
-        <ActivityIndicator size="large" color="#000000" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
+        <ActivityIndicator size="large" color={Colors.foreground} />
       </View>
     );
   }

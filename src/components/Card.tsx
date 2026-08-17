@@ -8,32 +8,36 @@ interface CardProps {
   style?: StyleProp<ViewStyle>;
 }
 
+/**
+ * Card applies no outer spacing (no implicit margin).
+ * Pass `className="mb-6"` (or stack the parent with `gap-y-*`) to control layout.
+ */
 export const Card: React.FC<CardProps> = ({
   children,
   variant = 'default',
   className = '',
   style,
 }) => {
-  let cardStyles = 'rounded-3xl p-5 mb-6 border';
+  let cardStyles = 'rounded-3xl p-5 border';
 
   switch (variant) {
     case 'default':
-      cardStyles += ' bg-white border-zinc-200/80 shadow-sm shadow-zinc-100/50';
+      cardStyles += ' bg-card border-border shadow-sm shadow-border';
       break;
     case 'flat':
-      cardStyles += ' bg-zinc-50 border-zinc-200';
+      cardStyles += ' bg-muted border-border';
       break;
     case 'dark':
-      cardStyles += ' bg-zinc-950 border-zinc-800 shadow-sm shadow-black/10';
+      cardStyles += ' bg-foreground border-foreground shadow-sm shadow-primary/20';
       break;
     case 'orange':
-      cardStyles += ' bg-orange-50/50 border-orange-100';
+      cardStyles += ' bg-streak-soft border-streak-border';
       break;
     case 'red':
-      cardStyles += ' bg-red-50 border-red-200';
+      cardStyles += ' bg-destructive/10 border-destructive/30';
       break;
     case 'green':
-      cardStyles += ' bg-green-50 border-green-200';
+      cardStyles += ' bg-success/10 border-success/30';
       break;
   }
 

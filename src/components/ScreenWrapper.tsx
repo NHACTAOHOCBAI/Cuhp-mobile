@@ -1,13 +1,19 @@
 import React from 'react';
 import { View, ScrollView, ActivityIndicator, Text, StatusBar, StyleProp, ViewStyle, RefreshControlProps } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
+import { Colors } from '../theme';
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
   scroll?: boolean;
   refreshControl?: React.ReactElement<RefreshControlProps>;
   keyboardShouldPersistTaps?: 'handled' | 'always' | 'never';
+  /**
+   * @deprecated Render a `<LoadingState />` inside `children` instead.
+   * Kept temporarily for backward compatibility with existing screens.
+   */
   loading?: boolean;
+  /** @deprecated Use `<LoadingState message={...} />` instead. */
   loadingMessage?: string;
   edges?: Edge[];
   className?: string;
@@ -30,17 +36,17 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   contentContainerClassName = '',
 }) => {
   return (
-    <SafeAreaView 
-      edges={edges} 
-      className={`flex-1 bg-zinc-50/60 ${className}`} 
-      style={[{ flex: 1, backgroundColor: '#f4f4f5' }, style]}
+    <SafeAreaView
+      edges={edges}
+      className={`flex-1 bg-muted ${className}`}
+      style={[{ flex: 1, backgroundColor: Colors.muted }, style]}
     >
       <StatusBar barStyle="dark-content" />
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#000000" />
+          <ActivityIndicator size="large" color={Colors.foreground} />
           {loadingMessage ? (
-            <Text className="text-zinc-500 text-sm mt-3 font-medium">{loadingMessage}</Text>
+            <Text className="text-muted-foreground text-sm mt-3 font-medium">{loadingMessage}</Text>
           ) : null}
         </View>
       ) : scroll ? (

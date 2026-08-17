@@ -8,6 +8,11 @@ interface BadgeProps {
   textClassName?: string;
 }
 
+/**
+ * Compact pill label. Variants provide background + text + border tokens.
+ * Caller controls placement; Badge applies no outer spacing.
+ */
+
 export const Badge: React.FC<BadgeProps> = ({
   label,
   variant = 'zinc',
@@ -19,20 +24,20 @@ export const Badge: React.FC<BadgeProps> = ({
 
   switch (variant) {
     case 'zinc':
-      badgeStyles += ' bg-zinc-100 border-zinc-200/60';
-      textStyles += ' text-zinc-600';
+      badgeStyles += ' bg-muted border-border';
+      textStyles += ' text-muted-foreground';
       break;
     case 'dark':
-      badgeStyles += ' bg-zinc-950 border-zinc-800';
-      textStyles += ' text-white';
+      badgeStyles += ' bg-foreground border-foreground';
+      textStyles += ' text-on-dark';
       break;
     case 'red':
-      badgeStyles += ' bg-red-50 border-red-100';
-      textStyles += ' text-red-600';
+      badgeStyles += ' bg-destructive/10 border-destructive/30';
+      textStyles += ' text-destructive';
       break;
     case 'green':
-      badgeStyles += ' bg-green-50 border-green-100';
-      textStyles += ' text-green-600';
+      badgeStyles += ' bg-success/10 border-success/30';
+      textStyles += ' text-success';
       break;
   }
 

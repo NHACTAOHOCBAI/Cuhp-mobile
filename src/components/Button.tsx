@@ -1,8 +1,25 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, GestureResponderEvent, View } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  GestureResponderEvent,
+  View,
+} from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { Colors } from '../theme';
 
-export const triggerHaptic = async (type: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error' = 'light') => {
+export type HapticType =
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'selection'
+  | 'success'
+  | 'warning'
+  | 'error';
+
+export const triggerHaptic = async (type: HapticType | 'none' = 'light') => {
+  if (type === 'none') return;
   try {
     switch (type) {
       case 'light':
@@ -32,18 +49,34 @@ export const triggerHaptic = async (type: 'light' | 'medium' | 'heavy' | 'select
   }
 };
 
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'danger'
+  | 'ghost';
+
 interface ButtonProps {
   onPress?: (event: GestureResponderEvent) => void;
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+  variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
   className?: string;
   textClassName?: string;
   icon?: React.ReactNode;
-  hapticType?: 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error' | 'none';
+  hapticType?: HapticType | 'none';
 }
 
+/**
+ * Low-level Button. Defaults are applied unconditionally:
+ *  - non-ghost: w-full, h-14, rounded-xl, shadow-lg shadow-primary/20
+ *  - ghost:     rounded-full, no shadow
+ * Pass `className` to override (appended last so caller wins).
+ *
+ * For common, opinionated usage prefer the convenience exports:
+ * `ButtonPrimary`, `ButtonOutline`, `ButtonSecondary`, `ButtonDanger`.
+ */
 export const Button: React.FC<ButtonProps> = ({
   onPress,
   title,
@@ -57,45 +90,43 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const handlePress = (event: GestureResponderEvent) => {
     if (disabled || loading) return;
-    
+
     if (hapticType !== 'none') {
       triggerHaptic(hapticType);
     }
-    
+
     if (onPress) {
       onPress(event);
     }
   };
 
-  let btnStyles = 'rounded-xl flex-row items-center justify-center';
-  
-  if (!className.includes('w-') && !className.includes('flex-1')) {
-    btnStyles += ' w-full';
-  }
-  if (!className.includes('h-')) {
-    btnStyles += ' h-14';
-  }
-  if (!className.includes('shadow-')) {
-    btnStyles += ' shadow-lg shadow-black/10';
-  }
+  const isGhost = variant === 'ghost';
+
+  let btnStyles = isGhost
+    ? 'rounded-full flex-row items-center justify-center active:bg-muted'
+    : 'w-full h-14 rounded-xl flex-row items-center justify-center shadow-lg shadow-primary/20';
 
   let textStyles = 'text-base font-bold';
 
   if (variant === 'primary') {
-    btnStyles += disabled ? ' bg-zinc-300 shadow-none' : ' bg-black active:bg-zinc-800';
-    textStyles += ' text-white';
+    btnStyles += disabled ? ' bg-muted shadow-none' : ' bg-primary active:bg-secondary';
+    textStyles += ' text-primary-foreground';
   } else if (variant === 'secondary') {
-    btnStyles += disabled ? ' bg-zinc-100 border border-zinc-200' : ' bg-zinc-100 active:bg-zinc-200';
-    textStyles += ' text-zinc-800';
+    btnStyles += disabled ? ' bg-muted border border-border' : ' bg-muted active:bg-muted-foreground/10';
+    textStyles += ' text-foreground';
   } else if (variant === 'outline') {
-    btnStyles += disabled ? ' bg-white border border-zinc-200 opacity-50' : ' bg-white border border-zinc-200 active:bg-zinc-50';
-    textStyles += ' text-zinc-700';
+    btnStyles = `w-full h-14 rounded-xl flex-row items-center justify-center ${
+      disabled
+        ? 'bg-background border border-border opacity-50'
+        : 'bg-background border border-border active:bg-muted'
+    }`;
+    textStyles += ' text-foreground';
   } else if (variant === 'danger') {
-    btnStyles += disabled ? ' bg-red-200' : ' bg-red-600 active:bg-red-700';
-    textStyles += ' text-white';
+    btnStyles += disabled ? ' bg-destructive/40' : ' bg-destructive active:bg-destructive/80';
+    textStyles += ' text-destructive-foreground';
   } else if (variant === 'ghost') {
-    btnStyles = 'flex-row items-center justify-center p-2 rounded-full active:bg-zinc-100 shadow-none';
-    textStyles += ' text-zinc-600';
+    btnStyles += ' p-2';
+    textStyles += ' text-muted-foreground';
   }
 
   return (
@@ -106,11 +137,17 @@ export const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' || variant === 'ghost' ? '#000000' : '#ffffff'} />
+        <ActivityIndicator
+          color={
+            variant === 'outline' || variant === 'ghost'
+              ? Colors.foreground
+              : Colors.primaryForeground
+          }
+        />
       ) : (
         <>
           {icon ? (
-            <View className={title ? "mr-2" : ""}>
+            <View className={title ? 'mr-2' : ''}>
               {icon}
             </View>
           ) : null}
@@ -122,3 +159,23 @@ export const Button: React.FC<ButtonProps> = ({
     </TouchableOpacity>
   );
 };
+
+// ---------- Convenience exports ----------
+
+interface VariantButtonProps extends Omit<ButtonProps, 'variant'> {}
+
+export const ButtonPrimary: React.FC<VariantButtonProps> = (props) => (
+  <Button {...props} variant="primary" />
+);
+
+export const ButtonSecondary: React.FC<VariantButtonProps> = (props) => (
+  <Button {...props} variant="secondary" />
+);
+
+export const ButtonOutline: React.FC<VariantButtonProps> = (props) => (
+  <Button {...props} variant="outline" />
+);
+
+export const ButtonDanger: React.FC<VariantButtonProps> = (props) => (
+  <Button {...props} variant="danger" />
+);
