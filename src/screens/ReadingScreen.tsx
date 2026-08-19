@@ -7,10 +7,10 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Search, X, Headphones, Filter } from 'lucide-react-native';
+import { Search, X, BookOpen, Filter } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
-import { fetchAudios } from '../api/client';
-import type { AudioListItem } from '../types';
+import { fetchReadingPassages } from '../api/client';
+import type { ReadingPassage } from '../types';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
@@ -18,8 +18,6 @@ import { IconButton } from '../components/IconButton';
 import { ChipGroup } from '../components/ChipGroup';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { Header } from '../components/Header';
-import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Colors } from '../theme';
 
 const LEVEL_OPTIONS = [
@@ -29,15 +27,11 @@ const LEVEL_OPTIONS = [
   { value: 'hard', label: 'Khó' }
 ];
 
-interface ListeningScreenProps {
-  hideHeader?: boolean;
-}
-
-export default function ListeningScreen({ hideHeader = false }: ListeningScreenProps) {
+export default function ReadingScreen() {
   const { token } = useAuth();
   const navigation = useNavigation<any>();
 
-  const [items, setItems] = useState<AudioListItem[]>([]);
+  const [items, setItems] = useState<ReadingPassage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,7 +53,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
 
     try {
       const levelParam = selectedLevel === 'all' ? undefined : selectedLevel;
-      const response = await fetchAudios(
+      const response = await fetchReadingPassages(
         {
           page: pageNum,
           page_size: 10,
@@ -80,7 +74,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
       setHasMore(loadedCount < response.total);
       setPage(pageNum);
     } catch (error) {
-      console.error('Lỗi tải danh sách bài nghe:', error);
+      console.error('Lỗi tải danh sách bài đọc:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -129,18 +123,14 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
     }
   };
 
-  const formatDuration = (seconds: number) => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  const renderItem = ({ item }: { item: ReadingPassage }) => {
+    // Trích dẫn 120 ký tự đầu tiên của bài viết làm mô tả ngắn
+    const excerpt = item.content.length > 120 ? item.content.substring(0, 120) + '...' : item.content;
 
-  const renderItem = ({ item }: { item: AudioListItem }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('ListeningDetail', { audioId: item.id })}
+        onPress={() => navigation.navigate('ReadingDetail', { passageId: item.id })}
       >
         <Card className="mb-4 p-5">
           <View className="flex-row justify-between items-start mb-2">
@@ -150,20 +140,13 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
             <Badge label={getLevelLabel(item.level)} variant={getLevelVariant(item.level)} />
           </View>
 
-          {item.description ? (
-            <Text className="text-muted-foreground text-xs leading-normal mb-3">
-              {item.description}
-            </Text>
-          ) : null}
+          <Text className="text-muted-foreground text-xs leading-normal mb-3">
+            {excerpt}
+          </Text>
 
           <View className="flex-row justify-between items-center border-t border-border/50 pt-2">
-            <View className="flex-row items-center">
-              <Badge label={item.category || 'Chung'} variant="zinc" className="mr-2" />
-              <Text className="text-muted-foreground text-[10px] font-semibold">
-                Thời lượng: {formatDuration(item.duration)}
-              </Text>
-            </View>
-            <Text className="text-foreground text-xs font-semibold">Nghe bài ngay →</Text>
+            <Badge label={item.category || 'Chung'} variant="zinc" />
+            <Text className="text-foreground text-xs font-semibold">Đọc bài ngay →</Text>
           </View>
         </Card>
       </TouchableOpacity>
@@ -176,7 +159,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
         <Input
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Tìm kiếm bài nghe..."
+          placeholder="Tìm kiếm bài đọc..."
           icon={<Search size={20} color={Colors.iconMuted} />}
           rightElement={
             searchQuery ? (
@@ -216,21 +199,21 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
     if (loading) return null;
     return (
       <EmptyState
-        icon={<Headphones size={28} color={Colors.iconMuted} />}
-        title="Không tìm thấy bài nghe nào"
+        icon={<BookOpen size={28} color={Colors.iconMuted} />}
+        title="Không tìm thấy bài đọc nào"
         body={
           searchQuery || selectedLevel !== 'all'
             ? 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc độ khó.'
-            : 'Hệ thống hiện tại chưa cập nhật tài liệu bài nghe nào.'
+            : 'Hệ thống hiện tại chưa cập nhật tài liệu bài đọc nào.'
         }
       />
     );
   };
 
-  const content = (
+  return (
     <View className="flex-1 bg-background">
       {loading && page === 1 ? (
-        <LoadingState message="Đang tải danh sách bài nghe..." />
+        <LoadingState message="Đang tải danh sách bài đọc..." />
       ) : (
         <FlatList
           data={items}
@@ -253,16 +236,5 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
         />
       )}
     </View>
-  );
-
-  if (hideHeader) {
-    return content;
-  }
-
-  return (
-    <ScreenWrapper scroll={false}>
-      <Header title="Luyện Nghe" />
-      {content}
-    </ScreenWrapper>
   );
 }

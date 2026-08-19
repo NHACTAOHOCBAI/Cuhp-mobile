@@ -22,7 +22,7 @@ export const Card: React.FC<CardProps> = ({
 
   switch (variant) {
     case 'default':
-      cardStyles += ' bg-card border-border shadow-sm shadow-border';
+      cardStyles += ' bg-card border-border shadow-sm shadow-[#193665]/3';
       break;
     case 'flat':
       cardStyles += ' bg-muted border-border';

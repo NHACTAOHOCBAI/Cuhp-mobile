@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 
 interface BadgeProps {
   label: string;
-  variant?: 'zinc' | 'dark' | 'red' | 'green';
+  variant?: 'zinc' | 'dark' | 'red' | 'green' | 'yellow';
   className?: string;
   textClassName?: string;
 }
@@ -38,6 +38,10 @@ export const Badge: React.FC<BadgeProps> = ({
     case 'green':
       badgeStyles += ' bg-success/10 border-success/30';
       textStyles += ' text-success';
+      break;
+    case 'yellow':
+      badgeStyles += ' bg-warning/10 border-warning/30';
+      textStyles += ' text-warning';
       break;
   }
 

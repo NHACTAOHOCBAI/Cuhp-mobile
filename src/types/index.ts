@@ -59,5 +59,152 @@ export interface VocabularyReviewResponse {
   daily_target: number;
   current_streak: number;
   words_reviewed_today: number;
-  streak_incremented_today: boolean;
 }
+
+// --- AUDIO TYPES ---
+export interface AudioListItem {
+  id: string;
+  title: string;
+  level: "easy" | "medium" | "hard";
+  category: string;
+  duration: number; // in seconds
+  description?: string;
+  created_at: string;
+  has_transcript: boolean;
+}
+
+export interface AudioTrack {
+  id: string;
+  title: string;
+  audio_url: string;
+  level: "easy" | "medium" | "hard";
+  category: string;
+  duration: number;
+  description?: string;
+  transcript: string;
+  translation?: string;
+  created_at: string;
+}
+
+export interface AudioComment {
+  id: string;
+  audio_id: string;
+  user_id: string;
+  user_name: string;
+  content: string;
+  selected_text?: string | null;
+  created_at: string;
+}
+
+export interface AudioListResponse {
+  items: AudioListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+// --- READING TYPES ---
+export interface ReadingPassage {
+  id: string;
+  title: string;
+  content: string;
+  translation: string;
+  level: "easy" | "medium" | "hard";
+  category: string;
+  image_url?: string;
+  created_at: string;
+}
+
+export interface ReadingPassageListResponse {
+  items: ReadingPassage[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface TranslationPractice {
+  id: string;
+  user_id: string;
+  passage_id: string;
+  user_translation: string;
+  updated_at: string;
+}
+
+export interface ReadingComment {
+  id: string;
+  passage_id: string;
+  user_id: string;
+  user_name: string;
+  content: string;
+  created_at: string;
+}
+
+// --- TODO TYPES ---
+export type TodoQuadrant = "inbox" | "do" | "schedule" | "delegate" | "eliminate";
+
+export interface TodoTask {
+  id: string;
+  user_id: string;
+  title: string;
+  quadrant: TodoQuadrant;
+  due_date?: string | null; // YYYY-MM-DD
+  scheduled_date?: string | null; // YYYY-MM-DD
+  estimated_time?: number | null; // minutes
+  actual_time?: number | null; // minutes
+  completed: boolean;
+  completed_at?: string | null;
+  position: number;
+  created_at: string;
+}
+
+export interface TodoStats {
+  total: number;
+  completed: number;
+  pending: number;
+  by_quadrant: {
+    do: number;
+    schedule: number;
+    delegate: number;
+    eliminate: number;
+    inbox: number;
+  };
+  completion_rate: number;
+}
+
+// --- GYM TYPES ---
+export interface WorkoutCategory {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface WorkoutExercise {
+  id: string;
+  user_id: string;
+  name: string;
+  date: string; // YYYY-MM-DD
+  sets: number;
+  reps: number;
+  weight?: number | null; // kg
+  category_id?: string | null;
+  completed: boolean;
+  created_at: string;
+}
+
+export interface GymStats {
+  weekly_volume: Array<{
+    date: string;
+    volume: number;
+  }>;
+  exercise_progress: Array<{
+    exercise_name: string;
+    history: Array<{
+      date: string;
+      max_weight: number;
+      volume: number;
+    }>;
+  }>;
+}
+
