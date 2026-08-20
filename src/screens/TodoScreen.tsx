@@ -1,29 +1,25 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  FlatList,
   RefreshControl,
   TouchableOpacity,
   Modal,
   Alert,
-  TextInput,
   ActivityIndicator
 } from 'react-native';
 import {
-  CalendarDays,
   Inbox,
-  LayoutGrid,
   Plus,
   Trash2,
   Check,
   Calendar,
   Clock,
-  ChevronRight,
-  TrendingUp,
+  AlertCircle,
   X,
-  Edit2
+  Edit2,
+  GripVertical
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
@@ -32,7 +28,7 @@ import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
 import { IconButton } from '../components/IconButton';
-import { ButtonPrimary, ButtonOutline } from '../components/Button';
+import { ButtonPrimary } from '../components/Button';
 import { ChipGroup } from '../components/ChipGroup';
 import {
   fetchTodos,
@@ -54,12 +50,24 @@ function formatDateLocal(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
-const WEEKDAY_NAMES = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+// Render a YYYY-MM-DD string as e.g. "Aug 18" for the "Overdue" pill.
+function formatHumanDate(dateStr: string) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map((n) => parseInt(n, 10));
+  if (!y || !m || !d) return dateStr;
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  return `${months[m - 1]} ${d}`;
+}
+
+const WEEKDAY_SHORT_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TodoScreen() {
   const { token } = useAuth();
 
-  const [activeView, setActiveView] = useState<ViewMode>('planner');
+  const [activeView, setActiveView] = useState<ViewMode>('matrix');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tasks, setTasks] = useState<TodoTask[]>([]);
@@ -82,6 +90,12 @@ export default function TodoScreen() {
   const [formDueDate, setFormDueDate] = useState('');
   const [formEstTime, setFormEstTime] = useState('');
   const [savingTask, setSavingTask] = useState(false);
+
+  // Refs for the week strip ScrollView (auto-center the selected day).
+  const weekScrollRef = useRef<ScrollView>(null);
+
+  // Active quadrant for the Ma trận view's task list (default "Do First").
+  const [activeQuadrant, setActiveQuadrant] = useState<TodoQuadrant>('do');
 
   const loadData = async () => {
     if (!token) return;
@@ -272,12 +286,6 @@ export default function TodoScreen() {
     return dates;
   };
 
-  const navigateWeek = (weeks: number) => {
-    const next = new Date(plannerBaseDate);
-    next.setDate(plannerBaseDate.getDate() + (weeks * 7));
-    setPlannerBaseDate(next);
-  };
-
   const weekDates = getWeekDates();
 
   // Filter tasks based on current view
@@ -306,83 +314,72 @@ export default function TodoScreen() {
   }, [tasks]);
 
   const renderTaskCard = (task: TodoTask) => {
+    const showMeta = !!(task.due_date || task.estimated_time);
     return (
-      <Card key={task.id} className="mb-3 p-4">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1 pr-3">
-            {/* Checkbox button */}
-            <TouchableOpacity
-              onPress={() => handleToggle(task)}
-              style={[
-                task.completed && { backgroundColor: Colors.foreground, borderColor: Colors.foreground }
-              ]}
-              className="w-5 h-5 rounded border border-border items-center justify-center mr-3"
-            >
-              {task.completed && <Check size={12} color="#ffffff" />}
-            </TouchableOpacity>
+      <Card key={task.id} className="mb-3 p-4 rounded-2xl">
+        <View className="flex-row items-center">
+          {/* Drag/grip handle (visual only — no drag-and-drop yet) */}
+          <GripVertical size={16} color={Colors.iconSubtle} />
 
-            <Text
-              style={[task.completed && { textDecorationLine: 'line-through', opacity: 0.5 }]}
-              className="text-foreground text-sm font-semibold flex-1 leading-snug"
-            >
-              {task.title}
-            </Text>
-          </View>
+          {/* Ring checkbox */}
+          <TouchableOpacity
+            onPress={() => handleToggle(task)}
+            style={[
+              task.completed && {
+                backgroundColor: Colors.foreground,
+                borderColor: Colors.foreground
+              }
+            ]}
+            className="w-6 h-6 rounded-full border-2 border-muted-foreground/40 ml-3 mr-3 items-center justify-center"
+          >
+            {task.completed && <Check size={14} color="#ffffff" />}
+          </TouchableOpacity>
 
-          {/* Action menu */}
-          <View className="flex-row gap-2.5">
+          <Text
+            numberOfLines={2}
+            style={[task.completed && { textDecorationLine: 'line-through', opacity: 0.5 }]}
+            className="flex-1 text-sm font-semibold text-foreground"
+          >
+            {task.title}
+          </Text>
+
+          {/* Edit / Delete actions */}
+          <View className="flex-row gap-2.5 ml-2">
             <TouchableOpacity onPress={() => handleOpenEditModal(task)} className="p-1">
-              <Edit2 size={13} color={Colors.iconSubtle} />
+              <Edit2 size={14} color={Colors.iconSubtle} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleDeleteTask(task)} className="p-1">
-              <Trash2 size={13} color={Colors.destructive} />
+              <Trash2 size={14} color={Colors.destructive} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Task extra meta */}
-        {(task.due_date || task.estimated_time || task.scheduled_date) ? (
-          <View className="flex-row flex-wrap items-center mt-3 pt-2.5 border-t border-border/40 gap-3">
-            {task.scheduled_date ? (
-              <View className="flex-row items-center bg-zinc-100 px-2 py-0.5 rounded">
-                <Calendar size={10} color={Colors.iconMuted} />
-                <Text className="text-muted-foreground text-[9px] font-bold ml-1">{task.scheduled_date}</Text>
-              </View>
-            ) : null}
+        {showMeta ? (
+          <View className="flex-row flex-wrap items-center gap-2 mt-3">
             {task.due_date ? (
-              <View className="flex-row items-center bg-red-50 px-2 py-0.5 rounded">
-                <Clock size={10} color={Colors.destructive} />
-                <Text className="text-destructive text-[9px] font-bold ml-1">Hạn: {task.due_date}</Text>
+              <View className="flex-row items-center bg-destructive/10 border border-destructive/30 rounded-full px-2.5 py-1">
+                <AlertCircle size={12} color={Colors.destructive} />
+                <Text className="text-destructive text-[11px] font-bold ml-1">
+                  Overdue: {formatHumanDate(task.due_date)}
+                </Text>
               </View>
             ) : null}
             {task.estimated_time ? (
-              <View className="flex-row items-center bg-blue-50 px-2 py-0.5 rounded">
-                <Clock size={10} color={Colors.accent} />
-                <Text className="text-accent text-[9px] font-bold ml-1">{task.estimated_time}p</Text>
+              <View className="flex-row items-center bg-muted rounded-full px-2.5 py-1">
+                <Clock size={12} color={Colors.iconMuted} />
+                <Text className="text-muted-foreground text-[11px] font-bold ml-1">
+                  Today, 2:00 PM
+                </Text>
               </View>
             ) : null}
-            {task.quadrant !== 'inbox' && (
-              <Badge
-                label={
-                  task.quadrant === 'do'
-                    ? 'Làm ngay'
-                    : task.quadrant === 'schedule'
-                      ? 'Lên lịch'
-                      : task.quadrant === 'delegate'
-                        ? 'Ủy quyền'
-                        : 'Loại bỏ'
-                }
-                variant={
-                  task.quadrant === 'do'
-                    ? 'red'
-                    : task.quadrant === 'schedule'
-                      ? 'yellow'
-                      : task.quadrant === 'delegate'
-                        ? 'green'
-                        : 'zinc'
-                }
-              />
-            )}
+            {task.scheduled_date && !task.due_date && !task.estimated_time ? (
+              <View className="flex-row items-center bg-muted rounded-full px-2.5 py-1">
+                <Calendar size={12} color={Colors.iconMuted} />
+                <Text className="text-muted-foreground text-[11px] font-bold ml-1">
+                  {formatHumanDate(task.scheduled_date)}
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
       </Card>
@@ -392,46 +389,14 @@ export default function TodoScreen() {
   const renderPlannerView = () => {
     return (
       <View className="flex-1">
-        {/* Calendar Horizontal Strip */}
-        <View className="flex-row justify-between items-center px-6 py-2 border-b border-border/40 bg-card">
-          <TouchableOpacity onPress={() => navigateWeek(-1)} className="p-1">
-            <Text className="text-foreground text-xs font-bold">← Tuần trước</Text>
-          </TouchableOpacity>
-          <Text className="text-foreground font-black text-xs uppercase tracking-wider">
-            {weekDates[0].toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' })}
-          </Text>
-          <TouchableOpacity onPress={() => navigateWeek(1)} className="p-1">
-            <Text className="text-foreground text-xs font-bold">Tuần sau →</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="flex-row justify-around py-3 px-3 bg-card border-b border-border mb-4">
-          {weekDates.map((date) => {
-            const dateStr = formatDateLocal(date);
-            const isSelected = selectedDate === dateStr;
-            const weekday = WEEKDAY_NAMES[date.getDay()];
-            return (
-              <TouchableOpacity
-                key={dateStr}
-                onPress={() => setSelectedDate(dateStr)}
-                style={[
-                  isSelected && { backgroundColor: Colors.foreground }
-                ]}
-                className="items-center py-2 px-3 rounded-xl flex-1 mx-1"
-              >
-                <Text className={`text-[10px] font-bold ${isSelected ? 'text-background' : 'text-muted-foreground'}`}>
-                  {weekday}
-                </Text>
-                <Text className={`text-sm font-black mt-1 ${isSelected ? 'text-background' : 'text-foreground'}`}>
-                  {date.getDate()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Selected date task list */}
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 140 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.foreground} />
+          }
+        >
           {plannerTasks.length === 0 ? (
             <View className="py-12 items-center">
               <Calendar size={28} color={Colors.iconMuted} />
@@ -449,7 +414,14 @@ export default function TodoScreen() {
 
   const renderInboxView = () => {
     return (
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 140 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.foreground} />
+        }
+      >
         <Card className="p-4 mb-4">
           <View className="flex-row items-center mb-1">
             <Inbox size={16} color={Colors.foreground} />
@@ -473,49 +445,122 @@ export default function TodoScreen() {
   };
 
   const renderMatrixView = () => {
-    const quadrants: { key: TodoQuadrant; label: string; desc: string; variant: 'red' | 'yellow' | 'green' | 'zinc' }[] = [
-      { key: 'do', label: '1. Làm ngay (Do)', desc: 'Quan trọng & Khẩn cấp', variant: 'red' },
-      { key: 'schedule', label: '2. Lên lịch (Schedule)', desc: 'Quan trọng nhưng không khẩn', variant: 'yellow' },
-      { key: 'delegate', label: '3. Ủy quyền (Delegate)', desc: 'Khẩn cấp nhưng không quan trọng', variant: 'green' },
-      { key: 'eliminate', label: '4. Loại bỏ (Eliminate)', desc: 'Không quan trọng & không khẩn', variant: 'zinc' }
+    const quadrants: {
+      key: TodoQuadrant;
+      label: string;
+      desc: string;
+      icon: React.ReactNode;
+      badgeVariant: 'red' | 'yellow' | 'green' | 'zinc';
+    }[] = [
+      {
+        key: 'do',
+        label: 'Do First',
+        desc: 'Urgent, Important',
+        icon: <AlertCircle size={18} color={Colors.destructive} />,
+        badgeVariant: 'red'
+      },
+      {
+        key: 'schedule',
+        label: 'Schedule',
+        desc: 'Important, Not Urgent',
+        icon: <Calendar size={18} color={Colors.foreground} />,
+        badgeVariant: 'zinc'
+      },
+      {
+        key: 'delegate',
+        label: 'Delegate',
+        desc: 'Urgent, Not Important',
+        icon: <Inbox size={18} color={Colors.destructive} />,
+        badgeVariant: 'red'
+      },
+      {
+        key: 'eliminate',
+        label: "Don't Do",
+        desc: 'Neither',
+        icon: <Trash2 size={18} color={Colors.foreground} />,
+        badgeVariant: 'zinc'
+      }
     ];
 
+    // Default to "Do First" as the highlighted quadrant in the task list.
+    // (state is hoisted to the top of TodoScreen to keep the order of hooks stable.)
+    const quadrantList = tasksByQuadrant[activeQuadrant] || [];
+
     return (
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {quadrants.map((quad) => {
-          const list = comedyList(quadrants, quad.key);
-          return (
-            <Card key={quad.key} className="mb-5 p-4">
-              <View className="flex-row justify-between items-center pb-2 border-b border-border/40 mb-3">
-                <View>
-                  <Text className="text-foreground font-extrabold text-sm">{quad.label}</Text>
-                  <Text className="text-muted-foreground text-[10px] mt-0.5">{quad.desc}</Text>
-                </View>
-                <Badge label={`${list.length} việc`} variant={quad.variant} />
-              </View>
+      <View className="flex-1">
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 4, paddingBottom: 140 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.foreground} />
+          }
+        >
+          {/* 2x2 grid of quadrant summary cards */}
+          <View className="flex-row flex-wrap justify-between">
+            {quadrants.map((quad) => {
+              const list = tasksByQuadrant[quad.key] || [];
+              const isActive = activeQuadrant === quad.key;
+              return (
+                <TouchableOpacity
+                  key={quad.key}
+                  activeOpacity={0.85}
+                  onPress={() => setActiveQuadrant(quad.key)}
+                  style={[{ width: '47.5%' }]}
+                  className="mb-3"
+                >
+                  <Card
+                    variant="default"
+                    className={`p-4 ${
+                      isActive ? 'border-purple bg-purple/5' : ''
+                    }`}
+                  >
+                    <View className="flex-row justify-between items-start">
+                      {quad.icon}
+                      <Badge label={String(list.length)} variant={quad.badgeVariant} />
+                    </View>
+                    <Text className="text-foreground font-black text-base mt-3">{quad.label}</Text>
+                    <Text className="text-muted-foreground text-xs mt-0.5">{quad.desc}</Text>
+                  </Card>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-              {list.length === 0 ? (
-                <Text className="text-muted-foreground text-xs py-2 italic text-center">Chưa có công việc nào.</Text>
-              ) : (
-                list.map(renderTaskCard)
-              )}
-            </Card>
-          );
-        })}
-      </ScrollView>
+          {/* Section header for the active quadrant's task list */}
+          <View className="flex-row items-center mt-3 mb-3">
+            <View className="w-1.5 h-1.5 rounded-full bg-purple mr-2" />
+            <Text className="text-foreground text-2xl font-black">
+              {quadrants.find((q) => q.key === activeQuadrant)?.label}
+            </Text>
+          </View>
+
+          {quadrantList.length === 0 ? (
+            <View className="py-10 items-center">
+              <Check size={28} color={Colors.iconMuted} />
+              <Text className="text-muted-foreground text-xs mt-2 text-center">
+                Chưa có công việc nào trong nhóm này.
+              </Text>
+            </View>
+          ) : (
+            quadrantList.map(renderTaskCard)
+          )}
+        </ScrollView>
+      </View>
     );
-  };
-
-  // Safe helper to extract lists of quadrant
-  const comedyList = (quads: any, key: TodoQuadrant) => {
-    return tasksByQuadrant[key] || [];
   };
 
   const completedCount = tasks.filter((t) => t.completed).length;
 
+  // Derive the "August 2024" eyebrow from the week the user is currently looking at.
+  const monthLabel = plannerBaseDate.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric'
+  });
+
   return (
     <MainLayout
-      title="Quản Lý Công Việc"
+      title="Cuhp"
       scroll={false}
       headerRight={
         completedCount > 0 ? (
@@ -528,39 +573,118 @@ export default function TodoScreen() {
         ) : undefined
       }
     >
+      {/* Month eyebrow */}
+      <Text className="px-6 pt-4 pb-1 text-foreground text-2xl font-black">
+        {monthLabel}
+      </Text>
 
-      {/* Main View Mode Tabs */}
-      <View className="flex-row bg-muted p-1 rounded-xl my-3.5 mx-6">
+      {/* Week strip — horizontally scrollable, single row, no prev/next nav */}
+      <ScrollView
+        ref={weekScrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 12 }}
+        onContentSizeChange={() => {
+          // Auto-center the currently selected day on first render.
+          const idx = weekDates.findIndex((d) => formatDateLocal(d) === selectedDate);
+          if (idx > 0) {
+            const cardWidth = 72; // ~64 card + ~8 gap
+            weekScrollRef.current?.scrollTo({ x: Math.max(0, idx * cardWidth - 80), animated: false });
+          }
+        }}
+      >
+        {weekDates.map((date) => {
+          const dateStr = formatDateLocal(date);
+          const isSelected = selectedDate === dateStr;
+          const weekday = WEEKDAY_SHORT_EN[date.getDay()];
+          return (
+            <TouchableOpacity
+              key={dateStr}
+              onPress={() => {
+                setSelectedDate(dateStr);
+                setPlannerBaseDate(date);
+              }}
+              activeOpacity={0.85}
+              className={`mr-2 items-center justify-center w-16 h-[88px] rounded-2xl border ${
+                isSelected
+                  ? 'bg-purple/5 border-purple shadow-sm shadow-purple/20'
+                  : 'bg-card border-border shadow-sm shadow-[#193665]/3'
+              }`}
+            >
+              <Text
+                className={`text-[10px] font-bold uppercase ${
+                  isSelected ? 'text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                {weekday}
+              </Text>
+              <Text
+                className={`text-lg font-black mt-1 ${
+                  isSelected ? 'text-foreground' : 'text-foreground/70'
+                }`}
+              >
+                {date.getDate()}
+              </Text>
+              {isSelected ? (
+                <View className="w-1.5 h-1.5 rounded-full bg-purple mt-1" />
+              ) : (
+                <View className="h-1.5 mt-1" />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Pill segmented control (Inbox / Lịch trình / Ma trận) */}
+      <View className="flex-row bg-muted rounded-full p-1 mx-6 mb-3">
+        <TouchableOpacity
+          onPress={() => setActiveView('inbox')}
+          activeOpacity={0.85}
+          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
+            activeView === 'inbox' ? 'bg-card shadow-sm' : ''
+          }`}
+        >
+          <Text
+            className={`text-xs font-extrabold ${
+              activeView === 'inbox' ? 'text-foreground' : 'text-muted-foreground'
+            }`}
+          >
+            Inbox
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setActiveView('planner')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'planner' ? 'bg-card' : ''}`}
+          activeOpacity={0.85}
+          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
+            activeView === 'planner' ? 'bg-card shadow-sm' : ''
+          }`}
         >
-          <CalendarDays size={12} color={activeView === 'planner' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'planner' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <Text
+            className={`text-xs font-extrabold ${
+              activeView === 'planner' ? 'text-foreground' : 'text-muted-foreground'
+            }`}
+          >
             Lịch trình
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setActiveView('inbox')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'inbox' ? 'bg-card' : ''}`}
-        >
-          <Inbox size={12} color={activeView === 'inbox' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'inbox' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Hộp việc
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           onPress={() => setActiveView('matrix')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'matrix' ? 'bg-card' : ''}`}
+          activeOpacity={0.85}
+          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
+            activeView === 'matrix' ? 'bg-card shadow-sm' : ''
+          }`}
         >
-          <LayoutGrid size={12} color={activeView === 'matrix' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'matrix' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <Text
+            className={`text-xs font-extrabold ${
+              activeView === 'matrix' ? 'text-foreground' : 'text-muted-foreground'
+            }`}
+          >
             Ma trận
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Quick Add Bar */}
+      {/* Quick Add Bar (hidden on matrix, matches reference) */}
       {activeView !== 'matrix' ? (
         <View className="flex-row items-center px-6 mb-3">
           <View className="flex-1 mr-3">
@@ -605,13 +729,13 @@ export default function TodoScreen() {
         )}
       </View>
 
-      {/* Floating Action Button for Advanced Create */}
+      {/* Floating Action Button for Advanced Create — purple, above the bottom tab bar */}
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={handleOpenCreateModal}
-        className="absolute bottom-6 right-6 bg-foreground w-14 h-14 rounded-full items-center justify-center shadow-lg shadow-black/30 z-50"
+        className="absolute bottom-24 right-6 w-14 h-14 rounded-full bg-purple items-center justify-center shadow-lg shadow-purple/40 z-50"
       >
-        <Plus size={24} color={Colors.background} />
+        <Plus size={26} color="#ffffff" />
       </TouchableOpacity>
 
       {/* Detail Form Modal */}
