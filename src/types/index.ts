@@ -76,7 +76,7 @@ export interface AudioListItem {
 export interface AudioTrack {
   id: string;
   title: string;
-  audio_url: string;
+  url: string;
   level: "easy" | "medium" | "hard";
   category: string;
   duration: number;

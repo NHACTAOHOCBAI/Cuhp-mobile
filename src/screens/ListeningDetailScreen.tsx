@@ -41,7 +41,7 @@ export default function ListeningDetailScreen() {
   const [passage, setPassage] = useState<AudioTrack | null>(null);
 
   // Audio state
-  const player = useAudioPlayer(passage?.audio_url ?? null);
+  const player = useAudioPlayer(passage?.url ?? null);
   const status = useAudioPlayerStatus(player);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [progressWidth, setProgressWidth] = useState(0);
@@ -49,6 +49,13 @@ export default function ListeningDetailScreen() {
   const isPlaying = status.playing;
   const duration = (status.duration || 0) * 1000; // convert to ms for UI
   const position = (status.currentTime || 0) * 1000;
+
+  // Cập nhật nguồn âm thanh khi tải xong dữ liệu bài nghe
+  useEffect(() => {
+    if (passage?.url) {
+      player.replace(passage.url);
+    }
+  }, [passage?.url, player]);
 
   // Dictation state
   const [dictationInput, setDictationInput] = useState('');
