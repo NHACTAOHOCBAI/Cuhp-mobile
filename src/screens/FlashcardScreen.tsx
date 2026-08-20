@@ -335,7 +335,7 @@ export default function FlashcardScreen() {
           </Card>
 
           <View className="gap-3">
-            <ButtonPrimary onPress={restartSession} title="Ôn tập lượt mới" />
+            <ButtonPrimary onPress={restartSession} title="Ôn tập tiếp lượt mới" />
             <ButtonOutline
               onPress={() => navigation.goBack()}
               title="Quay lại trang chủ"
@@ -379,7 +379,7 @@ export default function FlashcardScreen() {
                 </Text>
               </View>
               <Text className="text-muted-foreground text-[11px] font-semibold mt-1.5">
-                Review: {currentIndex + 1}/{sessionItems.length}
+                Ôn tập: {currentIndex + 1}/{sessionItems.length}
               </Text>
             </View>
 
@@ -524,7 +524,7 @@ export default function FlashcardScreen() {
             variant="outline"
             hapticType="none"
             onPress={() => handleAnswer(false)}
-            title="Incorrect"
+            title="Chưa thuộc"
             className="flex-1 h-14 rounded-2xl"
             textClassName="text-destructive"
           />
@@ -532,7 +532,7 @@ export default function FlashcardScreen() {
             variant="primary"
             hapticType="none"
             onPress={() => handleAnswer(true)}
-            title="Correct"
+            title="Đã thuộc"
             className="flex-1 h-14 rounded-2xl bg-success active:bg-success/80 shadow-lg shadow-success/20"
             textClassName="text-success-foreground"
           />
