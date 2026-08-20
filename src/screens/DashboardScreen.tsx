@@ -12,7 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BookOpen,
   CheckCircle,
-  Bot
+  Bot,
+  Layers
 } from 'lucide-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
@@ -176,6 +177,16 @@ export default function DashboardScreen() {
             className="bg-[#006699] py-3.5 px-8 rounded-full w-full items-center active:opacity-90 shadow-sm"
           >
             <Text className="text-white font-bold text-base">Tiếp tục học</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Flashcard')}
+            className="bg-white border border-[#1936651a] py-3.5 px-6 rounded-full w-full items-center active:opacity-90 mt-3 flex-row justify-center"
+          >
+            <Layers size={16} color="#a855f7" />
+            <Text className="text-[#a855f7] font-bold text-base ml-2">
+              Học Flashcard
+            </Text>
           </TouchableOpacity>
         </Card>
 
