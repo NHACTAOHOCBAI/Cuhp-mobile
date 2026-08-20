@@ -72,7 +72,8 @@ export default function ReadingDetailScreen() {
 
       setPassage(passageData);
       if (translationData) {
-        setTranslationDraft(translationData.user_translation);
+        // Bảo vệ: user_translation có thể null/undefined khi backend trả về không đầy đủ
+        setTranslationDraft(translationData.user_translation || '');
       }
       setComments(commentsData || []);
     } catch (error) {
@@ -214,8 +215,11 @@ export default function ReadingDetailScreen() {
     if (!passage) return null;
 
     // Phân tách bài viết thành các đoạn văn
-    const enParagraphs = passage.content.split('\n\n').filter(Boolean);
-    const viParagraphs = passage.translation.split('\n\n').filter(Boolean);
+    // Bảo vệ: content/translation có thể là null/undefined khi backend không trả về đầy đủ
+    const safeContent = passage.content || '';
+    const safeTranslation = passage.translation || '';
+    const enParagraphs = safeContent.split('\n\n').filter(Boolean);
+    const viParagraphs = safeTranslation.split('\n\n').filter(Boolean);
 
     return (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 }}>
@@ -397,25 +401,28 @@ export default function ReadingDetailScreen() {
       <View className="flex-row bg-muted p-1 rounded-xl my-3 mx-6">
         <TouchableOpacity
           onPress={() => setActiveTab('content')}
-          className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'content' ? 'bg-card' : ''}`}
+          className="flex-1 py-2.5 rounded-xl items-center justify-center"
+          style={activeTab === 'content' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
-          <Text className={`text-[10px] font-extrabold ${activeTab === 'content' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'content' ? Colors.foreground : Colors.iconMuted }}>
             Đọc bài
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setActiveTab('translation')}
-          className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'translation' ? 'bg-card' : ''}`}
+          className="flex-1 py-2.5 rounded-xl items-center justify-center"
+          style={activeTab === 'translation' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
-          <Text className={`text-[10px] font-extrabold ${activeTab === 'translation' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'translation' ? Colors.foreground : Colors.iconMuted }}>
             Luyện dịch
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setActiveTab('comments')}
-          className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'comments' ? 'bg-card' : ''}`}
+          className="flex-1 py-2.5 rounded-xl items-center justify-center"
+          style={activeTab === 'comments' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
-          <Text className={`text-[10px] font-extrabold ${activeTab === 'comments' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'comments' ? Colors.foreground : Colors.iconMuted }}>
             Thảo luận ({comments.length})
           </Text>
         </TouchableOpacity>

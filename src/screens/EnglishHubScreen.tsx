@@ -180,29 +180,45 @@ export default function EnglishHubScreen() {
     );
   };
 
-  const subTabs: { key: SubTabKey; label: string; icon: any }[] = [
-    { key: 'vocabulary', label: 'Từ vựng', icon: BookMarked },
-    { key: 'review', label: 'Ôn tập', icon: Brain },
-    { key: 'reading', label: 'Bài đọc', icon: BookOpen },
-    { key: 'listening', label: 'Bài nghe', icon: Headphones },
+  const subTabs: { key: SubTabKey; label: string }[] = [
+    { key: 'vocabulary', label: 'Từ vựng' },
+    { key: 'reading', label: 'Bài đọc' },
+    { key: 'listening', label: 'Nghe' },
   ];
 
   return (
-    <MainLayout title="Học Tiếng Anh" scroll={false}>
+    <MainLayout title="Cuhp" scroll={false}>
+      {/* Screen Title */}
+      <Text className="text-[28px] font-black text-[#193665] px-6 pt-4 mb-3">
+        English Hub
+      </Text>
 
       {/* Segmented Control / Sub-tabs */}
-      <View className="flex-row bg-muted p-1 rounded-xl mb-2 mx-6">
+      <View className="flex-row bg-[#193665]/5 p-1 rounded-2xl mb-4 mx-6">
         {subTabs.map((tab) => {
           const isActive = activeTab === tab.key;
-          const Icon = tab.icon;
           return (
             <TouchableOpacity
               key={tab.key}
               onPress={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${isActive ? 'bg-card' : ''}`}
+              className="flex-1 py-2.5 rounded-xl items-center justify-center"
+              style={
+                isActive
+                  ? {
+                      backgroundColor: Colors.card,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 2,
+                      elevation: 2,
+                    }
+                  : undefined
+              }
             >
-              <Icon size={12} color={isActive ? Colors.foreground : Colors.iconMuted} />
-              <Text className={`text-[10px] font-extrabold ml-1 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <Text
+                className="text-xs font-bold"
+                style={{ color: isActive ? Colors.foreground : Colors.iconMuted }}
+              >
                 {tab.label}
               </Text>
             </TouchableOpacity>

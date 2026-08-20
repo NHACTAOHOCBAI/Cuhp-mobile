@@ -8,7 +8,8 @@ import {
   Modal,
   ScrollView,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
 import * as Speech from 'expo-speech';
 import {
@@ -16,15 +17,16 @@ import {
   Volume2,
   X,
   BookOpen,
-  Filter,
   Plus,
   Edit2,
   Trash2,
   Save,
-  SearchCode
+  SearchCode,
+  Zap
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import {
   fetchVocabularies,
   createVocabulary,
@@ -56,6 +58,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   const [items, setItems] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -63,7 +66,9 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
   const [hasMore, setHasMore] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all');
+
+  // Debounce search query để tránh gọi API trên mỗi keystroke (mobile-friendly)
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   // Modal State for Create/Edit
   const [modalOpen, setModalOpen] = useState(false);
@@ -92,13 +97,11 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
     }
 
     try {
-      const typeParam = selectedType === 'all' ? undefined : selectedType;
       const response = await fetchVocabularies(
         {
           page: pageNum,
           page_size: 10,
-          q: searchQuery || undefined,
-          word_type: typeParam,
+          q: debouncedSearchQuery || undefined,
         },
         token
       );
@@ -113,6 +116,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
       const loadedCount = (isRefresh ? 0 : items.length) + newItems.length;
       setHasMore(loadedCount < response.total);
       setPage(pageNum);
+      setInitialLoaded(true);
     } catch (error) {
       console.error('Lỗi tải từ vựng:', error);
     } finally {
@@ -124,7 +128,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   useEffect(() => {
     loadData(1);
-  }, [searchQuery, selectedType]);
+  }, [debouncedSearchQuery]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -190,6 +194,35 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
     }
   };
 
+  const handleMainLookup = async () => {
+    if (!searchQuery.trim()) return;
+    setLookupLoading(true);
+    try {
+      const result = await lookupVocabularyWord(searchQuery.trim(), token);
+      setEditingId(null);
+      setFormWord(searchQuery.trim());
+      setFormPronunciation(result.pronunciation || '');
+      setFormMeaning(result.meaning || '');
+      setFormWordType(result.word_type || 'noun');
+      setFormContext('');
+      setFormNotes('');
+      setModalOpen(true);
+    } catch (error) {
+      console.error(error);
+      setEditingId(null);
+      setFormWord(searchQuery.trim());
+      setFormPronunciation('');
+      setFormMeaning('');
+      setFormWordType('noun');
+      setFormContext('');
+      setFormNotes('');
+      setModalOpen(true);
+      Alert.alert('Không tìm thấy', 'Không thể tự động tra cứu từ này. Bạn vui lòng tự điền định nghĩa.');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const handleSaveVocab = async () => {
     if (!formWord.trim() || !formMeaning.trim()) {
       Alert.alert('Lỗi', 'Vui lòng điền đầy đủ Từ vựng và Ý nghĩa.');
@@ -244,111 +277,85 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
   };
 
   const renderItem = ({ item }: { item: VocabularyItem }) => {
-    const wordTypeLabel = getWordTypeLabel(item.word_type);
+    // Color mapping based on mockup (adjective -> sky blue, noun -> purple, verb -> green)
+    const getTypeColors = (type?: string | null) => {
+      const norm = type?.toLowerCase() || '';
+      if (norm === 'adjective') return { bg: 'bg-[#e5f3fb]', text: 'text-[#006699]' };
+      if (norm === 'noun') return { bg: 'bg-[#f3e8ff]', text: 'text-[#7c3aed]' };
+      if (norm === 'verb') return { bg: 'bg-[#e6f4ea]', text: 'text-[#137333]' };
+      if (norm === 'adverb') return { bg: 'bg-[#fef3c7]', text: 'text-[#d97706]' };
+      return { bg: 'bg-zinc-100', text: 'text-zinc-600' };
+    };
+
+    const typeColors = getTypeColors(item.word_type);
+    const upperType = item.word_type ? item.word_type.toUpperCase() : 'OTHER';
 
     return (
-      <Card className="mb-4">
-        <View className="flex-row justify-between items-start mb-3">
-          <View className="flex-1 pr-4">
-            <View className="flex-row items-center flex-wrap">
-              <Text className="text-xl font-bold text-foreground mr-3 select-text">
-                {item.word}
-              </Text>
-              <IconButton
-                variant="soft"
-                size="sm"
-                hapticType="light"
-                onPress={() => speakWord(item.word)}
-                accessibilityLabel={`Phát âm ${item.word}`}
-                icon={<Volume2 size={16} color={Colors.foreground} />}
-              />
-            </View>
-            {item.pronunciation ? (
-              <Text className="text-muted-foreground text-sm italic mt-1 font-medium">
+      <Card className="mb-4 p-6 rounded-3xl border border-zinc-200/40 bg-white">
+        {/* Row 1: Word and Type badge */}
+        <View className="flex-row justify-between items-start mb-2.5">
+          <Text className="text-[28px] font-black text-[#006699] select-text leading-tight">
+            {item.word}
+          </Text>
+
+          {/* Type badge */}
+          <View className={`px-4 py-1.5 rounded-full ${typeColors.bg}`}>
+            <Text className={`text-[10px] font-extrabold uppercase tracking-widest ${typeColors.text}`}>
+              {upperType}
+            </Text>
+          </View>
+        </View>
+
+        {/* Row 2: Pronunciation & Audio speaker icon */}
+        {item.pronunciation ? (
+          <View className="flex-row items-center gap-2 mb-3.5">
+            <View className="bg-zinc-100 px-3.5 py-1.5 rounded-xl">
+              <Text className="text-zinc-500 text-sm font-semibold select-text">
                 {item.pronunciation}
               </Text>
-            ) : null}
-          </View>
-
-          <View className="items-end">
-            <Badge label={wordTypeLabel} variant="zinc" />
-            <View className="flex-row gap-2.5 mt-2.5">
-              <TouchableOpacity onPress={() => handleOpenEditModal(item)} className="p-1">
-                <Edit2 size={14} color={Colors.iconMuted} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteVocab(item)} className="p-1">
-                <Trash2 size={14} color={Colors.destructive} />
-              </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              onPress={() => speakWord(item.word)}
+              activeOpacity={0.7}
+              className="w-9 h-9 rounded-full bg-white border border-zinc-200 items-center justify-center"
+            >
+              <Volume2 size={16} color="#006699" />
+            </TouchableOpacity>
           </View>
-        </View>
-
-        <View className="border-t border-border pt-3 mt-2">
-          <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">
-            Nghĩa của từ
-          </Text>
-          <Text className="text-foreground text-base font-semibold leading-relaxed">
-            {item.meaning}
-          </Text>
-        </View>
-
-        {item.context_sentence ? (
-          <Card variant="flat" className="p-3 mt-3 mb-0 rounded-xl bg-muted border-border">
-            <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">
-              Ngữ cảnh (Câu chứa từ)
-            </Text>
-            <Text className="text-foreground text-sm italic leading-relaxed select-text">
-              "{item.context_sentence}"
-            </Text>
-          </Card>
         ) : null}
 
+        {/* Faint Divider */}
+        <View className="border-b border-zinc-100 mb-4" />
+
+        {/* Meaning */}
+        <Text className="text-zinc-800 text-lg font-bold mb-2 select-text leading-snug">
+          {item.meaning}
+        </Text>
+
+        {/* Example blockquote style */}
+        {item.context_sentence ? (
+          <View className="border-l-[3px] border-[#c2e6fb] pl-4 mt-2 mb-1">
+            <Text className="text-zinc-600 text-sm italic leading-relaxed select-text">
+              "{item.context_sentence}"
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Notes (Rendered cleanly if exists) */}
         {item.notes ? (
-          <Card variant="flat" className="p-3 mt-3 mb-0 rounded-xl">
-            <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">
+          <View className="mt-3 bg-zinc-50/50 p-2.5 rounded-xl border border-zinc-100/50">
+            <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">
               Ghi chú
             </Text>
-            <Text className="text-muted-foreground text-sm leading-relaxed select-text">
+            <Text className="text-zinc-500 text-xs leading-relaxed select-text">
               {item.notes}
             </Text>
-          </Card>
+          </View>
         ) : null}
       </Card>
     );
   };
-
-  const renderHeader = () => (
-    <View className="mb-4">
-      <View className="mb-4">
-        <Input
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Tìm kiếm từ vựng..."
-          icon={<Search size={20} color={Colors.iconMuted} />}
-          rightElement={
-            searchQuery ? (
-              <IconButton
-                variant="plain"
-                size="sm"
-                hapticType="selection"
-                onPress={() => setSearchQuery('')}
-                accessibilityLabel="Xóa nội dung tìm kiếm"
-                icon={<X size={18} color={Colors.iconMuted} />}
-              />
-            ) : undefined
-          }
-        />
-      </View>
-
-      <ChipGroup
-        data={WORD_TYPES}
-        value={selectedType}
-        onChange={setSelectedType}
-        leadingIcon={<Filter size={14} color={Colors.iconMuted} />}
-        leadLabel="Lọc theo loại từ"
-      />
-    </View>
-  );
 
   const renderFooter = () => {
     if (!loadingMore) return <View className="h-6" />;
@@ -360,14 +367,13 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
   };
 
   const renderEmpty = () => {
-    if (loading) return null;
     return (
       <EmptyState
         icon={<BookOpen size={28} color={Colors.iconMuted} />}
         title="Không tìm thấy từ vựng nào"
         body={
-          searchQuery || selectedType !== 'all'
-            ? 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc loại từ của bạn.'
+          searchQuery
+            ? 'Thử thay đổi từ khóa tìm kiếm của bạn.'
             : 'Sổ từ vựng của bạn hiện tại đang trống.'
         }
       />
@@ -375,30 +381,53 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
   };
 
   const mainView = (
-    <View className="flex-1 bg-background">
-      {loading && page === 1 ? (
-        <LoadingState message="Đang tải danh sách từ vựng..." />
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={renderEmpty}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 80 }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={Colors.foreground}
-              colors={[Colors.foreground]}
-            />
-          }
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.25}
-        />
-      )}
+    <View className="flex-1 bg-transparent">
+      {/* Header cố định — tách ra ngoài FlatList để TextInput không bị re-mount khi search */}
+      <View className="px-6 pt-4">
+        <View className="flex-row items-center bg-white border border-zinc-200/80 rounded-full px-5 h-12 shadow-sm shadow-[#193665]/2">
+          <Search size={20} color="#a1a1aa" className="mr-3" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Tra từ nhanh..."
+            placeholderTextColor="#a1a1aa"
+            className="flex-1 text-[#193665] text-base h-full font-semibold"
+            autoCapitalize="none"
+            autoCorrect={false}
+            onSubmitEditing={handleMainLookup}
+            returnKeyType="search"
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')} className="p-1">
+              <X size={18} color="#a1a1aa" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <Text className="text-muted-foreground text-xs mt-2.5 pl-4 font-semibold">
+          Auto-fills definition, IPA, and type.
+        </Text>
+      </View>
+
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Đang tải danh sách từ vựng..." /> : renderEmpty()}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={Colors.foreground}
+            colors={[Colors.foreground]}
+          />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.25}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
+      />
 
       {/* FAB to Add Word */}
       <TouchableOpacity

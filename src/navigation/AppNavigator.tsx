@@ -5,6 +5,7 @@ import { ActivityIndicator, View, TouchableOpacity } from 'react-native';
 import { Home, BookOpen, Dumbbell, User, List } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import EnglishHubScreen from '../screens/EnglishHubScreen';
@@ -14,6 +15,19 @@ import ReviewScreen from '../screens/ReviewScreen';
 import TodoScreen from '../screens/TodoScreen';
 import GymScreen from '../screens/GymScreen';
 import SettingScreen from '../screens/SettingScreen';
+
+// Bọc ErrorBoundary để bắt lỗi runtime và in stack trace
+const ReadingDetailWithBoundary = () => (
+  <ErrorBoundary>
+    <ReadingDetailScreen />
+  </ErrorBoundary>
+);
+
+const ListeningDetailWithBoundary = () => (
+  <ErrorBoundary>
+    <ListeningDetailScreen />
+  </ErrorBoundary>
+);
 
 export type RootStackParamList = {
   Login: undefined;
@@ -138,8 +152,8 @@ export const AppNavigator = () => {
       ) : (
         <>
           <Stack.Screen name="Main" component={MainTabNavigator} />
-          <Stack.Screen name="ReadingDetail" component={ReadingDetailScreen} />
-          <Stack.Screen name="ListeningDetail" component={ListeningDetailScreen} />
+          <Stack.Screen name="ReadingDetail" component={ReadingDetailWithBoundary} />
+          <Stack.Screen name="ListeningDetail" component={ListeningDetailWithBoundary} />
           <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="Todo" component={TodoScreen} />
           <Stack.Screen name="Gym" component={GymScreen} />
