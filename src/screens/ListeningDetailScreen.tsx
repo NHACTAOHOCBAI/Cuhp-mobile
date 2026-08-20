@@ -54,8 +54,20 @@ export default function ListeningDetailScreen() {
   useEffect(() => {
     if (passage?.url) {
       player.replace(passage.url);
+      
+      // Kích hoạt bảng điều khiển màn hình khóa với thông tin bài nghe
+      player.setActiveForLockScreen(true, {
+        title: passage.title,
+        artist: passage.category || "Cuhp English Hub",
+        albumTitle: passage.level === 'easy' ? 'Mức độ: Dễ' : passage.level === 'medium' ? 'Mức độ: Trung bình' : 'Mức độ: Khó',
+      });
     }
-  }, [passage?.url, player]);
+
+    return () => {
+      // Hủy kích hoạt lockscreen controls khi unmount
+      player.setActiveForLockScreen(false);
+    };
+  }, [passage, player]);
 
   // Dictation state
   const [dictationInput, setDictationInput] = useState('');
@@ -94,7 +106,7 @@ export default function ListeningDetailScreen() {
     setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: true,
-      interruptionMode: 'mixWithOthers',
+      interruptionMode: 'doNotMix',
     }).catch((e) => console.error('Lỗi setAudioModeAsync:', e));
   }, []);
 
