@@ -12,13 +12,12 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BookOpen,
   CheckCircle,
-  Bell,
   Bot
 } from 'lucide-react-native';
-import Svg, { Circle, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
-import { ScreenWrapper } from '../components/ScreenWrapper';
+import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
 import { fetchReadingPassages, fetchAudios, fetchVocabularies, fetchUserProfile, fetchTodoStats } from '../api/client';
 import type { User, TodoStats } from '../types';
@@ -93,102 +92,29 @@ export default function DashboardScreen() {
 
   if (loading) {
     return (
-      <ScreenWrapper scroll={false} style={{ backgroundColor: '#ffffff' }}>
-        {/* Gradient Background */}
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}>
-          <Svg width="100%" height="100%">
-            <Defs>
-              <LinearGradient id="bgGradientLoading" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor="#c2e6fb" stopOpacity="0.45" />
-                <Stop offset="45%" stopColor="#ffffff" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#bgGradientLoading)" />
-          </Svg>
-        </View>
-        {/* Custom Header loading state */}
-        <View
-          className="flex-row justify-between items-center px-6 py-4 bg-background z-10 shadow-sm shadow-[#193665]/3 border-b border-border/5"
-          style={{
-            shadowColor: '#193665',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.02,
-            shadowRadius: 2,
-            elevation: 1,
-          }}
-        >
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 rounded-full bg-[#c2e6fb] items-center justify-center mr-2.5">
-              <Text className="text-[#193665] text-xs font-bold">A</Text>
-            </View>
-            <Text className="text-xl font-black text-[#193665]">Cuhp</Text>
-          </View>
-          <TouchableOpacity className="p-1">
-            <Bell size={20} color="#193665" />
-          </TouchableOpacity>
-        </View>
+      <MainLayout title="Cuhp" scroll={false}>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#006699" />
           <Text className="text-muted-foreground text-sm mt-3 font-medium">Đang tải thông tin cá nhân...</Text>
         </View>
-      </ScreenWrapper>
+      </MainLayout>
     );
   }
 
   return (
-    <ScreenWrapper scroll={false} style={{ backgroundColor: '#ffffff' }}>
-      {/* Gradient Background */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}>
-        <Svg width="100%" height="100%">
-          <Defs>
-            <LinearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0%" stopColor="#c2e6fb" stopOpacity="0.45" />
-              <Stop offset="45%" stopColor="#ffffff" stopOpacity="1" />
-              <Stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
-            </LinearGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill="url(#bgGradient)" />
-        </Svg>
-      </View>
-      {/* Custom Header matching mockup */}
-      <View
-        className="flex-row justify-between items-center px-6 py-4 bg-background z-10 shadow-sm shadow-[#193665]/3 border-b border-border/5"
-        style={{
-          shadowColor: '#193665',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.02,
-          shadowRadius: 2,
-          elevation: 1,
-        }}
-      >
-        <View className="flex-row items-center">
-          {userProfile?.avatar ? (
-            <Image source={{ uri: userProfile.avatar }} className="w-8 h-8 rounded-full mr-2.5" />
-          ) : (
-            <View className="w-8 h-8 rounded-full bg-[#c2e6fb] items-center justify-center mr-2.5">
-              <Text className="text-[#193665] text-xs font-bold">{getInitials(userProfile?.name || 'Admin')}</Text>
-            </View>
-          )}
-          <Text className="text-xl font-black text-[#193665]">Cuhp</Text>
-        </View>
-        <TouchableOpacity className="p-1">
-          <Bell size={20} color="#193665" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 120 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#006699"
-            colors={["#006699"]}
-          />
-        }
-      >
+    <MainLayout
+      title="Cuhp"
+      scroll={true}
+      user={userProfile}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          tintColor="#006699"
+          colors={["#006699"]}
+        />
+      }
+    >
         {/* Welcome Section */}
         <View className="mb-6 mt-2">
           <Text className="text-[28px] font-black text-[#193665] tracking-tight">
@@ -343,8 +269,7 @@ export default function DashboardScreen() {
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </ScreenWrapper>
+    </MainLayout>
   );
 }
 

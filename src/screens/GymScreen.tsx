@@ -30,8 +30,7 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
-import { ScreenWrapper } from '../components/ScreenWrapper';
-import { Header } from '../components/Header';
+import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
@@ -633,11 +632,11 @@ export default function GymScreen() {
   };
 
   return (
-    <ScreenWrapper scroll={false}>
-      {/* Top Header */}
-      <View className="px-4 py-3 border-b border-border flex-row items-center justify-between">
-        <Text className="text-foreground font-black text-lg">Hỗ Trợ Tập Gym</Text>
-        {activeView === 'schedule' ? (
+    <MainLayout
+      title="Hỗ Trợ Tập Gym"
+      scroll={false}
+      headerRight={
+        activeView === 'schedule' ? (
           <TouchableOpacity
             onPress={handleOpenExerciseCreate}
             className="bg-foreground px-3 py-1.5 rounded-lg flex-row items-center"
@@ -653,8 +652,9 @@ export default function GymScreen() {
             <Plus size={12} color={Colors.background} />
             <Text className="text-background text-[10px] font-bold ml-1">Nhóm cơ</Text>
           </TouchableOpacity>
-        ) : null}
-      </View>
+        ) : undefined
+      }
+    >
 
       {/* Segmented Control */}
       <View className="flex-row bg-muted p-1 rounded-xl my-3.5 mx-6">
@@ -900,6 +900,6 @@ export default function GymScreen() {
           </Card>
         </View>
       </Modal>
-    </ScreenWrapper>
+    </MainLayout>
   );
 }

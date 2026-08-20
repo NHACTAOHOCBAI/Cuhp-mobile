@@ -27,8 +27,7 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
-import { ScreenWrapper } from '../components/ScreenWrapper';
-import { Header } from '../components/Header';
+import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Input } from '../components/Input';
@@ -69,7 +68,7 @@ export default function TodoScreen() {
   // Planner States
   const [selectedDate, setSelectedDate] = useState(() => formatDateLocal(new Date()));
   const [plannerBaseDate, setPlannerBaseDate] = useState(() => new Date());
-  
+
   // Fast input state
   const [quickTitle, setQuickTitle] = useState('');
   const [quickAdding, setQuickAdding] = useState(false);
@@ -141,7 +140,7 @@ export default function TodoScreen() {
       const newTask = await createTodo(payload, token);
       setTasks((prev) => [newTask, ...prev]);
       setQuickTitle('');
-      
+
       // Reload stats
       const statsRes = await fetchTodoStats(token);
       setStats(statsRes);
@@ -368,19 +367,19 @@ export default function TodoScreen() {
                   task.quadrant === 'do'
                     ? 'Làm ngay'
                     : task.quadrant === 'schedule'
-                    ? 'Lên lịch'
-                    : task.quadrant === 'delegate'
-                    ? 'Ủy quyền'
-                    : 'Loại bỏ'
+                      ? 'Lên lịch'
+                      : task.quadrant === 'delegate'
+                        ? 'Ủy quyền'
+                        : 'Loại bỏ'
                 }
                 variant={
                   task.quadrant === 'do'
                     ? 'red'
                     : task.quadrant === 'schedule'
-                    ? 'yellow'
-                    : task.quadrant === 'delegate'
-                    ? 'green'
-                    : 'zinc'
+                      ? 'yellow'
+                      : task.quadrant === 'delegate'
+                        ? 'green'
+                        : 'zinc'
                 }
               />
             )}
@@ -515,19 +514,20 @@ export default function TodoScreen() {
   const completedCount = tasks.filter((t) => t.completed).length;
 
   return (
-    <ScreenWrapper scroll={false}>
-      {/* Page Header */}
-      <View className="px-4 py-3 border-b border-border flex-row items-center justify-between">
-        <Text className="text-foreground font-black text-lg">Quản Lý Công Việc</Text>
-        {completedCount > 0 && (
+    <MainLayout
+      title="Quản Lý Công Việc"
+      scroll={false}
+      headerRight={
+        completedCount > 0 ? (
           <TouchableOpacity
             onPress={handleClearCompleted}
             className="bg-red-50 border border-red-200/50 px-2.5 py-1 rounded-lg"
           >
             <Text className="text-destructive text-[10px] font-bold">Dọn xong ({completedCount})</Text>
           </TouchableOpacity>
-        )}
-      </View>
+        ) : undefined
+      }
+    >
 
       {/* Main View Mode Tabs */}
       <View className="flex-row bg-muted p-1 rounded-xl my-3.5 mx-6">
@@ -705,6 +705,6 @@ export default function TodoScreen() {
           </View>
         </View>
       </Modal>
-    </ScreenWrapper>
+    </MainLayout>
   );
 }

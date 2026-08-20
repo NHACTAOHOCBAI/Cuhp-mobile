@@ -4,8 +4,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { BookOpen, Headphones, Brain, BookMarked, Flame, Target, Sparkles, ArrowRight } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Colors, typography } from '../theme';
-import { ScreenWrapper } from '../components/ScreenWrapper';
-import { Header } from '../components/Header';
+import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { IconTile } from '../components/IconTile';
@@ -189,8 +188,7 @@ export default function EnglishHubScreen() {
   ];
 
   return (
-    <ScreenWrapper scroll={false}>
-      <Header title="Học Tiếng Anh" subtitle="Nâng tầm kỹ năng tiếng Anh của bạn" />
+    <MainLayout title="Học Tiếng Anh" scroll={false}>
 
       {/* Segmented Control / Sub-tabs */}
       <View className="flex-row bg-muted p-1 rounded-xl mb-2 mx-6">
@@ -219,6 +217,6 @@ export default function EnglishHubScreen() {
         {activeTab === 'reading' && <ReadingScreen />}
         {activeTab === 'listening' && <ListeningScreen hideHeader />}
       </View>
-    </ScreenWrapper>
+    </MainLayout>
   );
 }

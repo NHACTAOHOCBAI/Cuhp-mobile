@@ -16,8 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings, SpeechAccent } from '../context/SettingsContext';
 import * as Speech from 'expo-speech';
 import { scheduleTestNotification } from '../api/notificationService';
-import { ScreenWrapper } from '../components/ScreenWrapper';
-import { Header } from '../components/Header';
+import { MainLayout } from '../components/MainLayout';
 import {
   Button,
   ButtonPrimary,
@@ -97,13 +96,11 @@ export default function SettingScreen() {
   const isMinTarget = !!user && user.daily_target <= 1;
 
   return (
-    <ScreenWrapper scroll={false}>
-      <Header title="Cài Đặt" subtitle={subtitle} />
-
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <MainLayout
+      title="Cài Đặt"
+      scroll={true}
+      contentContainerStyle={{ paddingTop: 20, paddingBottom: 120 }}
+    >
         {/* Profile Card */}
         <Card className="mt-4">
           <View className="flex-row items-center">
@@ -350,7 +347,6 @@ export default function SettingScreen() {
             icon={<LogOut size={18} color={Colors.destructiveForeground} />}
           />
         </View>
-      </ScrollView>
-    </ScreenWrapper>
+    </MainLayout>
   );
 }
