@@ -35,9 +35,9 @@ export default function App() {
           }
           Alert.alert("Chúc mừng! 🎉", `Bạn đã thuộc từ: "${word}". Tiếp tục phát huy nhé!`);
           
-          // Điều hướng người dùng sang Tab Ôn tập
+          // Điều hướng người dùng sang Tab tiếng Anh (EnglishTab)
           if (navigationRef.isReady()) {
-            navigationRef.navigate("Main", { screen: "ReviewTab" });
+            navigationRef.navigate("Main", { screen: "EnglishTab" });
           }
         } else if (actionIdentifier === "MARK_FORGOTTEN") {
           // Nút "Ôn lại" -> Gọi API cập nhật
@@ -47,7 +47,7 @@ export default function App() {
           Alert.alert("Cố gắng lên! 💪", `Từ "${word}" đã được chuyển về Hộp 1 để ôn tập.`);
           
           if (navigationRef.isReady()) {
-            navigationRef.navigate("Main", { screen: "ReviewTab" });
+            navigationRef.navigate("Main", { screen: "EnglishTab" });
           }
         } else if (actionIdentifier === "PRONOUNCE") {
           // Nút "Phát âm" -> Đọc từ vựng
@@ -59,9 +59,9 @@ export default function App() {
             rate: parseFloat(storedRate),
           });
         } else {
-          // Click vào bản thân thông báo -> Mở tab Từ vựng để học
+          // Click vào bản thân thông báo -> Mở tab tiếng Anh (EnglishTab)
           if (navigationRef.isReady()) {
-            navigationRef.navigate("Main", { screen: "VocabularyTab" });
+            navigationRef.navigate("Main", { screen: "EnglishTab" });
           }
         }
       } catch (err: any) {

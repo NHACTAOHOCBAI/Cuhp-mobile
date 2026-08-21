@@ -36,7 +36,8 @@
         {
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
