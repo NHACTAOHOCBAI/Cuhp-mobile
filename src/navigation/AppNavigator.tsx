@@ -11,7 +11,6 @@ import DashboardScreen from '../screens/DashboardScreen';
 import EnglishHubScreen from '../screens/EnglishHubScreen';
 import ReadingDetailScreen from '../screens/ReadingDetailScreen';
 import ListeningDetailScreen from '../screens/ListeningDetailScreen';
-import ReviewScreen from '../screens/ReviewScreen';
 import FlashcardScreen from '../screens/FlashcardScreen';
 import TodoScreen from '../screens/TodoScreen';
 import GymScreen from '../screens/GymScreen';
@@ -156,7 +155,6 @@ export const AppNavigator = () => {
           <Stack.Screen name="Main" component={MainTabNavigator} />
           <Stack.Screen name="ReadingDetail" component={ReadingDetailWithBoundary} />
           <Stack.Screen name="ListeningDetail" component={ListeningDetailWithBoundary} />
-          <Stack.Screen name="Review" component={ReviewScreen} />
           <Stack.Screen name="Flashcard" component={FlashcardScreen} />
           <Stack.Screen name="Todo" component={TodoScreen} />
           <Stack.Screen name="Gym" component={GymScreen} />

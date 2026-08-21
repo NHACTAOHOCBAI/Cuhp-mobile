@@ -13,15 +13,20 @@ import {
   BookOpen,
   CheckCircle,
   Bot,
-  Layers
+  Layers,
+  Shield,
+  Flame,
+  Dumbbell,
+  ListTodo
 } from 'lucide-react-native';
+import * as SecureStore from 'expo-secure-store';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
 import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
-import { fetchReadingPassages, fetchAudios, fetchVocabularies, fetchUserProfile, fetchTodoStats } from '../api/client';
-import type { User, TodoStats } from '../types';
+import { fetchReadingPassages, fetchAudios, fetchVocabularies, fetchUserProfile, fetchTodoStats, fetchExercisesByDate } from '../api/client';
+import type { User, TodoStats, WorkoutExercise } from '../types';
 
 export default function DashboardScreen() {
   const { token } = useAuth();
@@ -37,10 +42,14 @@ export default function DashboardScreen() {
     audio: 0
   });
 
+  const [gymExercises, setGymExercises] = useState<WorkoutExercise[]>([]);
+  const [streakFreezes, setStreakFreezes] = useState(2);
+
   const loadData = async () => {
     if (!token) return;
     try {
-      const [profileData, vocabData, readingData, audioData, todoStatsData] = await Promise.all([
+      const todayStr = new Date().toISOString().split('T')[0];
+      const [profileData, vocabData, readingData, audioData, todoStatsData, gymData, storedFreezes] = await Promise.all([
         fetchUserProfile(token),
         fetchVocabularies({ page: 1, page_size: 1 }, token),
         fetchReadingPassages({ page: 1, page_size: 1 }, token),
@@ -48,11 +57,20 @@ export default function DashboardScreen() {
         fetchTodoStats(token).catch((e) => {
           console.log('Không tải được thống kê Todo:', e);
           return null;
-        })
+        }),
+        fetchExercisesByDate(todayStr, token).catch((e) => {
+          console.log('Không tải được bài tập Gym:', e);
+          return [];
+        }),
+        SecureStore.getItemAsync('settings-streak-freezes').catch(() => null)
       ]);
 
       setUserProfile(profileData);
       setTodoStats(todoStatsData);
+      setGymExercises(gymData || []);
+      if (storedFreezes !== null) {
+        setStreakFreezes(parseInt(storedFreezes));
+      }
       setCounts({
         vocab: vocabData.total || 0,
         reading: readingData.total || 0,
@@ -125,69 +143,117 @@ export default function DashboardScreen() {
             Sẵn sàng cho một ngày mới?
           </Text>
 
-          {/* Streak pill */}
-          <View className="bg-white border border-[#19366511] px-4 py-2 rounded-full self-start mt-4">
-            <Text className="text-xs font-semibold text-[#193665]">
-              {userProfile?.current_streak ?? 12} days streak
-            </Text>
+          {/* Streak pill & Freeze shields */}
+          <View className="flex-row items-center mt-4 gap-x-2">
+            <View className="bg-orange-50 border border-orange-100 px-4 py-2 rounded-full flex-row items-center">
+              <Flame size={14} color="#f97316" className="mr-1.5" />
+              <Text className="text-xs font-semibold text-[#f97316]">
+                {userProfile?.current_streak ?? 12} ngày streak
+              </Text>
+            </View>
+            <View className="bg-amber-50 border border-amber-100 px-4 py-2 rounded-full flex-row items-center">
+              <Shield size={14} color={Colors.warning} className="mr-1.5" />
+              <Text className="text-xs font-semibold text-amber-700">
+                {streakFreezes} Khiên đóng băng
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Vocabulary Goal Card */}
-        <Card className="p-6 mb-6 items-center">
-          <View className="relative items-center justify-center w-36 h-36 mb-4">
-            <Svg width={120} height={120} viewBox="0 0 120 120" style={{ transform: [{ rotate: '-90deg' }] }}>
-              <Circle
-                cx="60"
-                cy="60"
-                r="50"
-                stroke="#e5f3fb"
-                strokeWidth="10"
-                fill="transparent"
-              />
-              <Circle
-                cx="60"
-                cy="60"
-                r="50"
-                stroke="#006699"
-                strokeWidth="10"
-                fill="transparent"
-                strokeDasharray={2 * Math.PI * 50}
-                strokeDashoffset={2 * Math.PI * 50 * (1 - progressRatio)}
-                strokeLinecap="round"
-              />
-            </Svg>
-            <View className="absolute items-center justify-center">
-              <Text className="text-3xl font-extrabold text-[#193665]">{percentage}%</Text>
-              <Text className="text-xs text-muted-foreground font-semibold">Vocab</Text>
+        {/* Habit Rings Activity Card */}
+        <Card className="p-6 mb-6">
+          <Text className="text-lg font-black text-[#193665] mb-5 text-center">
+            Vòng tròn Hoạt động Hôm nay
+          </Text>
+
+          <View className="flex-row items-center justify-around">
+            {/* Concentric Activity Rings SVG */}
+            <View className="relative items-center justify-center w-[120px] h-[120px]">
+              <Svg width={120} height={120} viewBox="0 0 120 120" style={{ transform: [{ rotate: '-90deg' }] }}>
+                {/* Red Ring (Gym) - Outer (radius = 48) */}
+                <Circle cx="60" cy="60" r="48" stroke="#fee2e2" strokeWidth="8" fill="transparent" />
+                <Circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  stroke="#ef4444"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 48}
+                  strokeDashoffset={2 * Math.PI * 48 * (1 - (gymExercises.length > 0 ? (gymExercises.filter(e => e.completed).length / gymExercises.length) : 0))}
+                  strokeLinecap="round"
+                />
+
+                {/* Green Ring (Todo) - Middle (radius = 36) */}
+                <Circle cx="60" cy="60" r="36" stroke="#dcfce7" strokeWidth="8" fill="transparent" />
+                <Circle
+                  cx="60"
+                  cy="60"
+                  r="36"
+                  stroke="#22c55e"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 36}
+                  strokeDashoffset={2 * Math.PI * 36 * (1 - (todoStats ? (todoStats.completed / (todoStats.total || 1)) : 0))}
+                  strokeLinecap="round"
+                />
+
+                {/* Blue Ring (English) - Inner (radius = 24) */}
+                <Circle cx="60" cy="60" r="24" stroke="#e0f2fe" strokeWidth="8" fill="transparent" />
+                <Circle
+                  cx="60"
+                  cy="60"
+                  r="24"
+                  stroke="#006699"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 24}
+                  strokeDashoffset={2 * Math.PI * 24 * (1 - progressRatio)}
+                  strokeLinecap="round"
+                />
+              </Svg>
+              <View className="absolute items-center justify-center">
+                <CheckCircle size={22} color="#006699" />
+              </View>
+            </View>
+
+            {/* Legend / Stats */}
+            <View className="gap-y-3.5 pr-2">
+              <View className="flex-row items-center">
+                <View className="w-2.5 h-2.5 rounded-full bg-[#ef4444] mr-2" />
+                <View>
+                  <Text className="text-[10px] font-bold text-slate-400 uppercase">GYM WORKOUT</Text>
+                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                    {gymExercises.length > 0
+                      ? `${Math.round((gymExercises.filter(e => e.completed).length / gymExercises.length) * 100)}% (${gymExercises.filter(e => e.completed).length}/${gymExercises.length})`
+                      : '0% (Chưa có bài)'}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row items-center">
+                <View className="w-2.5 h-2.5 rounded-full bg-[#22c55e] mr-2" />
+                <View>
+                  <Text className="text-[10px] font-bold text-slate-400 uppercase">TODO TASKS</Text>
+                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                    {todoStats
+                      ? `${Math.round((todoStats.completed / (todoStats.total || 1)) * 100)}% (${todoStats.completed}/${todoStats.total})`
+                      : '0% (Trống)'}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row items-center">
+                <View className="w-2.5 h-2.5 rounded-full bg-[#006699] mr-2" />
+                <View>
+                  <Text className="text-[10px] font-bold text-slate-400 uppercase">ENGLISH LEARNING</Text>
+                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                    {percentage}% ({reviewedToday}/{dailyTarget} từ)
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
-
-          <Text className="text-xl font-bold text-[#193665] mb-2 text-center">
-            Mục tiêu từ vựng
-          </Text>
-          <Text className="text-muted-foreground text-sm text-center px-4 mb-5 leading-relaxed">
-            {remaining > 0
-              ? `Bạn đã hoàn thành ${percentage}% mục tiêu từ vựng ngày hôm nay. Cố gắng lên nhé, chỉ còn ${remaining} từ nữa thôi!`
-              : `Bạn đã hoàn thành xuất sắc 100% mục tiêu từ vựng ngày hôm nay. Hãy tiếp tục duy trì phong độ nhé!`}
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Review')}
-            className="bg-[#006699] py-3.5 px-8 rounded-full w-full items-center active:opacity-90 shadow-sm"
-          >
-            <Text className="text-white font-bold text-base">Tiếp tục học</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Flashcard')}
-            className="bg-white border border-[#1936651a] py-3.5 px-6 rounded-full w-full items-center active:opacity-90 mt-3 flex-row justify-center"
-          >
-            <Layers size={16} color="#a855f7" />
-            <Text className="text-[#a855f7] font-bold text-base ml-2">
-              Học Flashcard
-            </Text>
-          </TouchableOpacity>
         </Card>
 
         {/* Weekly Activity Card */}

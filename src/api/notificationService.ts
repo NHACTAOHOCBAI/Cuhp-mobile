@@ -111,8 +111,13 @@ function getNextTriggerDate(startDate: Date, hoursOffset: number): Date {
  * Lập lịch thông báo cho các từ vựng cần học
  * @param enabled Bật hay tắt nhắc nhở
  * @param intervalHours Khoảng thời gian giữa các thông báo (giờ)
+ * @param personality Cá tính nhắc nhở ('gentle' | 'supportive' | 'roast')
  */
-export async function scheduleVocabularyReminders(enabled: boolean, intervalHours: number = 4) {
+export async function scheduleVocabularyReminders(
+  enabled: boolean,
+  intervalHours: number = 4,
+  personality: "gentle" | "supportive" | "roast" = "supportive"
+) {
   try {
     // 1. Huỷ tất cả các thông báo đã lập lịch trước đó
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -178,11 +183,26 @@ export async function scheduleVocabularyReminders(enabled: boolean, intervalHour
         triggerObj.channelId = "vocab-alerts";
       }
 
+      // Xác định tiêu đề và nội dung dựa trên cá tính
+      let title = `💡 Từ vựng cần nhớ: "${item.word}"`;
+      let body = `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}`;
+
+      if (personality === "gentle") {
+        title = `🌸 Nhắc nhở nhẹ nhàng: "${item.word}"`;
+        body = `Một chút kiến thức hôm nay: ${item.meaning}. Dành 10 giây xem thử nhé!`;
+      } else if (personality === "roast") {
+        title = `🥱 Ê lười ơi! Từ này nghĩa là gì: "${item.word}"?`;
+        body = `Đừng bảo bạn quên từ "${item.meaning}" này rồi nhé! Vào học ngay đi! 🔥`;
+      } else { // supportive
+        title = `💪 Cùng ôn từ vựng nào: "${item.word}"`;
+        body = `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}. Bạn đang làm rất tốt, cố lên!`;
+      }
+
       // Thêm thông báo
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `💡 Từ vựng cần nhớ: "${item.word}"`,
-          body: `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}`,
+          title,
+          body,
           data: { vocabId: item.id, word: item.word },
           categoryIdentifier: "vocab-reminder",
           sound: "default",
@@ -203,7 +223,7 @@ export async function scheduleVocabularyReminders(enabled: boolean, intervalHour
 /**
  * Gửi ngay lập tức một thông báo kiểm tra (Test Notification) sau 3 giây
  */
-export async function scheduleTestNotification() {
+export async function scheduleTestNotification(personality: "gentle" | "supportive" | "roast" = "supportive") {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) {
     alert("Vui lòng cấp quyền thông báo trong cài đặt máy!");
@@ -221,10 +241,24 @@ export async function scheduleTestNotification() {
     triggerObj.channelId = "vocab-alerts";
   }
 
+  let title = '💡 Từ vựng mẫu: "Aesthetic"';
+  let body = 'Thẩm mỹ, có óc thẩm mỹ • /esˈθet.ɪk/. Nhấp để thử tương tác!';
+
+  if (personality === "gentle") {
+    title = '🌸 Thư giãn nhẹ nhàng cùng: "Aesthetic"';
+    body = 'Ý nghĩa là "Thẩm mỹ" • /esˈθet.ɪk/. Một ngày tuyệt vời nhé!';
+  } else if (personality === "roast") {
+    title = '🥱 Cơ bắp teo, não phẳng kìa! Nhớ từ: "Aesthetic" không?';
+    body = 'Ý nghĩa là "Thẩm mỹ" đấy đồ lười. Đừng có nằm lướt điện thoại nữa, học/tập ngay đi! 🔥';
+  } else {
+    title = '💪 Động lực hôm nay: "Aesthetic"';
+    body = 'Có nghĩa là "Thẩm mỹ" • /esˈθet.ɪk/. Cố gắng khép kín các vòng tròn thói quen nhé!';
+  }
+
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '💡 Từ vựng mẫu: "Aesthetic"',
-      body: 'Thẩm mỹ, có óc thẩm mỹ • /esˈθet.ɪk/. Nhấp để thử tương tác!',
+      title,
+      body,
       data: { vocabId: "test-vocab-id", word: "Aesthetic" },
       categoryIdentifier: "vocab-reminder",
       sound: "default",

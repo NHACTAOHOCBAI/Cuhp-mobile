@@ -164,9 +164,9 @@ export default function EnglishHubScreen() {
 
         {/* Button to start full-screen review */}
         <ButtonPrimary
-          title="Bắt đầu ôn tập Leitner"
+          title="Bắt đầu học Flashcard"
           disabled={vocabCount === 0}
-          onPress={() => navigation.navigate('Review')}
+          onPress={() => navigation.navigate('Flashcard')}
           icon={<ArrowRight size={18} color={Colors.primaryForeground} />}
           className="h-14"
         />

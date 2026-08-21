@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, Platform, ScrollView, TouchableOpacity, Image } from 'react-native';
 import {
   LogOut,
@@ -11,10 +11,12 @@ import {
   Flame,
   Sparkles,
   Accessibility,
+  Shield,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useSettings, SpeechAccent } from '../context/SettingsContext';
 import * as Speech from 'expo-speech';
+import * as SecureStore from 'expo-secure-store';
 import { scheduleTestNotification } from '../api/notificationService';
 import { MainLayout } from '../components/MainLayout';
 import { Colors } from '../theme';
@@ -27,13 +29,32 @@ export default function SettingScreen() {
     accent,
     speechRate,
     reminderEnabled,
+    notificationPersonality,
     setAccent,
     setSpeechRate,
     setReminderEnabled,
+    setNotificationPersonality,
   } = useSettings();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [weeklyReports, setWeeklyReports] = useState(false);
+  const [streakFreezes, setStreakFreezes] = useState(2);
+
+  useEffect(() => {
+    const loadFreezes = async () => {
+      try {
+        const stored = await SecureStore.getItemAsync('settings-streak-freezes');
+        if (stored !== null) {
+          setStreakFreezes(parseInt(stored));
+        } else {
+          await SecureStore.setItemAsync('settings-streak-freezes', '2');
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    loadFreezes();
+  }, []);
 
   const handleTargetChange = async (newTarget: number) => {
     if (newTarget < 1) return;
@@ -158,6 +179,19 @@ export default function SettingScreen() {
                 );
               })}
             </View>
+          </View>
+
+          {/* Streak Freeze Shields Info */}
+          <View className="bg-amber-500/10 rounded-full px-5 py-3 mt-3 w-full flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Shield size={16} color={Colors.warning} className="mr-2" />
+              <Text className="text-foreground text-[10px] font-bold uppercase tracking-wider">
+                Streak Freeze Shields
+              </Text>
+            </View>
+            <Text className="text-[#193665] text-xs font-black">
+              {streakFreezes} Available
+            </Text>
           </View>
         </View>
 
@@ -284,12 +318,53 @@ export default function SettingScreen() {
                 onValueChange={(val) => {
                   setReminderEnabled(val);
                   if (val) {
-                    scheduleTestNotification();
+                    scheduleTestNotification(notificationPersonality);
                   }
                 }}
                 trackColor={{ false: Colors.trackOff, true: Colors.foreground }}
                 thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
               />
+            </View>
+
+            {/* Notification Personality */}
+            <View className="border-t border-border/10 pt-4">
+              <Text className="text-foreground text-xs font-bold mb-3">Notification Tone (Cá tính nhắc nhở)</Text>
+              <View className="flex-row bg-muted rounded-2xl p-1 justify-between gap-x-1">
+                {(['gentle', 'supportive', 'roast'] as const).map((p) => {
+                  const isActive = notificationPersonality === p;
+                  const labelMap = {
+                    gentle: '🌸 Nhẹ nhàng',
+                    supportive: '💪 Động viên',
+                    roast: '🔥 Cà khịa',
+                  };
+                  return (
+                    <TouchableOpacity
+                      key={p}
+                      onPress={() => {
+                        setNotificationPersonality(p);
+                        triggerHaptic('selection');
+                        scheduleTestNotification(p);
+                      }}
+                      className={`flex-1 py-2.5 rounded-xl items-center justify-center ${
+                        isActive ? 'bg-foreground shadow-sm shadow-foreground/20' : 'bg-transparent'
+                      }`}
+                    >
+                      <Text
+                        className={`text-[10px] font-bold ${
+                          isActive ? 'text-background' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {labelMap[p]}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text className="text-muted-foreground text-[9px] mt-2 italic pl-1">
+                {notificationPersonality === 'gentle' && 'Nhắc nhở lịch thiệp, dễ chịu để bạn thoải mái.'}
+                {notificationPersonality === 'supportive' && 'Lời khích lệ đầy nhiệt huyết và tích cực!'}
+                {notificationPersonality === 'roast' && 'Sát sao, hài hước và châm chọc nếu bạn lười biếng. 🔥'}
+              </Text>
             </View>
 
             {/* Weekly Reports */}
