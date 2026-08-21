@@ -30,6 +30,8 @@ import { Input } from '../components/Input';
 import { IconButton } from '../components/IconButton';
 import { ButtonPrimary } from '../components/Button';
 import { ChipGroup } from '../components/ChipGroup';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { WeekStrip } from '../components/WeekStrip';
 import {
   fetchTodos,
   createTodo,
@@ -91,8 +93,7 @@ export default function TodoScreen() {
   const [formEstTime, setFormEstTime] = useState('');
   const [savingTask, setSavingTask] = useState(false);
 
-  // Refs for the week strip ScrollView (auto-center the selected day).
-  const weekScrollRef = useRef<ScrollView>(null);
+
 
   // Active quadrant for the Ma trận view's task list (default "Do First").
   const [activeQuadrant, setActiveQuadrant] = useState<TodoQuadrant>('do');
@@ -270,23 +271,7 @@ export default function TodoScreen() {
     ]);
   };
 
-  // Calendar dates list for strip (7 days starting from Monday of base date week)
-  const getWeekDates = () => {
-    const current = new Date(plannerBaseDate);
-    const day = current.getDay();
-    const diff = current.getDate() - day + (day === 0 ? -6 : 1); // Monday is first day
-    const monday = new Date(current.setDate(diff));
 
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      dates.push(d);
-    }
-    return dates;
-  };
-
-  const weekDates = getWeekDates();
 
   // Filter tasks based on current view
   const plannerTasks = useMemo(() => {
@@ -552,12 +537,6 @@ export default function TodoScreen() {
 
   const completedCount = tasks.filter((t) => t.completed).length;
 
-  // Derive the "August 2024" eyebrow from the week the user is currently looking at.
-  const monthLabel = plannerBaseDate.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric'
-  });
-
   return (
     <MainLayout
       title="Cuhp"
@@ -573,116 +552,27 @@ export default function TodoScreen() {
         ) : undefined
       }
     >
-      {/* Month eyebrow */}
-      <Text className="px-6 pt-4 pb-1 text-foreground text-2xl font-black">
-        {monthLabel}
-      </Text>
-
-      {/* Week strip — horizontally scrollable, single row, no prev/next nav */}
-      <ScrollView
-        ref={weekScrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 12 }}
-        onContentSizeChange={() => {
-          // Auto-center the currently selected day on first render.
-          const idx = weekDates.findIndex((d) => formatDateLocal(d) === selectedDate);
-          if (idx > 0) {
-            const cardWidth = 72; // ~64 card + ~8 gap
-            weekScrollRef.current?.scrollTo({ x: Math.max(0, idx * cardWidth - 80), animated: false });
-          }
+      <WeekStrip
+        selectedDate={selectedDate}
+        onSelectDate={(dateStr, date) => {
+          setSelectedDate(dateStr);
+          setPlannerBaseDate(date);
         }}
-      >
-        {weekDates.map((date) => {
-          const dateStr = formatDateLocal(date);
-          const isSelected = selectedDate === dateStr;
-          const weekday = WEEKDAY_SHORT_EN[date.getDay()];
-          return (
-            <TouchableOpacity
-              key={dateStr}
-              onPress={() => {
-                setSelectedDate(dateStr);
-                setPlannerBaseDate(date);
-              }}
-              activeOpacity={0.85}
-              className={`mr-2 items-center justify-center w-16 h-[88px] rounded-2xl border ${
-                isSelected
-                  ? 'bg-purple/5 border-purple shadow-sm shadow-purple/20'
-                  : 'bg-card border-border shadow-sm shadow-[#193665]/3'
-              }`}
-            >
-              <Text
-                className={`text-[10px] font-bold uppercase ${
-                  isSelected ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {weekday}
-              </Text>
-              <Text
-                className={`text-lg font-black mt-1 ${
-                  isSelected ? 'text-foreground' : 'text-foreground/70'
-                }`}
-              >
-                {date.getDate()}
-              </Text>
-              {isSelected ? (
-                <View className="w-1.5 h-1.5 rounded-full bg-purple mt-1" />
-              ) : (
-                <View className="h-1.5 mt-1" />
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        baseDate={plannerBaseDate}
+        onBaseDateChange={setPlannerBaseDate}
+        showNavButtons={false}
+      />
 
-      {/* Pill segmented control (Inbox / Lịch trình / Ma trận) */}
-      <View className="flex-row bg-muted rounded-full p-1 mx-6 mb-3">
-        <TouchableOpacity
-          onPress={() => setActiveView('inbox')}
-          activeOpacity={0.85}
-          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
-            activeView === 'inbox' ? 'bg-card shadow-sm' : ''
-          }`}
-        >
-          <Text
-            className={`text-xs font-extrabold ${
-              activeView === 'inbox' ? 'text-foreground' : 'text-muted-foreground'
-            }`}
-          >
-            Inbox
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveView('planner')}
-          activeOpacity={0.85}
-          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
-            activeView === 'planner' ? 'bg-card shadow-sm' : ''
-          }`}
-        >
-          <Text
-            className={`text-xs font-extrabold ${
-              activeView === 'planner' ? 'text-foreground' : 'text-muted-foreground'
-            }`}
-          >
-            Lịch trình
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveView('matrix')}
-          activeOpacity={0.85}
-          className={`flex-1 py-2.5 rounded-full items-center justify-center ${
-            activeView === 'matrix' ? 'bg-card shadow-sm' : ''
-          }`}
-        >
-          <Text
-            className={`text-xs font-extrabold ${
-              activeView === 'matrix' ? 'text-foreground' : 'text-muted-foreground'
-            }`}
-          >
-            Ma trận
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <SegmentedControl<ViewMode>
+        tabs={[
+          { value: 'inbox', label: 'Inbox' },
+          { value: 'planner', label: 'Lịch trình' },
+          { value: 'matrix', label: 'Ma trận' }
+        ]}
+        value={activeView}
+        onChange={setActiveView}
+        className="mx-6 mb-3"
+      />
 
       {/* Quick Add Bar (hidden on matrix, matches reference) */}
       {activeView !== 'matrix' ? (

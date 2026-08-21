@@ -37,6 +37,8 @@ import { Input } from '../components/Input';
 import { IconButton } from '../components/IconButton';
 import { ButtonPrimary, ButtonOutline } from '../components/Button';
 import { ChipGroup } from '../components/ChipGroup';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { WeekStrip } from '../components/WeekStrip';
 import {
   fetchGymCategories,
   createGymCategory,
@@ -47,12 +49,11 @@ import {
   updateGymExercise,
   updateExerciseCompletion,
   deleteGymExercise,
-  copyGymDayForward,
-  fetchGymStats
+  copyGymDayForward
 } from '../api/client';
-import type { WorkoutCategory, WorkoutExercise, GymStats } from '../types';
+import type { WorkoutCategory, WorkoutExercise } from '../types';
 
-type ViewMode = 'schedule' | 'categories' | 'stats';
+type ViewMode = 'schedule' | 'categories';
 
 function formatDateLocal(d: Date) {
   const year = d.getFullYear();
@@ -71,7 +72,6 @@ export default function GymScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [categories, setCategories] = useState<WorkoutCategory[]>([]);
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
-  const [stats, setStats] = useState<GymStats | null>(null);
 
   // Schedule base date
   const [selectedDate, setSelectedDate] = useState(() => formatDateLocal(new Date()));
@@ -100,8 +100,7 @@ export default function GymScreen() {
   const [weeksToCopy, setWeeksToCopy] = useState('1');
   const [copying, setCopying] = useState(false);
 
-  // Stats selection state
-  const [selectedChartExercise, setSelectedChartExercise] = useState('');
+
 
   const loadData = async () => {
     if (!token) return;
@@ -112,11 +111,6 @@ export default function GymScreen() {
       ]);
       setCategories(catsRes || []);
       setExercises(exRes || []);
-
-      if (activeView === 'stats') {
-        const statsRes = await fetchGymStats(token);
-        setStats(statsRes);
-      }
     } catch (error) {
       console.error('Lỗi tải dữ liệu Gym:', error);
     } finally {
@@ -129,18 +123,7 @@ export default function GymScreen() {
     loadData();
   }, [token, selectedDate]);
 
-  useEffect(() => {
-    if (activeView === 'stats' && token) {
-      fetchGymStats(token)
-        .then((res) => {
-          setStats(res);
-          if (res?.exercise_progress?.length > 0) {
-            setSelectedChartExercise(res.exercise_progress[0].exercise_name);
-          }
-        })
-        .catch((e) => console.error(e));
-    }
-  }, [activeView, token]);
+
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -155,10 +138,6 @@ export default function GymScreen() {
         prev.map((e) => (e.id === ex.id ? { ...e, completed: !e.completed } : e))
       );
       await updateExerciseCompletion(ex.id, !ex.completed, token);
-      if (activeView === 'stats') {
-        const statsRes = await fetchGymStats(token);
-        setStats(statsRes);
-      }
     } catch (error) {
       console.error(error);
       loadData();
@@ -333,29 +312,7 @@ export default function GymScreen() {
     ]);
   };
 
-  // Calendar dates list for strip (7 days starting from Monday of base date week)
-  const getWeekDates = () => {
-    const current = new Date(scheduleBaseDate);
-    const day = current.getDay();
-    const diff = current.getDate() - day + (day === 0 ? -6 : 1); // Monday is first day
-    const monday = new Date(current.setDate(diff));
 
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      dates.push(d);
-    }
-    return dates;
-  };
-
-  const navigateWeek = (weeks: number) => {
-    const next = new Date(scheduleBaseDate);
-    next.setDate(scheduleBaseDate.getDate() + (weeks * 7));
-    setScheduleBaseDate(next);
-  };
-
-  const weekDates = getWeekDates();
 
   const getCategoryColor = (catId?: string | null) => {
     if (!catId) return Colors.iconSubtle;
@@ -369,17 +326,7 @@ export default function GymScreen() {
     return cat ? cat.name : 'Không phân loại';
   };
 
-  // Stats Chart Calculations
-  const maxVolumeVal = useMemo(() => {
-    if (!stats?.weekly_volume || stats.weekly_volume.length === 0) return 100;
-    const vals = stats.weekly_volume.map((v) => v.volume);
-    return Math.max(...vals, 100);
-  }, [stats]);
 
-  const selectedExerciseStats = useMemo(() => {
-    if (!stats?.exercise_progress || !selectedChartExercise) return null;
-    return stats.exercise_progress.find((p) => p.exercise_name === selectedChartExercise) || null;
-  }, [stats, selectedChartExercise]);
 
   const renderScheduleView = () => {
     const totalEx = exercises.length;
@@ -388,45 +335,7 @@ export default function GymScreen() {
 
     return (
       <View className="flex-1">
-        {/* Calendar strip */}
-        <View className="flex-row justify-between items-center px-6 py-2 border-b border-border/40 bg-card">
-          <TouchableOpacity onPress={() => navigateWeek(-1)} className="p-1">
-            <Text className="text-foreground text-xs font-bold">← Tuần trước</Text>
-          </TouchableOpacity>
-          <Text className="text-foreground font-black text-xs uppercase tracking-wider">
-            {weekDates[0].toLocaleDateString('vi-VN', { month: 'numeric', year: 'numeric' })}
-          </Text>
-          <TouchableOpacity onPress={() => navigateWeek(1)} className="p-1">
-            <Text className="text-foreground text-xs font-bold">Tuần sau →</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="flex-row justify-around py-3 px-3 bg-card border-b border-border mb-4">
-          {weekDates.map((date) => {
-            const dateStr = formatDateLocal(date);
-            const isSelected = selectedDate === dateStr;
-            const weekday = WEEKDAY_NAMES[date.getDay()];
-            return (
-              <TouchableOpacity
-                key={dateStr}
-                onPress={() => setSelectedDate(dateStr)}
-                style={[
-                  isSelected && { backgroundColor: Colors.foreground }
-                ]}
-                className="items-center py-2 px-3 rounded-xl flex-1 mx-1"
-              >
-                <Text className={`text-[10px] font-bold ${isSelected ? 'text-background' : 'text-muted-foreground'}`}>
-                  {weekday}
-                </Text>
-                <Text className={`text-sm font-black mt-1 ${isSelected ? 'text-background' : 'text-foreground'}`}>
-                  {date.getDate()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           {/* Progress circle summary card */}
           {totalEx > 0 && (
             <Card className="p-4 mb-4 flex-row items-center justify-between">
@@ -552,84 +461,7 @@ export default function GymScreen() {
     );
   };
 
-  const renderStatsView = () => {
-    return (
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Weekly Volume Chart */}
-        <Card className="p-5 mb-5">
-          <Text className="text-foreground font-extrabold text-sm mb-4">Khối lượng 7 ngày qua (Volume)</Text>
-          
-          {!stats?.weekly_volume || stats.weekly_volume.length === 0 ? (
-            <View className="py-8 items-center justify-center">
-              <TrendingUp size={24} color={Colors.iconMuted} />
-              <Text className="text-muted-foreground text-xs mt-1.5">Chưa có dữ liệu bài tập đã hoàn thành.</Text>
-            </View>
-          ) : (
-            <View className="h-36 flex-row items-end justify-between px-2 pt-4">
-              {stats.weekly_volume.map((item, idx) => {
-                const heightPct = Math.max(8, (item.volume / maxVolumeVal) * 100);
-                const displayDate = item.date.substring(5); // MM-DD
-                return (
-                  <View key={idx} className="items-center flex-1">
-                    <Text className="text-[8px] text-muted-foreground font-semibold mb-1">{item.volume > 0 ? `${Math.round(item.volume)}` : ''}</Text>
-                    <View style={{ height: `${heightPct}%`, backgroundColor: Colors.foreground }} className="w-5 rounded-t-sm" />
-                    <Text className="text-[8px] text-muted-foreground font-bold mt-1.5">{displayDate}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-          <Text className="text-center text-[9px] text-muted-foreground mt-3 italic">
-            * Volume = Hiệp × Số lần × Tạ (kg) của các bài tập hoàn thành.
-          </Text>
-        </Card>
 
-        {/* Max Weight Progress */}
-        <Card className="p-5 mb-5">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-foreground font-extrabold text-sm">Tiến trình tạ tối đa (Max Weight)</Text>
-          </View>
-
-          {stats?.exercise_progress && stats.exercise_progress.length > 0 ? (
-            <View className="mb-4">
-              {/* Exercise Selector */}
-              <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-2">Chọn bài tập để xem</Text>
-              <ChipGroup
-                data={stats.exercise_progress.map((p) => ({ value: p.exercise_name, label: p.exercise_name }))}
-                value={selectedChartExercise}
-                onChange={setSelectedChartExercise}
-              />
-
-              {/* History Timeline */}
-              {selectedExerciseStats ? (
-                <View className="mt-4 border-l-2 border-border/60 pl-4 py-2">
-                  {selectedExerciseStats.history.map((hist, idx) => (
-                    <View key={idx} className="mb-4 relative">
-                      {/* Timeline dot */}
-                      <View className="absolute -left-[23px] top-1 bg-foreground w-2.5 h-2.5 rounded-full border border-background" />
-                      
-                      <View className="flex-row justify-between items-center">
-                        <Text className="text-foreground font-bold text-xs">{hist.date}</Text>
-                        <View className="flex-row gap-3">
-                          <Badge label={`Max tạ: ${hist.max_weight}kg`} variant="red" />
-                          <Badge label={`Vol: ${Math.round(hist.volume)}kg`} variant="zinc" />
-                        </View>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          ) : (
-            <View className="py-8 items-center justify-center">
-              <LineChart size={24} color={Colors.iconMuted} />
-              <Text className="text-muted-foreground text-xs mt-1.5">Chưa có lịch sử tập luyện.</Text>
-            </View>
-          )}
-        </Card>
-      </ScrollView>
-    );
-  };
 
   return (
     <MainLayout
@@ -655,37 +487,37 @@ export default function GymScreen() {
         ) : undefined
       }
     >
+      {activeView === 'schedule' && (
+        <WeekStrip
+          selectedDate={selectedDate}
+          onSelectDate={(dateStr, date) => {
+            setSelectedDate(dateStr);
+            setScheduleBaseDate(date);
+          }}
+          baseDate={scheduleBaseDate}
+          onBaseDateChange={setScheduleBaseDate}
+          showNavButtons={true}
+        />
+      )}
 
-      {/* Segmented Control */}
-      <View className="flex-row bg-muted p-1 rounded-xl my-3.5 mx-6">
-        <TouchableOpacity
-          onPress={() => setActiveView('schedule')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'schedule' ? 'bg-card' : ''}`}
-        >
-          <CalendarDays size={12} color={activeView === 'schedule' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'schedule' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Lịch tập
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveView('categories')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'categories' ? 'bg-card' : ''}`}
-        >
-          <FolderOpen size={12} color={activeView === 'categories' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'categories' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Nhóm cơ
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveView('stats')}
-          className={`flex-1 py-2.5 rounded-lg items-center justify-center flex-row ${activeView === 'stats' ? 'bg-card' : ''}`}
-        >
-          <TrendingUp size={12} color={activeView === 'stats' ? Colors.foreground : Colors.iconMuted} />
-          <Text className={`text-[10px] font-extrabold ml-1 ${activeView === 'stats' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Thống kê
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <SegmentedControl<ViewMode>
+        tabs={[
+          {
+            value: 'schedule',
+            label: 'Lịch tập',
+            icon: (color) => <CalendarDays size={12} color={color} />
+          },
+          {
+            value: 'categories',
+            label: 'Nhóm cơ',
+            icon: (color) => <FolderOpen size={12} color={color} />
+          }
+        ]}
+        value={activeView}
+        onChange={setActiveView}
+        roundedVariant="xl"
+        className="my-3.5 mx-6"
+      />
 
       {/* Render Main Content */}
       <View className="flex-1">
@@ -697,7 +529,6 @@ export default function GymScreen() {
           <>
             {activeView === 'schedule' && renderScheduleView()}
             {activeView === 'categories' && renderCategoriesView()}
-            {activeView === 'stats' && renderStatsView()}
           </>
         )}
       </View>
