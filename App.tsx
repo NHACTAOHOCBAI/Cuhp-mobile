@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/context/AuthContext";
 import { SettingsProvider } from "./src/context/SettingsContext";
 import { AppNavigator } from "./src/navigation/AppNavigator";
+import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import * as Notifications from "expo-notifications";
 import * as Speech from "expo-speech";
 import * as SecureStore from "expo-secure-store";
@@ -76,15 +77,18 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef}>
-            <AppNavigator />
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SettingsProvider>
+          <SafeAreaProvider>
+            <NavigationContainer ref={navigationRef}>
+              <AppNavigator />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
+
 
