@@ -52,20 +52,30 @@ export default function ListeningDetailScreen() {
 
   // Cập nhật nguồn âm thanh khi tải xong dữ liệu bài nghe
   useEffect(() => {
-    if (passage?.url) {
+    if (passage?.url && player) {
       player.replace(passage.url);
       
-      // Kích hoạt bảng điều khiển màn hình khóa với thông tin bài nghe
-      player.setActiveForLockScreen(true, {
-        title: passage.title,
-        artist: passage.category || "Cuhp English Hub",
-        albumTitle: passage.level === 'easy' ? 'Mức độ: Dễ' : passage.level === 'medium' ? 'Mức độ: Trung bình' : 'Mức độ: Khó',
-      });
+      try {
+        // Kích hoạt bảng điều khiển màn hình khóa với thông tin bài nghe
+        player.setActiveForLockScreen(true, {
+          title: passage.title,
+          artist: passage.category || "Cuhp English Hub",
+          albumTitle: passage.level === 'easy' ? 'Mức độ: Dễ' : passage.level === 'medium' ? 'Mức độ: Trung bình' : 'Mức độ: Khó',
+        });
+      } catch (error) {
+        console.warn('Không thể kích hoạt Lockscreen Controls (Expo Go không hỗ trợ):', error);
+      }
     }
 
     return () => {
-      // Hủy kích hoạt lockscreen controls khi unmount
-      player.setActiveForLockScreen(false);
+      try {
+        // Hủy kích hoạt lockscreen controls khi unmount
+        if (player) {
+          player.setActiveForLockScreen(false);
+        }
+      } catch (error) {
+        console.warn('Không thể hủy kích hoạt Lockscreen Controls:', error);
+      }
     };
   }, [passage, player]);
 
