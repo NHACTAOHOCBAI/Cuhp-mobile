@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Send, Trash2, Award, Headphones, RotateCw, Check } from 'lucide-react-native';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Send, Trash2, Award, Headphones, RotateCw, Check, Repeat } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { Colors } from '../theme';
@@ -45,6 +45,7 @@ export default function ListeningDetailScreen() {
   const status = useAudioPlayerStatus(player);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [progressWidth, setProgressWidth] = useState(0);
+  const [isLooping, setIsLooping] = useState(false);
 
   const isPlaying = status.playing;
   const duration = (status.duration || 0) * 1000; // convert to ms for UI
@@ -54,6 +55,7 @@ export default function ListeningDetailScreen() {
   useEffect(() => {
     if (passage?.url && player) {
       player.replace(passage.url);
+      player.loop = isLooping; // Áp dụng trạng thái lặp lại
     }
   }, [passage, player]);
 
@@ -133,6 +135,14 @@ export default function ListeningDetailScreen() {
       player.pause();
     } else {
       player.play();
+    }
+  };
+
+  const handleLoopToggle = () => {
+    const nextLoop = !isLooping;
+    setIsLooping(nextLoop);
+    if (player) {
+      player.loop = nextLoop;
     }
   };
 
@@ -496,9 +506,12 @@ export default function ListeningDetailScreen() {
             />
           </View>
 
-          <View className="w-14 items-center">
-            <Headphones size={16} color={Colors.iconMuted} />
-          </View>
+          <TouchableOpacity 
+            onPress={handleLoopToggle} 
+            className={`w-14 items-center py-1.5 rounded-lg ${isLooping ? 'bg-zinc-200' : ''}`}
+          >
+            <Repeat size={16} color={isLooping ? Colors.foreground : Colors.iconMuted} />
+          </TouchableOpacity>
         </View>
       </Card>
 
