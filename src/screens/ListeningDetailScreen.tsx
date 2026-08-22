@@ -54,22 +54,30 @@ export default function ListeningDetailScreen() {
   useEffect(() => {
     if (passage?.url && player) {
       player.replace(passage.url);
-      
+    }
+  }, [passage, player]);
+
+  // Cập nhật thông tin lên Màn hình khóa khi trạng thái bài nghe thay đổi (nhất là khi duration đã được load)
+  useEffect(() => {
+    if (passage && player && status.isLoaded) {
       try {
-        // Kích hoạt bảng điều khiển màn hình khóa với thông tin bài nghe
+        const audioTrack = passage as any;
         player.setActiveForLockScreen(true, {
           title: passage.title,
           artist: passage.category || "Cuhp English Hub",
           albumTitle: passage.level === 'easy' ? 'Mức độ: Dễ' : passage.level === 'medium' ? 'Mức độ: Trung bình' : 'Mức độ: Khó',
+          // Sử dụng artworkUrl theo định nghĩa của Expo AudioMetadata
+          artworkUrl: audioTrack.image || "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=150", 
         });
       } catch (error) {
-        console.warn('Không thể kích hoạt Lockscreen Controls (Expo Go không hỗ trợ):', error);
+        console.warn('Không thể cập nhật Lockscreen Controls:', error);
       }
     }
+  }, [passage, player, status.isLoaded]);
 
+  useEffect(() => {
     return () => {
       try {
-        // Hủy kích hoạt lockscreen controls khi unmount
         if (player) {
           player.setActiveForLockScreen(false);
         }
@@ -77,7 +85,7 @@ export default function ListeningDetailScreen() {
         console.warn('Không thể hủy kích hoạt Lockscreen Controls:', error);
       }
     };
-  }, [passage, player]);
+  }, [player]);
 
   // Dictation state
   const [dictationInput, setDictationInput] = useState('');
