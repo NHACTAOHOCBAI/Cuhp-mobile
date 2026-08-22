@@ -17,23 +17,19 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings, SpeechAccent } from '../context/SettingsContext';
 import * as Speech from 'expo-speech';
 import * as SecureStore from 'expo-secure-store';
-import { scheduleTestNotification } from '../api/notificationService';
 import { MainLayout } from '../components/MainLayout';
 import { Colors } from '../theme';
 import { triggerHaptic } from '../components/Button';
 import { updateUserProfile } from '../api/client';
+import { NotificationSettings } from '../components/NotificationSettings';
 
 export default function SettingScreen() {
   const { user, token, login, logout } = useAuth();
   const {
     accent,
     speechRate,
-    reminderEnabled,
-    notificationPersonality,
     setAccent,
     setSpeechRate,
-    setReminderEnabled,
-    setNotificationPersonality,
   } = useSettings();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -298,88 +294,21 @@ export default function SettingScreen() {
         </View>
 
         {/* Notifications Card */}
+        <NotificationSettings />
+
+        {/* Weekly Reports Section (Báo cáo tuần) */}
         <View className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5">
-          <View className="flex-row items-center mb-4">
-            <View className="w-8 h-8 rounded-full bg-orange-500/10 items-center justify-center mr-3">
-              <Bell size={16} color="#f97316" />
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1 pr-4">
+              <Text className="text-foreground text-xs font-bold">Báo cáo tuần (Weekly Reports)</Text>
+              <Text className="text-muted-foreground text-[10px] mt-0.5">Tóm tắt tiến trình qua email hàng tuần</Text>
             </View>
-            <Text className="text-foreground font-black text-base">Notifications</Text>
-          </View>
-
-          <View className="border-t border-border/40 pt-4 gap-y-4">
-            {/* Daily Reminders */}
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 pr-4">
-                <Text className="text-foreground text-xs font-bold">Daily Reminders</Text>
-                <Text className="text-muted-foreground text-[10px] mt-0.5">Push notifications for practice</Text>
-              </View>
-              <Switch
-                value={reminderEnabled}
-                onValueChange={(val) => {
-                  setReminderEnabled(val);
-                  if (val) {
-                    scheduleTestNotification(notificationPersonality);
-                  }
-                }}
-                trackColor={{ false: Colors.trackOff, true: Colors.foreground }}
-                thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
-              />
-            </View>
-
-            {/* Notification Personality */}
-            <View className="border-t border-border/10 pt-4">
-              <Text className="text-foreground text-xs font-bold mb-3">Notification Tone (Cá tính nhắc nhở)</Text>
-              <View className="flex-row bg-muted rounded-2xl p-1 justify-between gap-x-1">
-                {(['gentle', 'supportive', 'roast'] as const).map((p) => {
-                  const isActive = notificationPersonality === p;
-                  const labelMap = {
-                    gentle: '🌸 Nhẹ nhàng',
-                    supportive: '💪 Động viên',
-                    roast: '🔥 Cà khịa',
-                  };
-                  return (
-                    <TouchableOpacity
-                      key={p}
-                      onPress={() => {
-                        setNotificationPersonality(p);
-                        triggerHaptic('selection');
-                        scheduleTestNotification(p);
-                      }}
-                      className={`flex-1 py-2.5 rounded-xl items-center justify-center ${
-                        isActive ? 'bg-foreground shadow-sm shadow-foreground/20' : 'bg-transparent'
-                      }`}
-                    >
-                      <Text
-                        className={`text-[10px] font-bold ${
-                          isActive ? 'text-background' : 'text-muted-foreground'
-                        }`}
-                      >
-                        {labelMap[p]}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text className="text-muted-foreground text-[9px] mt-2 italic pl-1">
-                {notificationPersonality === 'gentle' && 'Nhắc nhở lịch thiệp, dễ chịu để bạn thoải mái.'}
-                {notificationPersonality === 'supportive' && 'Lời khích lệ đầy nhiệt huyết và tích cực!'}
-                {notificationPersonality === 'roast' && 'Sát sao, hài hước và châm chọc nếu bạn lười biếng. 🔥'}
-              </Text>
-            </View>
-
-            {/* Weekly Reports */}
-            <View className="flex-row items-center justify-between border-t border-border/10 pt-4">
-              <View className="flex-1 pr-4">
-                <Text className="text-foreground text-xs font-bold">Weekly Reports</Text>
-                <Text className="text-muted-foreground text-[10px] mt-0.5">Email summaries of progress</Text>
-              </View>
-              <Switch
-                value={weeklyReports}
-                onValueChange={setWeeklyReports}
-                trackColor={{ false: Colors.trackOff, true: Colors.foreground }}
-                thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
-              />
-            </View>
+            <Switch
+              value={weeklyReports}
+              onValueChange={setWeeklyReports}
+              trackColor={{ false: Colors.trackOff, true: Colors.foreground }}
+              thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
+            />
           </View>
         </View>
 

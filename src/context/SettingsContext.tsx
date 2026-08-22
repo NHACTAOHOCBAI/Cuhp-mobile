@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { scheduleVocabularyReminders } from "../api/notificationService";
+import { useAuth } from "./AuthContext";
 
 export type SpeechAccent = "en-US" | "en-GB";
 export type NotificationPersonality = "gentle" | "supportive" | "roast";
@@ -9,23 +10,40 @@ interface SettingsContextType {
   accent: SpeechAccent;
   speechRate: number;
   reminderEnabled: boolean;
-  reminderInterval: number; // tính bằng giờ
   notificationPersonality: NotificationPersonality;
+  sleepStartHour: number;
+  sleepEndHour: number;
   setAccent: (accent: SpeechAccent) => Promise<void>;
   setSpeechRate: (rate: number) => Promise<void>;
   setReminderEnabled: (enabled: boolean) => Promise<void>;
-  setReminderInterval: (interval: number) => Promise<void>;
   setNotificationPersonality: (personality: NotificationPersonality) => Promise<void>;
+  setSleepStartHour: (hour: number) => Promise<void>;
+  setSleepEndHour: (hour: number) => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const dailyTarget = user?.daily_target || 5;
+
   const [accent, setAccentState] = useState<SpeechAccent>("en-US");
   const [speechRate, setSpeechRateState] = useState<number>(0.9);
   const [reminderEnabled, setReminderEnabledState] = useState<boolean>(true); // Mặc định là bật
-  const [reminderInterval, setReminderIntervalState] = useState<number>(4); // Mặc định mỗi 4 tiếng
   const [notificationPersonality, setNotificationPersonalityState] = useState<NotificationPersonality>("supportive");
+  const [sleepStartHour, setSleepStartHourState] = useState<number>(22); // Mặc định 22h
+  const [sleepEndHour, setSleepEndHourState] = useState<number>(8); // Mặc định 8h sáng
+
+  // Lên lịch lại nhắc nhở mỗi khi mục tiêu học hàng ngày thay đổi
+  useEffect(() => {
+    scheduleVocabularyReminders(
+      reminderEnabled,
+      notificationPersonality,
+      sleepStartHour,
+      sleepEndHour,
+      dailyTarget
+    );
+  }, [dailyTarget]);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -33,8 +51,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const storedAccent = await SecureStore.getItemAsync("settings-accent");
         const storedRate = await SecureStore.getItemAsync("settings-rate");
         const storedReminder = await SecureStore.getItemAsync("settings-reminder-enabled");
-        const storedInterval = await SecureStore.getItemAsync("settings-reminder-interval");
         const storedPersonality = await SecureStore.getItemAsync("settings-notification-personality");
+        const storedSleepStart = await SecureStore.getItemAsync("settings-sleep-start");
+        const storedSleepEnd = await SecureStore.getItemAsync("settings-sleep-end");
 
         if (storedAccent === "en-US" || storedAccent === "en-GB") {
           setAccentState(storedAccent);
@@ -48,12 +67,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           currentEnabled = storedReminder === "true";
           setReminderEnabledState(currentEnabled);
         }
-        
-        let currentInterval = 4;
-        if (storedInterval !== null) {
-          currentInterval = parseInt(storedInterval);
-          setReminderIntervalState(currentInterval);
-        }
 
         let currentPersonality: NotificationPersonality = "supportive";
         if (storedPersonality === "gentle" || storedPersonality === "supportive" || storedPersonality === "roast") {
@@ -61,8 +74,26 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setNotificationPersonalityState(currentPersonality);
         }
 
+        let currentSleepStart = 22;
+        if (storedSleepStart !== null) {
+          currentSleepStart = parseInt(storedSleepStart);
+          setSleepStartHourState(currentSleepStart);
+        }
+
+        let currentSleepEnd = 8;
+        if (storedSleepEnd !== null) {
+          currentSleepEnd = parseInt(storedSleepEnd);
+          setSleepEndHourState(currentSleepEnd);
+        }
+
         // Tự động lập lịch lại mỗi lần mở app để cập nhật từ vựng mới nhất
-        await scheduleVocabularyReminders(currentEnabled, currentInterval, currentPersonality);
+        await scheduleVocabularyReminders(
+          currentEnabled,
+          currentPersonality,
+          currentSleepStart,
+          currentSleepEnd,
+          dailyTarget
+        );
       } catch (e) {
         console.warn("Lỗi tải cài đặt:", e);
       }
@@ -92,19 +123,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       await SecureStore.setItemAsync("settings-reminder-enabled", String(enabled));
       setReminderEnabledState(enabled);
-      await scheduleVocabularyReminders(enabled, reminderInterval, notificationPersonality);
+      await scheduleVocabularyReminders(enabled, notificationPersonality, sleepStartHour, sleepEndHour, dailyTarget);
     } catch (e) {
       console.error("Lỗi lưu cài đặt reminderEnabled:", e);
-    }
-  };
-
-  const setReminderInterval = async (interval: number) => {
-    try {
-      await SecureStore.setItemAsync("settings-reminder-interval", String(interval));
-      setReminderIntervalState(interval);
-      await scheduleVocabularyReminders(reminderEnabled, interval, notificationPersonality);
-    } catch (e) {
-      console.error("Lỗi lưu cài đặt reminderInterval:", e);
     }
   };
 
@@ -112,9 +133,29 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       await SecureStore.setItemAsync("settings-notification-personality", newPersonality);
       setNotificationPersonalityState(newPersonality);
-      await scheduleVocabularyReminders(reminderEnabled, reminderInterval, newPersonality);
+      await scheduleVocabularyReminders(reminderEnabled, newPersonality, sleepStartHour, sleepEndHour, dailyTarget);
     } catch (e) {
       console.error("Lỗi lưu cài đặt notificationPersonality:", e);
+    }
+  };
+
+  const setSleepStartHour = async (hour: number) => {
+    try {
+      await SecureStore.setItemAsync("settings-sleep-start", String(hour));
+      setSleepStartHourState(hour);
+      await scheduleVocabularyReminders(reminderEnabled, notificationPersonality, hour, sleepEndHour, dailyTarget);
+    } catch (e) {
+      console.error("Lỗi lưu cài đặt sleepStartHour:", e);
+    }
+  };
+
+  const setSleepEndHour = async (hour: number) => {
+    try {
+      await SecureStore.setItemAsync("settings-sleep-end", String(hour));
+      setSleepEndHourState(hour);
+      await scheduleVocabularyReminders(reminderEnabled, notificationPersonality, sleepStartHour, hour, dailyTarget);
+    } catch (e) {
+      console.error("Lỗi lưu cài đặt sleepEndHour:", e);
     }
   };
 
@@ -124,13 +165,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         accent,
         speechRate,
         reminderEnabled,
-        reminderInterval,
         notificationPersonality,
+        sleepStartHour,
+        sleepEndHour,
         setAccent,
         setSpeechRate,
         setReminderEnabled,
-        setReminderInterval,
         setNotificationPersonality,
+        setSleepStartHour,
+        setSleepEndHour,
       }}
     >
       {children}

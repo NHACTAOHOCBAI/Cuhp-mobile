@@ -90,33 +90,49 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 /**
- * Tính toán thời gian nhắc nhở tiếp theo, tránh khung giờ ngủ (22:00 - 08:00)
+ * Tính toán thời gian nhắc nhở tiếp theo, tránh khung giờ ngủ động
  */
-function getNextTriggerDate(startDate: Date, hoursOffset: number): Date {
+function getNextTriggerDate(
+  startDate: Date,
+  hoursOffset: number,
+  sleepStart: number = 22,
+  sleepEnd: number = 8
+): Date {
   const date = new Date(startDate.getTime() + hoursOffset * 60 * 60 * 1000);
   const hour = date.getHours();
   
-  // Nếu mốc thời gian rơi vào 22h tối đến 8h sáng hôm sau, đẩy về 9h sáng ngày hôm đó (hoặc hôm sau)
-  if (hour >= 22) {
-    date.setDate(date.getDate() + 1);
-    date.setHours(9, 0, 0, 0);
-  } else if (hour < 8) {
-    date.setHours(9, 0, 0, 0);
+  if (sleepStart > sleepEnd) {
+    // Ví dụ ngủ từ 22h tối đến 8h sáng hôm sau
+    if (hour >= sleepStart || hour < sleepEnd) {
+      if (hour >= sleepStart) {
+        date.setDate(date.getDate() + 1);
+      }
+      date.setHours(sleepEnd, 0, 0, 0);
+    }
+  } else {
+    // Ví dụ ngủ từ 0h sáng đến 6h sáng cùng ngày
+    if (hour >= sleepStart && hour < sleepEnd) {
+      date.setHours(sleepEnd, 0, 0, 0);
+    }
   }
   
   return date;
 }
 
 /**
- * Lập lịch thông báo cho các từ vựng cần học
+ * Lập lịch thông báo cho các từ vựng cần học tự động theo mục tiêu ngày
  * @param enabled Bật hay tắt nhắc nhở
- * @param intervalHours Khoảng thời gian giữa các thông báo (giờ)
  * @param personality Cá tính nhắc nhở ('gentle' | 'supportive' | 'roast')
+ * @param sleepStart Giờ bắt đầu ngủ
+ * @param sleepEnd Giờ thức dậy
+ * @param dailyTarget Mục tiêu số từ học mỗi ngày
  */
 export async function scheduleVocabularyReminders(
   enabled: boolean,
-  intervalHours: number = 4,
-  personality: "gentle" | "supportive" | "roast" = "supportive"
+  personality: "gentle" | "supportive" | "roast" = "supportive",
+  sleepStart: number = 22,
+  sleepEnd: number = 8,
+  dailyTarget: number = 5
 ) {
   try {
     // 1. Huỷ tất cả các thông báo đã lập lịch trước đó
@@ -141,17 +157,24 @@ export async function scheduleVocabularyReminders(
       return;
     }
 
-    // 4. Lấy danh sách từ vựng cần học (do/due)
+    // 4. Lấy danh sách từ vựng cần học (tải bản ghi lớn hơn để sàng lọc thông minh)
     let vocabItems: VocabularyItem[] = [];
     try {
-      // Đầu tiên thử lấy các từ cần ôn tập (due)
-      const res = await fetchVocabularies({ due: true, page_size: 15 }, token);
+      // Tải tối đa 40 từ cần ôn tập
+      const res = await fetchVocabularies({ due: true, page_size: 40 }, token);
       vocabItems = res.items || [];
       
-      // Nếu không có từ nào cần ôn tập gấp, lấy danh sách từ bình thường để nhắc nhở
-      if (vocabItems.length === 0) {
-        const resAll = await fetchVocabularies({ page_size: 15 }, token);
-        vocabItems = resAll.items || [];
+      // Nếu không đủ từ cần ôn tập, lấy thêm từ bình thường
+      if (vocabItems.length < 15) {
+        const resAll = await fetchVocabularies({ page_size: 40 }, token);
+        const allItems = resAll.items || [];
+        // Gộp và loại trùng
+        const existingIds = new Set(vocabItems.map(item => item.id));
+        for (const item of allItems) {
+          if (!existingIds.has(item.id)) {
+            vocabItems.push(item);
+          }
+        }
       }
     } catch (e) {
       console.warn("Lỗi khi tải từ vựng để lập lịch thông báo:", e);
@@ -163,17 +186,39 @@ export async function scheduleVocabularyReminders(
       return;
     }
 
-    // 5. Thiết lập danh mục & kênh nếu chưa làm
+    // Sắp xếp thông minh: Ưu tiên từ có hộp thấp nhất (chưa thuộc) -> tiếp theo là thời gian hẹn ôn gần nhất
+    vocabItems.sort((a, b) => {
+      if (a.box_number !== b.box_number) {
+        return a.box_number - b.box_number; // Hộp 1, 2 lên đầu
+      }
+      const timeA = new Date(a.next_review_at || 0).getTime();
+      const timeB = new Date(b.next_review_at || 0).getTime();
+      return timeA - timeB;
+    });
+
+    // 5. Tính toán khoảng cách thông báo tối ưu dựa theo giờ thức giấc và mục tiêu học
+    let wakeHours = 16; // Mặc định thức 16 tiếng
+    if (sleepStart !== sleepEnd) {
+      if (sleepStart > sleepEnd) {
+        wakeHours = 24 - (sleepStart - sleepEnd);
+      } else {
+        wakeHours = 24 - (sleepEnd - sleepStart);
+      }
+    }
+    // Tính giãn cách = giờ thức / mục tiêu ngày, giới hạn từ 1h đến 12h
+    const finalInterval = Math.max(1, Math.min(12, wakeHours / Math.max(1, dailyTarget)));
+
+    // 6. Thiết lập danh mục & kênh nếu chưa làm
     await registerNotificationCategory();
     const isChannelCreated = await setupNotificationChannel();
 
-    // 6. Lập lịch cho tối đa 15 thông báo
+    // 7. Lập lịch cho tối đa 15 thông báo
     const now = new Date();
     let scheduledCount = 0;
 
     for (let i = 0; i < Math.min(vocabItems.length, 15); i++) {
       const item = vocabItems[i];
-      const triggerDate = getNextTriggerDate(now, (i + 1) * intervalHours);
+      const triggerDate = getNextTriggerDate(now, (i + 1) * finalInterval, sleepStart, sleepEnd);
 
       const triggerObj: any = {
         type: 'date',
@@ -214,7 +259,7 @@ export async function scheduleVocabularyReminders(
       scheduledCount++;
     }
 
-    console.log(`Đã lập lịch thành công ${scheduledCount} thông báo từ vựng (khoảng cách ${intervalHours}h)`);
+    console.log(`Đã lập lịch thành công ${scheduledCount} thông báo từ vựng (khoảng cách tự động ${finalInterval.toFixed(1)}h, giờ ngủ ${sleepStart}h - ${sleepEnd}h, mục tiêu ${dailyTarget} từ/ngày)`);
   } catch (error) {
     console.warn("Lỗi trong quá trình lập lịch thông báo:", error);
   }
