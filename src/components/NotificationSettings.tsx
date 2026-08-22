@@ -163,7 +163,7 @@ export const NotificationSettings: React.FC = () => {
 
             {/* Cá tính thông báo */}
             <View className="border-t border-border/10 pt-4">
-              <Text className="text-foreground text-xs font-bold mb-3">Cá tính nhắc nhở (Notification Tone)</Text>
+              <Text className="text-foreground text-xs font-bold mb-3">Cá tính nhắc nhở</Text>
               <View className="flex-row bg-muted rounded-2xl p-1 justify-between gap-x-1">
                 {(['gentle', 'supportive', 'roast'] as const).map((p) => {
                   const isActive = notificationPersonality === p;
@@ -208,7 +208,7 @@ export const NotificationSettings: React.FC = () => {
               onPress={handleTestNotification}
               className="mt-2 bg-primary/10 border border-primary/5 rounded-full py-3 items-center justify-center"
             >
-              <Text className="text-primary text-xs font-black">Gửi thông báo kiểm tra (Test Notification)</Text>
+              <Text className="text-primary text-xs font-black">Gửi thông báo học thử</Text>
             </TouchableOpacity>
           </>
         )}
