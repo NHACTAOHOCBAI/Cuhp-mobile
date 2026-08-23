@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -68,8 +69,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshUser = async () => {
+    if (!token) return;
+    try {
+      const { fetchUserProfile } = require("../api/client");
+      const updatedUser = await fetchUserProfile(token);
+      if (updatedUser) {
+        await SecureStore.setItemAsync("user-data", JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      }
+    } catch (e) {
+      console.warn("Lỗi refresh user profile:", e);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ token, user, loading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

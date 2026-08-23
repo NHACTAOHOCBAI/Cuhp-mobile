@@ -43,7 +43,28 @@ export async function registerNotificationCategory() {
         },
       },
     ]);
-    console.log("Đã đăng ký danh mục thông báo vocab-reminder");
+
+    await Notifications.setNotificationCategoryAsync("sleep-bedtime", [
+      {
+        identifier: "START_SLEEP",
+        buttonTitle: "🌙 Đi ngủ ngay",
+        options: {
+          opensAppToForeground: true,
+        },
+      },
+    ]);
+
+    await Notifications.setNotificationCategoryAsync("sleep-wakeup", [
+      {
+        identifier: "END_SLEEP",
+        buttonTitle: "☀️ Tôi đã thức dậy",
+        options: {
+          opensAppToForeground: true,
+        },
+      },
+    ]);
+
+    console.log("Đã đăng ký danh mục thông báo vocab-reminder, sleep-bedtime, sleep-wakeup");
   } catch (error) {
     console.warn("Lỗi đăng ký category thông báo:", error);
   }
@@ -313,3 +334,94 @@ export async function scheduleTestNotification(personality: "gentle" | "supporti
     trigger: triggerObj,
   });
 }
+
+/**
+ * Lập lịch thông báo đi ngủ và thức dậy hàng ngày
+ */
+export async function scheduleSleepReminders(
+  enabled: boolean,
+  bedtimeStr: string = "22:00",
+  wakeupStr: string = "06:00"
+) {
+  try {
+    // Huỷ các thông báo giấc ngủ cũ
+    const lastBedtimeId = await SecureStore.getItemAsync("notification-id-bedtime");
+    const lastWakeupId = await SecureStore.getItemAsync("notification-id-wakeup");
+    
+    if (lastBedtimeId) {
+      await Notifications.cancelScheduledNotificationAsync(lastBedtimeId).catch(() => null);
+    }
+    if (lastWakeupId) {
+      await Notifications.cancelScheduledNotificationAsync(lastWakeupId).catch(() => null);
+    }
+
+    if (!enabled) {
+      console.log("Nhắc nhở giấc ngủ bị tắt. Đã huỷ các thông báo cũ.");
+      return;
+    }
+
+    const hasPermission = await requestNotificationPermissions();
+    if (!hasPermission) {
+      console.warn("Không có quyền thông báo, không lập lịch nhắc nhở giấc ngủ");
+      return;
+    }
+
+    await registerNotificationCategory();
+    
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("sleep-alerts", {
+        name: "Nhắc nhở giấc ngủ",
+        importance: Notifications.AndroidImportance.MAX,
+        sound: "default",
+        enableVibrate: true,
+        showBadge: true,
+      }).catch(() => null);
+    }
+
+    // Phân tích bedtimeStr (e.g. "22:00")
+    const [bHour, bMinute] = bedtimeStr.split(":").map(Number);
+    // Phân tích wakeupStr (e.g. "06:00")
+    const [wHour, wMinute] = wakeupStr.split(":").map(Number);
+
+    // Lập lịch nhắc đi ngủ
+    const bedtimeNotificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🌙 Đã đến giờ đi ngủ rồi!",
+        body: "Hãy gạt bỏ công việc và đi ngủ đúng giờ nhé. Bấm 'Đi ngủ ngay' để ghi nhận giờ ngủ của bạn.",
+        categoryIdentifier: "sleep-bedtime",
+        sound: "default",
+        vibrate: [0, 250, 250, 250],
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: {
+        hour: bHour,
+        minute: bMinute,
+        repeats: true,
+      } as any,
+    });
+    await SecureStore.setItemAsync("notification-id-bedtime", bedtimeNotificationId);
+
+    // Lập lịch nhắc thức dậy
+    const wakeupNotificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "☀️ Chào buổi sáng!",
+        body: "Đã đến lúc thức dậy. Đừng quên bấm 'Tôi đã thức dậy' để lưu giấc ngủ của bạn nhé.",
+        categoryIdentifier: "sleep-wakeup",
+        sound: "default",
+        vibrate: [0, 250, 250, 250],
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: {
+        hour: wHour,
+        minute: wMinute,
+        repeats: true,
+      } as any,
+    });
+    await SecureStore.setItemAsync("notification-id-wakeup", wakeupNotificationId);
+
+    console.log(`Đã lập lịch thành công thông báo nhắc giấc ngủ: Bedtime ${bedtimeStr}, Wakeup ${wakeupStr}`);
+  } catch (error) {
+    console.warn("Lỗi khi lập lịch nhắc nhở giấc ngủ:", error);
+  }
+}
+

@@ -15,6 +15,7 @@ import FlashcardScreen from '../screens/FlashcardScreen';
 import TodoScreen from '../screens/TodoScreen';
 import GymScreen from '../screens/GymScreen';
 import SettingScreen from '../screens/SettingScreen';
+import SleepTrackerScreen from '../screens/SleepTrackerScreen';
 
 // Bọc ErrorBoundary để bắt lỗi runtime và in stack trace
 const ReadingDetailWithBoundary = () => (
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   Flashcard: undefined;
   Todo: undefined;
   Gym: undefined;
+  SleepTracker: undefined;
 };
 
 export type MainTabParamList = {
@@ -158,6 +160,7 @@ export const AppNavigator = () => {
           <Stack.Screen name="Flashcard" component={FlashcardScreen} />
           <Stack.Screen name="Todo" component={TodoScreen} />
           <Stack.Screen name="Gym" component={GymScreen} />
+          <Stack.Screen name="SleepTracker" component={SleepTrackerScreen} />
         </>
       )}
     </Stack.Navigator>

@@ -17,7 +17,8 @@ import {
   Shield,
   Flame,
   Dumbbell,
-  ListTodo
+  ListTodo,
+  Moon
 } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import Svg, { Circle } from 'react-native-svg';
@@ -313,6 +314,27 @@ export default function DashboardScreen() {
             <Bot size={80} color="#193665" />
           </View>
         </Card>
+
+        {/* Sleep Tracker Shortcut Card */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('SleepTracker')}
+          className="bg-slate-900 border border-violet-950/30 p-5 mb-6 rounded-3xl relative overflow-hidden shadow-sm flex-row items-center justify-between"
+        >
+          <View className="flex-1">
+            <View className="flex-row items-center mb-1">
+              <Moon size={14} color="#a78bfa" className="mr-1.5" />
+              <Text className="text-violet-400 font-extrabold text-xs uppercase tracking-wider">Theo dõi giấc ngủ</Text>
+            </View>
+            <Text className="text-white text-base font-extrabold">Theo dõi & Nhắc nhở ngủ sớm</Text>
+            <Text className="text-slate-400 text-xs mt-1 font-semibold">
+              Mục tiêu: {userProfile?.sleep_bedtime ?? "22:00"} - {userProfile?.sleep_waketime ?? "06:00"}
+            </Text>
+          </View>
+          <View className="bg-violet-950/40 p-3.5 rounded-2xl border border-violet-900/30">
+            <Moon size={20} color="#a78bfa" />
+          </View>
+        </TouchableOpacity>
 
         {/* Quick Dual Cards */}
         <View className="flex-row justify-between mb-6">

@@ -13,6 +13,9 @@ export interface User {
   last_reviewed_date?: string | null;
   words_reviewed_today: number;
   last_streak_increment_date?: string | null;
+  sleep_bedtime: string;
+  sleep_waketime: string;
+  sleep_reminder_enabled: boolean;
 }
 
 export interface AuthState {
@@ -207,4 +210,24 @@ export interface GymStats {
     }>;
   }>;
 }
+
+// --- SLEEP TYPES ---
+export interface SleepLog {
+  id: string;
+  user_id: string;
+  sleep_date: string; // YYYY-MM-DD
+  sleep_time_actual: string; // ISO String
+  wake_time_actual: string; // ISO String
+  duration_minutes: number;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface SleepStats {
+  average_duration_hours: number;
+  average_bedtime: string; // "HH:MM"
+  average_waketime: string; // "HH:MM"
+  sleep_logs_7_days: SleepLog[];
+}
+
 

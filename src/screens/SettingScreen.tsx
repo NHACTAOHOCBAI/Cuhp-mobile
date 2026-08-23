@@ -12,7 +12,10 @@ import {
   Sparkles,
   Accessibility,
   Shield,
+  Moon,
+  ChevronRight,
 } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { useSettings, SpeechAccent } from '../context/SettingsContext';
 import * as Speech from 'expo-speech';
@@ -25,6 +28,7 @@ import { NotificationSettings } from '../components/NotificationSettings';
 
 export default function SettingScreen() {
   const { user, token, login, logout } = useAuth();
+  const navigation = useNavigation<any>();
   const {
     accent,
     speechRate,
@@ -289,6 +293,27 @@ export default function SettingScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Sleep Settings Entry */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => {
+            triggerHaptic('light');
+            navigation.navigate('SleepTracker');
+          }}
+          className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5 flex-row items-center justify-between"
+        >
+          <View className="flex-row items-center flex-1">
+            <View className="w-8 h-8 rounded-full bg-indigo-500/10 items-center justify-center mr-3">
+              <Moon size={16} color="#6366f1" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-foreground font-black text-base">Cài đặt giấc ngủ</Text>
+              <Text className="text-muted-foreground text-[10px] mt-0.5">Thời gian đi ngủ, thức dậy mục tiêu & Nhắc nhở</Text>
+            </View>
+          </View>
+          <ChevronRight size={16} color="#a1a1aa" />
+        </TouchableOpacity>
 
         {/* Notifications Card */}
         <NotificationSettings />

@@ -17,7 +17,9 @@ import {
   WorkoutCategory,
   WorkoutExercise,
   GymStats,
-  TodoQuadrant
+  TodoQuadrant,
+  SleepLog,
+  SleepStats
 } from "../types";
 
 export const API_URL = "https://cuhp-backend.onrender.com/api/v1";
@@ -489,3 +491,51 @@ export async function fetchGymStats(
 ): Promise<GymStats> {
   return apiFetch<GymStats>("/gym/stats", { token, method: "GET" });
 }
+
+// --- SLEEP APIS ---
+export async function fetchSleepLogs(
+  page: number,
+  page_size: number,
+  token: string | null
+): Promise<SleepLog[]> {
+  return apiFetch<SleepLog[]>(`/sleep?page=${page}&page_size=${page_size}`, { token, method: "GET" });
+}
+
+export async function logSleepSession(
+  payload: { sleep_date: string; sleep_time_actual: string; wake_time_actual: string; notes?: string | null },
+  token: string | null
+): Promise<SleepLog> {
+  return apiFetch<SleepLog>("/sleep", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    token,
+  });
+}
+
+export async function fetchSleepStats(
+  token: string | null
+): Promise<SleepStats> {
+  return apiFetch<SleepStats>("/sleep/stats", { token, method: "GET" });
+}
+
+export async function updateSleepSettings(
+  payload: { sleep_bedtime: string; sleep_waketime: string; sleep_reminder_enabled: boolean },
+  token: string | null
+): Promise<User> {
+  return apiFetch<User>("/sleep/settings", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+    token,
+  });
+}
+
+export async function deleteSleepLog(
+  id: string,
+  token: string | null
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(`/sleep/${id}`, {
+    method: "DELETE",
+    token,
+  });
+}
+

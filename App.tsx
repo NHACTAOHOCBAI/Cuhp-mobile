@@ -21,6 +21,75 @@ export default function App() {
     const subscription = Notifications.addNotificationResponseReceivedListener(async (response) => {
       const { actionIdentifier, notification } = response;
       const data = notification.request.content.data;
+      const categoryIdentifier = notification.request.content.categoryIdentifier;
+
+      // Xử lý các Action liên quan đến giấc ngủ
+      if (actionIdentifier === "START_SLEEP") {
+        try {
+          const nowStr = new Date().toISOString();
+          await SecureStore.setItemAsync("sleep-start-time", nowStr);
+          Alert.alert("Ngủ ngon nhé! 🌙", "Thời gian bắt đầu ngủ của bạn đã được ghi nhận. Hãy tắt màn hình điện thoại và nghỉ ngơi thôi.");
+          if (navigationRef.isReady()) {
+            navigationRef.navigate("SleepTracker");
+          }
+        } catch (err) {
+          console.error("Lỗi khi ghi nhận bắt đầu ngủ:", err);
+        }
+        return;
+      }
+
+      if (actionIdentifier === "END_SLEEP") {
+        try {
+          const startTimeStr = await SecureStore.getItemAsync("sleep-start-time");
+          const token = await SecureStore.getItemAsync("user-token");
+
+          if (!startTimeStr) {
+            Alert.alert("Chào buổi sáng! ☀️", "Không tìm thấy thời điểm bắt đầu đi ngủ để tính toán. Bạn có thể tự thêm thủ công nhé.");
+            if (navigationRef.isReady()) {
+              navigationRef.navigate("SleepTracker");
+            }
+            return;
+          }
+
+          const sleepTime = new Date(startTimeStr);
+          const wakeTime = new Date();
+          const durationHrs = (wakeTime.getTime() - sleepTime.getTime()) / (1000 * 60 * 60);
+
+          if (token) {
+            const { logSleepSession } = require("./src/api/client");
+            const sleepDateStr = sleepTime.toISOString().split("T")[0]; // YYYY-MM-DD
+            await logSleepSession({
+              sleep_date: sleepDateStr,
+              sleep_time_actual: sleepTime.toISOString(),
+              wake_time_actual: wakeTime.toISOString(),
+              notes: "Ghi nhận nhanh qua thông báo"
+            }, token);
+
+            await SecureStore.deleteItemAsync("sleep-start-time");
+            Alert.alert("Chào buổi sáng! ☀️", `Bạn đã ngủ được ${durationHrs.toFixed(1)} tiếng. Giấc ngủ đã được tự động lưu vào nhật ký.`);
+          } else {
+            Alert.alert("Chào buổi sáng! ☀️", "Vui lòng đăng nhập để lưu dữ liệu giấc ngủ của bạn.");
+          }
+
+          if (navigationRef.isReady()) {
+            navigationRef.navigate("SleepTracker");
+          }
+        } catch (err) {
+          console.error("Lỗi khi ghi nhận thức dậy:", err);
+          Alert.alert("Lỗi", "Không thể ghi nhận dữ liệu giấc ngủ.");
+        }
+        return;
+      }
+
+      // Nhấp trực tiếp vào thân thông báo giấc ngủ
+      if (categoryIdentifier === "sleep-bedtime" || categoryIdentifier === "sleep-wakeup") {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate("SleepTracker");
+        }
+        return;
+      }
+
+      // Xử lý các Action liên quan đến học từ vựng
       const vocabId = data?.vocabId as string;
       const word = data?.word as string;
 
