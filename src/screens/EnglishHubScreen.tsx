@@ -182,6 +182,7 @@ export default function EnglishHubScreen() {
 
   const subTabs: { key: SubTabKey; label: string }[] = [
     { key: 'vocabulary', label: 'Từ vựng' },
+    { key: 'review', label: 'Ôn tập' },
     { key: 'reading', label: 'Bài đọc' },
     { key: 'listening', label: 'Nghe' },
   ];

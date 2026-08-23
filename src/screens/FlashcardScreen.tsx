@@ -6,6 +6,7 @@ import {
   ScrollView,
   GestureResponderEvent,
   StyleSheet,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -404,20 +405,21 @@ export default function FlashcardScreen() {
 
         {/* Flashcard with 3D flip animation */}
         <View className="flex-1 mx-6 my-2">
-          <Animated.View style={[styles.cardShell, frontStyle]}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={toggleFlip}
-              className="flex-1 bg-card border border-border rounded-3xl p-6 items-center justify-between shadow-sm shadow-[#193665]/3"
-            >
-              <Badge label="Mặt trước" variant="zinc" />
+          <Animated.View style={[styles.cardShell, frontStyle]} pointerEvents={isFlipped ? 'none' : 'auto'}>
+            <View className="flex-1 bg-card border border-border rounded-3xl p-6 items-center justify-between shadow-sm shadow-[#193665]/3 overflow-hidden">
+              {/* Background Pressable to handle flipping the card */}
+              <Pressable style={StyleSheet.absoluteFill} onPress={toggleFlip} />
 
-              <View className="items-center w-full px-4">
-                <Text className="text-3xl font-extrabold text-foreground text-center">
+              <View pointerEvents="none">
+                <Badge label="Mặt trước" variant="zinc" />
+              </View>
+
+              <View className="items-center w-full px-4" pointerEvents="box-none">
+                <Text className="text-3xl font-extrabold text-foreground text-center" pointerEvents="none">
                   {currentItem.word}
                 </Text>
                 {currentItem.pronunciation ? (
-                  <Text className="text-muted-foreground text-base italic mt-2 text-center">
+                  <Text className="text-muted-foreground text-base italic mt-2 text-center" pointerEvents="none">
                     {currentItem.pronunciation}
                   </Text>
                 ) : null}
@@ -427,26 +429,23 @@ export default function FlashcardScreen() {
                     variant="soft"
                     size="lg"
                     hapticType="light"
-                    onPress={(e: GestureResponderEvent) => {
-                      e.stopPropagation?.();
-                      speakWord(currentItem.word);
-                    }}
+                    onPress={() => speakWord(currentItem.word)}
                     accessibilityLabel={`Phát âm ${currentItem.word}`}
                     icon={<Volume2 size={20} color={Colors.foreground} />}
                   />
                 </View>
               </View>
 
-              <View className="flex-row items-center justify-center">
+              <View className="flex-row items-center justify-center" pointerEvents="none">
                 <RotateCw size={12} color={Colors.iconSubtle} />
                 <Text className="text-muted-foreground text-xs font-semibold ml-1.5">
                   Chạm để lật xem nghĩa
                 </Text>
               </View>
-            </TouchableOpacity>
+            </View>
           </Animated.View>
 
-          <Animated.View style={[styles.cardShell, styles.backFace, backStyle]}>
+          <Animated.View style={[styles.cardShell, styles.backFace, backStyle]} pointerEvents={isFlipped ? 'auto' : 'none'}>
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={toggleFlip}
