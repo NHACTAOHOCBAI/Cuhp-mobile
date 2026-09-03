@@ -28,10 +28,10 @@ export function SegmentedControl<T extends string>({
   const itemRoundedClass = roundedVariant === 'full' ? 'rounded-full' : 'rounded-lg';
 
   return (
-    <View className={`flex-row bg-muted p-1 ${containerRoundedClass} ${className}`}>
+    <View className={`flex-row bg-[#fcf1f5] border border-[#F0EAEB] p-1 ${containerRoundedClass} ${className}`} style={{ borderColor: '#F0EAEB' }}>
       {tabs.map((tab) => {
         const isSelected = value === tab.value;
-        const iconColor = isSelected ? Colors.foreground : Colors.iconMuted;
+        const iconColor = isSelected ? '#1f1a1d' : '#706065';
 
         return (
           <TouchableOpacity
@@ -42,14 +42,15 @@ export function SegmentedControl<T extends string>({
               onChange(tab.value);
             }}
             activeOpacity={0.85}
+            style={isSelected ? { borderColor: '#F0EAEB' } : undefined}
             className={`flex-1 py-2.5 items-center justify-center flex-row ${itemRoundedClass} ${
-              isSelected ? 'bg-card shadow-sm' : ''
+              isSelected ? 'bg-white shadow-sm border border-[#F0EAEB]' : ''
             }`}
           >
             {tab.icon && <View className="mr-1">{tab.icon(iconColor)}</View>}
             <Text
               className={`text-[10px] font-extrabold ${
-                isSelected ? 'text-foreground' : 'text-muted-foreground'
+                isSelected ? 'text-[#1f1a1d]' : 'text-[#706065]'
               }`}
             >
               {tab.label}

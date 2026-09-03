@@ -114,8 +114,8 @@ export default function DashboardScreen() {
     return (
       <MainLayout title="Cuhp" scroll={false}>
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#006699" />
-          <Text className="text-muted-foreground text-sm mt-3 font-medium">Đang tải thông tin cá nhân...</Text>
+          <ActivityIndicator size="large" color="#EFBCD5" />
+          <Text className="text-[#706065] text-sm mt-3 font-medium">Đang tải thông tin cá nhân...</Text>
         </View>
       </MainLayout>
     );
@@ -130,18 +130,18 @@ export default function DashboardScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          tintColor="#006699"
-          colors={["#006699"]}
+          tintColor="#EFBCD5"
+          colors={["#EFBCD5"]}
         />
       }
     >
         {/* Welcome Section */}
         <View className="mb-6 mt-2">
-          <Text className="text-[28px] font-black text-[#193665] tracking-tight">
+          <Text className="text-[28px] font-black text-[#1f1a1d] tracking-tight">
             Chào {userProfile?.name || 'Admin'}! 👋
           </Text>
-          <Text className="text-muted-foreground text-sm font-semibold mt-1">
-            Sẵn sàng cho một ngày mới?
+          <Text className="text-[#706065] text-sm font-semibold mt-1">
+            Sẵn sàng cho một ngày mới mượt mà?
           </Text>
 
           {/* Streak pill & Freeze shields */}
@@ -163,7 +163,7 @@ export default function DashboardScreen() {
 
         {/* Habit Rings Activity Card */}
         <Card className="p-6 mb-6">
-          <Text className="text-lg font-black text-[#193665] mb-5 text-center">
+          <Text className="text-lg font-black text-[#1f1a1d] mb-5 text-center">
             Vòng tròn Hoạt động Hôm nay
           </Text>
 
@@ -199,13 +199,13 @@ export default function DashboardScreen() {
                   strokeLinecap="round"
                 />
 
-                {/* Blue Ring (English) - Inner (radius = 24) */}
-                <Circle cx="60" cy="60" r="24" stroke="#e0f2fe" strokeWidth="8" fill="transparent" />
+                {/* Pink Ring (English) - Inner (radius = 24) */}
+                <Circle cx="60" cy="60" r="24" stroke="#fcf1f5" strokeWidth="8" fill="transparent" />
                 <Circle
                   cx="60"
                   cy="60"
                   r="24"
-                  stroke="#006699"
+                  stroke="#EFBCD5"
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={2 * Math.PI * 24}
@@ -214,7 +214,7 @@ export default function DashboardScreen() {
                 />
               </Svg>
               <View className="absolute items-center justify-center">
-                <CheckCircle size={22} color="#006699" />
+                <CheckCircle size={22} color="#C7739A" />
               </View>
             </View>
 
@@ -223,8 +223,8 @@ export default function DashboardScreen() {
               <View className="flex-row items-center">
                 <View className="w-2.5 h-2.5 rounded-full bg-[#ef4444] mr-2" />
                 <View>
-                  <Text className="text-[10px] font-bold text-slate-400 uppercase">GYM WORKOUT</Text>
-                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                  <Text className="text-[10px] font-bold text-[#706065] uppercase">GYM WORKOUT</Text>
+                  <Text className="text-[#1f1a1d] text-xs font-bold mt-0.5">
                     {gymExercises.length > 0
                       ? `${Math.round((gymExercises.filter(e => e.completed).length / gymExercises.length) * 100)}% (${gymExercises.filter(e => e.completed).length}/${gymExercises.length})`
                       : '0% (Chưa có bài)'}
@@ -235,8 +235,8 @@ export default function DashboardScreen() {
               <View className="flex-row items-center">
                 <View className="w-2.5 h-2.5 rounded-full bg-[#22c55e] mr-2" />
                 <View>
-                  <Text className="text-[10px] font-bold text-slate-400 uppercase">TODO TASKS</Text>
-                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                  <Text className="text-[10px] font-bold text-[#706065] uppercase">TODO TASKS</Text>
+                  <Text className="text-[#1f1a1d] text-xs font-bold mt-0.5">
                     {todoStats
                       ? `${Math.round((todoStats.completed / (todoStats.total || 1)) * 100)}% (${todoStats.completed}/${todoStats.total})`
                       : '0% (Trống)'}
@@ -245,10 +245,10 @@ export default function DashboardScreen() {
               </View>
 
               <View className="flex-row items-center">
-                <View className="w-2.5 h-2.5 rounded-full bg-[#006699] mr-2" />
+                <View className="w-2.5 h-2.5 rounded-full bg-[#EFBCD5] mr-2" />
                 <View>
-                  <Text className="text-[10px] font-bold text-slate-400 uppercase">ENGLISH LEARNING</Text>
-                  <Text className="text-[#193665] text-xs font-bold mt-0.5">
+                  <Text className="text-[10px] font-bold text-[#706065] uppercase">ENGLISH LEARNING</Text>
+                  <Text className="text-[#1f1a1d] text-xs font-bold mt-0.5">
                     {percentage}% ({reviewedToday}/{dailyTarget} từ)
                   </Text>
                 </View>
@@ -259,10 +259,10 @@ export default function DashboardScreen() {
 
         {/* Weekly Activity Card */}
         <Card className="p-5 mb-6">
-          <View className="flex-row items-center justify-between pb-3 border-b border-border/30 mb-4">
-            <Text className="text-[#193665] font-extrabold text-base">Hoạt động tuần này</Text>
-            <View className="bg-zinc-100 px-3 py-1 rounded-full">
-              <Text className="text-muted-foreground text-[10px] font-bold">Last 7 Days</Text>
+          <View className="flex-row items-center justify-between pb-3 border-b border-[#F0EAEB] mb-4" style={{ borderBottomColor: '#F0EAEB' }}>
+            <Text className="text-[#1f1a1d] font-extrabold text-base">Hoạt động tuần này</Text>
+            <View className="bg-[#fcf1f5] px-3 py-1 rounded-full border border-[#F0EAEB]" style={{ borderColor: '#F0EAEB' }}>
+              <Text className="text-[#706065] text-[10px] font-bold">7 Ngày gần đây</Text>
             </View>
           </View>
 
@@ -284,13 +284,13 @@ export default function DashboardScreen() {
                     <View
                       style={{
                         height: barHeight,
-                        backgroundColor: isToday ? '#006699' : (isFuture ? '#19366511' : '#bce2fa'),
+                        backgroundColor: isToday ? '#EFBCD5' : (isFuture ? '#F0EAEB' : '#fcf1f5'),
                         width: 24,
                         borderRadius: 12,
                       }}
                     />
                   </View>
-                  <Text className="text-[11px] text-muted-foreground font-semibold">{dayLabel}</Text>
+                  <Text className="text-[11px] text-[#706065] font-semibold">{dayLabel}</Text>
                 </View>
               );
             })}
@@ -298,20 +298,20 @@ export default function DashboardScreen() {
         </Card>
 
         {/* Assistant Card */}
-        <Card className="p-5 mb-6 relative overflow-hidden">
+        <Card className="p-5 mb-6 relative overflow-hidden bg-white border border-[#F0EAEB]" style={{ borderColor: '#F0EAEB' }}>
           <View className="flex-row items-center mb-3">
-            <View className="w-10 h-10 rounded-full bg-[#c2e6fb] items-center justify-center mr-3">
-              <View className="w-5 h-5 rounded-full bg-[#006699]" />
+            <View className="w-10 h-10 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
+              <View className="w-5 h-5 rounded-full bg-[#EFBCD5]" />
             </View>
-            <Text className="text-base font-bold text-[#193665]">Trợ lý Cuhp</Text>
+            <Text className="text-base font-bold text-[#1f1a1d]">Trợ lý Cuhp</Text>
           </View>
 
-          <Text className="text-muted-foreground text-[13px] italic leading-relaxed pl-1 pr-10">
+          <Text className="text-[#706065] text-[13px] italic leading-relaxed pl-1 pr-10">
             "Sẵn sàng cho {remaining > 0 ? remaining : 15} từ mới hôm nay chưa? Đừng quên buổi tập ngực chiều nay nhé!"
           </Text>
 
-          <View style={{ position: 'absolute', right: -12, bottom: -12, opacity: 0.05, transform: [{ rotate: '15deg' }] }}>
-            <Bot size={80} color="#193665" />
+          <View style={{ position: 'absolute', right: -12, bottom: -12, opacity: 0.08, transform: [{ rotate: '15deg' }] }}>
+            <Bot size={80} color="#EFBCD5" />
           </View>
         </Card>
 
@@ -319,20 +319,21 @@ export default function DashboardScreen() {
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => navigation.navigate('SleepTracker')}
-          className="bg-slate-900 border border-violet-950/30 p-5 mb-6 rounded-3xl relative overflow-hidden shadow-sm flex-row items-center justify-between"
+          style={{ borderColor: '#F0EAEB' }}
+          className="bg-[#1f1a1d] border border-[#F0EAEB] p-5 mb-6 rounded-3xl relative overflow-hidden shadow-sm flex-row items-center justify-between"
         >
           <View className="flex-1">
             <View className="flex-row items-center mb-1">
-              <Moon size={14} color="#a78bfa" className="mr-1.5" />
-              <Text className="text-violet-400 font-extrabold text-xs uppercase tracking-wider">Theo dõi giấc ngủ</Text>
+              <Moon size={14} color="#EFBCD5" className="mr-1.5" />
+              <Text className="text-[#EFBCD5] font-extrabold text-xs uppercase tracking-wider">Theo dõi giấc ngủ</Text>
             </View>
             <Text className="text-white text-base font-extrabold">Theo dõi & Nhắc nhở ngủ sớm</Text>
-            <Text className="text-slate-400 text-xs mt-1 font-semibold">
+            <Text className="text-[#706065] text-xs mt-1 font-semibold">
               Mục tiêu: {userProfile?.sleep_bedtime ?? "22:00"} - {userProfile?.sleep_waketime ?? "06:00"}
             </Text>
           </View>
-          <View className="bg-violet-950/40 p-3.5 rounded-2xl border border-violet-900/30">
-            <Moon size={20} color="#a78bfa" />
+          <View className="bg-[#2a2428] p-3.5 rounded-2xl border border-[#3d3339]">
+            <Moon size={20} color="#EFBCD5" />
           </View>
         </TouchableOpacity>
 
@@ -341,28 +342,30 @@ export default function DashboardScreen() {
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('Main', { screen: 'EnglishTab' })}
-            className="w-[48%] bg-white p-5 rounded-3xl border border-[#1936651a] shadow-sm shadow-[#193665]/3 justify-between"
+            style={{ borderColor: '#F0EAEB' }}
+            className="w-[48%] bg-white p-5 rounded-3xl border border-[#F0EAEB] shadow-sm shadow-[#EFBCD5]/15 justify-between"
           >
-            <View className="border border-[#1936651a] p-2.5 rounded-full self-start mb-4 bg-[#e5f3fb]/60">
-              <BookOpen size={18} color="#006699" />
+            <View className="border border-[#F0EAEB] p-2.5 rounded-full self-start mb-4 bg-[#fcf1f5]" style={{ borderColor: '#F0EAEB' }}>
+              <BookOpen size={18} color="#C7739A" />
             </View>
             <View>
-              <Text className="text-[#193665] font-extrabold text-sm mb-1">Học tiếng Anh</Text>
-              <Text className="text-muted-foreground text-[11px] font-semibold">Còn 1 bài học</Text>
+              <Text className="text-[#1f1a1d] font-extrabold text-sm mb-1">Học tiếng Anh</Text>
+              <Text className="text-[#706065] text-[11px] font-semibold">Còn 1 bài học</Text>
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('Main', { screen: 'TodoTab' })}
-            className="w-[48%] bg-white p-5 rounded-3xl border border-[#1936651a] shadow-sm shadow-[#193665]/3 justify-between"
+            style={{ borderColor: '#F0EAEB' }}
+            className="w-[48%] bg-white p-5 rounded-3xl border border-[#F0EAEB] shadow-sm shadow-[#EFBCD5]/15 justify-between"
           >
-            <View className="border border-[#1936651a] p-2.5 rounded-full self-start mb-4 bg-[#f3e8ff]/60">
+            <View className="border border-[#F0EAEB] p-2.5 rounded-full self-start mb-4 bg-[#fcf1f5]" style={{ borderColor: '#F0EAEB' }}>
               <CheckCircle size={18} color="#a855f7" />
             </View>
             <View>
-              <Text className="text-[#193665] font-extrabold text-sm mb-1">Công việc</Text>
-              <Text className="text-muted-foreground text-[11px] font-semibold">
+              <Text className="text-[#1f1a1d] font-extrabold text-sm mb-1">Công việc</Text>
+              <Text className="text-[#706065] text-[11px] font-semibold">
                 {todoStats?.pending ?? 3} Tasks Pending
               </Text>
             </View>

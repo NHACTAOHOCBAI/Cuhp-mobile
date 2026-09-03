@@ -122,7 +122,7 @@ export default function SettingScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
-        <View className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 items-center mb-5">
+        <View className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 items-center mb-5" style={{ borderColor: '#F0EAEB' }}>
           <View className="relative mb-3">
             {user?.avatar ? (
               <Image
@@ -130,22 +130,22 @@ export default function SettingScreen() {
                 className="w-20 h-20 rounded-full border-4 border-white shadow-md shadow-black/10"
               />
             ) : (
-              <View className="w-20 h-20 rounded-full bg-[#c2e6fb] border-4 border-white items-center justify-center shadow-md shadow-black/10">
-                <Text className="text-[#193665] text-2xl font-black">
+              <View className="w-20 h-20 rounded-full bg-[#fcf1f5] border-4 border-[#F0EAEB] items-center justify-center shadow-md shadow-black/10" style={{ borderColor: '#F0EAEB' }}>
+                <Text className="text-[#C7739A] text-2xl font-black">
                   {user?.name?.slice(0, 2).toUpperCase() || 'AD'}
                 </Text>
               </View>
             )}
           </View>
           
-          <Text className="text-foreground text-xl font-black">{user?.name || 'Người dùng Cuhp'}</Text>
-          <Text className="text-muted-foreground text-xs mt-0.5">
+          <Text className="text-[#1f1a1d] text-xl font-black">{user?.name || 'Người dùng Cuhp'}</Text>
+          <Text className="text-[#706065] text-xs mt-0.5">
             {user?.username ? `${user.username}@cuhp.app` : 'user@cuhp.app'}
           </Text>
 
-          {/* Daily Streak Goal pill - Bộ đếm tăng giảm linh hoạt */}
-          <View className="bg-muted/60 rounded-3xl px-5 py-4 mt-5 w-full items-center">
-            <Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+          {/* Daily Streak Goal pill */}
+          <View className="bg-[#fcf1f5] border border-[#F0EAEB] rounded-3xl px-5 py-4 mt-5 w-full items-center" style={{ borderColor: '#F0EAEB' }}>
+            <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest mb-3">
               MỤC TIÊU HỌC HÀNG NGÀY
             </Text>
             
@@ -156,12 +156,13 @@ export default function SettingScreen() {
                     handleTargetChange(dailyTarget - 1);
                   }
                 }}
-                className="w-10 h-10 bg-[#e0f2fe] rounded-full items-center justify-center border border-primary/10"
+                className="w-10 h-10 bg-white rounded-full items-center justify-center border border-[#F0EAEB]"
+                style={{ borderColor: '#F0EAEB' }}
               >
-                <Text className="text-primary font-black text-lg">-</Text>
+                <Text className="text-[#C7739A] font-black text-lg">-</Text>
               </TouchableOpacity>
               
-              <Text className="text-foreground text-base font-black">
+              <Text className="text-[#1f1a1d] text-base font-black">
                 {dailyTarget} từ / ngày
               </Text>
               
@@ -171,67 +172,69 @@ export default function SettingScreen() {
                     handleTargetChange(dailyTarget + 1);
                   }
                 }}
-                className="w-10 h-10 bg-[#e0f2fe] rounded-full items-center justify-center border border-primary/10"
+                className="w-10 h-10 bg-white rounded-full items-center justify-center border border-[#F0EAEB]"
+                style={{ borderColor: '#F0EAEB' }}
               >
-                <Text className="text-primary font-black text-lg">+</Text>
+                <Text className="text-[#C7739A] font-black text-lg">+</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Streak Freeze Shields Info */}
-          <View className="bg-amber-500/10 rounded-full px-5 py-3 mt-3 w-full flex-row items-center justify-between">
+          <View className="bg-amber-50 border border-amber-100 rounded-full px-5 py-3 mt-3 w-full flex-row items-center justify-between">
             <View className="flex-row items-center">
               <Shield size={16} color={Colors.warning} className="mr-2" />
-              <Text className="text-foreground text-[10px] font-bold uppercase tracking-wider">
+              <Text className="text-[#1f1a1d] text-[10px] font-bold uppercase tracking-wider">
                 Khiên Đóng Băng Streak
               </Text>
             </View>
-            <Text className="text-[#193665] text-xs font-black">
+            <Text className="text-[#1f1a1d] text-xs font-black">
               Đang có {streakFreezes}
             </Text>
           </View>
         </View>
 
         {/* Speech Configuration Card */}
-        <View className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5">
+        <View className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 mb-5" style={{ borderColor: '#F0EAEB' }}>
           <View className="flex-row items-center mb-4">
-            <View className="w-8 h-8 rounded-full bg-purple/10 items-center justify-center mr-3">
-              <Volume2 size={16} color={Colors.purple} />
+            <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
+              <Volume2 size={16} color="#C7739A" />
             </View>
-            <Text className="text-foreground font-black text-base">Cấu hình giọng đọc</Text>
+            <Text className="text-[#1f1a1d] font-black text-base">Cấu hình giọng đọc</Text>
           </View>
 
-          <View className="border-t border-border/40 pt-4">
-            <Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">GIỌNG PHÁT ÂM</Text>
+          <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
+            <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest mb-2">GIỌNG PHÁT ÂM</Text>
             
             {/* Custom Dropdown Trigger */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => setDropdownOpen(!dropdownOpen)}
-              className="flex-row justify-between items-center bg-muted/40 border border-border/40 rounded-full px-5 py-3.5 mb-2"
+              style={{ borderColor: '#F0EAEB' }}
+              className="flex-row justify-between items-center bg-[#fcf1f5] border border-[#F0EAEB] rounded-full px-5 py-3.5 mb-2"
             >
-              <Text className="text-foreground text-xs font-bold">
+              <Text className="text-[#1f1a1d] text-xs font-bold">
                 {accent === 'en-US' ? 'Tiếng Anh Mỹ (en-US)' : 'Tiếng Anh Anh (en-GB)'}
               </Text>
-              {dropdownOpen ? <ChevronUp size={16} color={Colors.iconMuted} /> : <ChevronDown size={16} color={Colors.iconMuted} />}
+              {dropdownOpen ? <ChevronUp size={16} color="#706065" /> : <ChevronDown size={16} color="#706065" />}
             </TouchableOpacity>
 
             {/* Dropdown Options */}
             {dropdownOpen && (
-              <View className="bg-muted/40 border border-border/40 rounded-2xl p-1 mb-4 overflow-hidden">
+              <View className="bg-[#fcf1f5] border border-[#F0EAEB] rounded-2xl p-1 mb-4 overflow-hidden" style={{ borderColor: '#F0EAEB' }}>
                 <TouchableOpacity
                   onPress={() => handleAccentChange('en-US')}
-                  className={`px-4 py-3 rounded-xl ${accent === 'en-US' ? 'bg-primary/5' : ''}`}
+                  className={`px-4 py-3 rounded-xl ${accent === 'en-US' ? 'bg-[#EFBCD5]/20' : ''}`}
                 >
-                  <Text className={`text-xs font-bold ${accent === 'en-US' ? 'text-primary' : 'text-foreground'}`}>
+                  <Text className={`text-xs font-bold ${accent === 'en-US' ? 'text-[#C7739A]' : 'text-[#1f1a1d]'}`}>
                     Tiếng Anh Mỹ (en-US)
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleAccentChange('en-GB')}
-                  className={`px-4 py-3 rounded-xl ${accent === 'en-GB' ? 'bg-primary/5' : ''}`}
+                  className={`px-4 py-3 rounded-xl ${accent === 'en-GB' ? 'bg-[#EFBCD5]/20' : ''}`}
                 >
-                  <Text className={`text-xs font-bold ${accent === 'en-GB' ? 'text-primary' : 'text-foreground'}`}>
+                  <Text className={`text-xs font-bold ${accent === 'en-GB' ? 'text-[#C7739A]' : 'text-[#1f1a1d]'}`}>
                     Tiếng Anh Anh (en-GB)
                   </Text>
                 </TouchableOpacity>
@@ -241,22 +244,21 @@ export default function SettingScreen() {
             {/* Speech Rate Slider Section */}
             <View className="mt-4">
               <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">TỐC ĐỘ ĐỌC</Text>
-                <View className="bg-primary/10 px-2 py-0.5 rounded">
-                  <Text className="text-primary text-[10px] font-black">{speechRate.toFixed(2)}x</Text>
+                <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest">TỐC ĐỘ ĐỌC</Text>
+                <View className="bg-[#EFBCD5]/20 border border-[#F0EAEB] px-2 py-0.5 rounded" style={{ borderColor: '#F0EAEB' }}>
+                  <Text className="text-[#C7739A] text-[10px] font-black">{speechRate.toFixed(2)}x</Text>
                 </View>
               </View>
 
               {/* Custom Slider with steps */}
               <View className="flex-row items-center px-1 py-2">
-                <Accessibility size={16} color={Colors.iconMuted} className="mr-3" />
+                <Accessibility size={16} color="#706065" className="mr-3" />
                 
                 <View className="flex-1 h-8 justify-center relative">
-                  <View className="w-full h-1 bg-border/60 rounded-full" />
+                  <View className="w-full h-1 bg-[#F0EAEB] rounded-full" />
                   
                   {/* Render step points and handle selection */}
                   {rateSteps.map((step) => {
-                    // Position calculations
                     const index = rateSteps.indexOf(step);
                     const totalSteps = rateSteps.length - 1;
                     const leftPos = `${(index / totalSteps) * 100}%`;
@@ -271,14 +273,14 @@ export default function SettingScreen() {
                       >
                         <View 
                           style={isActive ? { transform: [{ scale: 1.25 }] } : undefined}
-                          className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-primary' : 'bg-muted-foreground/30'}`} 
+                          className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-[#C7739A]' : 'bg-[#706065]/30'}`} 
                         />
                       </TouchableOpacity>
                     );
                   })}
                 </View>
 
-                <Accessibility size={16} color={Colors.iconMuted} className="ml-3 rotate-12 scale-110" />
+                <Accessibility size={16} color="#706065" className="ml-3 rotate-12 scale-110" />
               </View>
             </View>
 
@@ -286,10 +288,11 @@ export default function SettingScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={testVoice}
-              className="mt-6 bg-primary/10 border border-primary/5 rounded-full py-3.5 items-center justify-center flex-row"
+              style={{ borderColor: '#F0EAEB' }}
+              className="mt-6 bg-[#EFBCD5] border border-[#F0EAEB] rounded-full py-3.5 items-center justify-center flex-row"
             >
-              <Play size={14} color={Colors.primary} className="mr-2" />
-              <Text className="text-primary text-xs font-black">Nghe thử giọng đọc</Text>
+              <Play size={14} color="#1f1a1d" className="mr-2" />
+              <Text className="text-[#1f1a1d] text-xs font-black">Nghe thử giọng đọc</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -301,58 +304,60 @@ export default function SettingScreen() {
             triggerHaptic('light');
             navigation.navigate('SleepTracker');
           }}
-          className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5 flex-row items-center justify-between"
+          style={{ borderColor: '#F0EAEB' }}
+          className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 mb-5 flex-row items-center justify-between"
         >
           <View className="flex-row items-center flex-1">
-            <View className="w-8 h-8 rounded-full bg-indigo-500/10 items-center justify-center mr-3">
-              <Moon size={16} color="#6366f1" />
+            <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
+              <Moon size={16} color="#C7739A" />
             </View>
             <View className="flex-1">
-              <Text className="text-foreground font-black text-base">Cài đặt giấc ngủ</Text>
-              <Text className="text-muted-foreground text-[10px] mt-0.5">Thời gian đi ngủ, thức dậy mục tiêu & Nhắc nhở</Text>
+              <Text className="text-[#1f1a1d] font-black text-base">Cài đặt giấc ngủ</Text>
+              <Text className="text-[#706065] text-[10px] mt-0.5">Thời gian đi ngủ, thức dậy mục tiêu & Nhắc nhở</Text>
             </View>
           </View>
-          <ChevronRight size={16} color="#a1a1aa" />
+          <ChevronRight size={16} color="#706065" />
         </TouchableOpacity>
 
         {/* Notifications Card */}
         <NotificationSettings />
 
-        {/* Weekly Reports Section (Báo cáo tuần) */}
-        <View className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5">
+        {/* Weekly Reports Section */}
+        <View className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 mb-5" style={{ borderColor: '#F0EAEB' }}>
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-foreground text-xs font-bold">Báo cáo tuần</Text>
-              <Text className="text-muted-foreground text-[10px] mt-0.5">Tóm tắt tiến trình học tập qua email hàng tuần</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Báo cáo tuần</Text>
+              <Text className="text-[#706065] text-[10px] mt-0.5">Tóm tắt tiến trình học tập qua email hàng tuần</Text>
             </View>
             <Switch
               value={weeklyReports}
               onValueChange={setWeeklyReports}
-              trackColor={{ false: Colors.trackOff, true: Colors.foreground }}
+              trackColor={{ false: Colors.trackOff, true: '#EFBCD5' }}
               thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
             />
           </View>
         </View>
 
         {/* Account Card */}
-        <View className="bg-card border border-border/40 rounded-3xl p-6 shadow-sm shadow-[#193665]/3 mb-5">
+        <View className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 mb-5" style={{ borderColor: '#F0EAEB' }}>
           <View className="flex-row items-center mb-3">
-            <View className="w-8 h-8 rounded-full bg-slate-500/10 items-center justify-center mr-3">
-              <User size={16} color="#64748b" />
+            <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
+              <User size={16} color="#706065" />
             </View>
-            <Text className="text-foreground font-black text-base">Tài khoản</Text>
+            <Text className="text-[#1f1a1d] font-black text-base">Tài khoản</Text>
           </View>
 
-          <View className="border-t border-border/40 pt-4">
-            <Text className="text-muted-foreground text-[10px] leading-normal mb-5">
+          <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
+            <Text className="text-[#706065] text-[10px] leading-normal mb-5">
               Quản lý dữ liệu của bạn, gói đăng ký và bảo mật tài khoản.
             </Text>
 
             <TouchableOpacity
               activeOpacity={0.85}
-              className="border border-border/60 rounded-full py-3.5 items-center justify-center mb-3"
+              style={{ borderColor: '#F0EAEB' }}
+              className="border border-[#F0EAEB] bg-[#fcf1f5] rounded-full py-3.5 items-center justify-center mb-3"
             >
-              <Text className="text-foreground text-xs font-bold">Quản lý gói đăng ký</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Quản lý gói đăng ký</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

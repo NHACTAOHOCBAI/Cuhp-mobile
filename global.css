@@ -5,37 +5,37 @@
 
 @theme {
   /* Core palette (light-only — matches web :root in /home/aipowervn/Desktop/Cuhp/frontend/src/index.css) */
-  --color-background: #ffffff;
-  --color-foreground: #193665;
+  --color-background: #FCFAF7;
+  --color-foreground: #1f1a1d;
   --color-card: #ffffff;
-  --color-card-foreground: #193665;
+  --color-card-foreground: #1f1a1d;
   --color-popover: #ffffff;
-  --color-popover-foreground: #193665;
-  --color-primary: #76baf9;
-  --color-primary-foreground: #193665;
-  --color-secondary: #5c8edf;
+  --color-popover-foreground: #1f1a1d;
+  --color-primary: #EFBCD5;
+  --color-primary-foreground: #1f1a1d;
+  --color-secondary: #706065;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #c2e6fb33;
-  --color-muted-foreground: #193665cc;
-  --color-accent: #5c8edf;
-  --color-accent-foreground: #ffffff;
+  --color-muted: #fcf1f5;
+  --color-muted-foreground: #706065;
+  --color-accent: #EFBCD5;
+  --color-accent-foreground: #1f1a1d;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: #1936651a;
-  --color-input: #1936651a;
-  --color-ring: #76baf9;
+  --color-border: #F0EAEB;
+  --color-input: #F0EAEB;
+  --color-ring: #EFBCD5;
 
   /* Brand micro-tints used by mobile screens */
   --color-success: #22c55e;
   --color-success-foreground: #ffffff;
   --color-warning: #f59e0b;
-  --color-warning-foreground: #193665;
+  --color-warning-foreground: #1f1a1d;
   --color-streak: #f97316;
   --color-streak-soft: #fff7ed;
   --color-streak-border: #fed7aa;
   --color-streak-foreground: #9a3412;
-  --color-on-dark: #c2e6fb;
-  --color-icon-muted: #19366599;
-  --color-icon-subtle: #19366566;
-  --color-track-off: #1936651a;
+  --color-on-dark: #EFBCD5;
+  --color-icon-muted: #706065;
+  --color-icon-subtle: #70606599;
+  --color-track-off: #F0EAEB;
 }

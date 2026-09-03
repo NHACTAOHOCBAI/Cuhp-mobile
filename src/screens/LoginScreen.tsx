@@ -75,25 +75,26 @@ export default function LoginScreen() {
     <ScreenWrapper
       scroll
       edges={['top', 'bottom', 'left', 'right']}
-      className="bg-slate-50"
+      style={{ backgroundColor: '#FCFAF7' }}
+      className="bg-[#FCFAF7]"
       contentContainerClassName="justify-center px-4 py-8"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1 justify-center"
       >
-        <View className="bg-white rounded-[32px] border border-slate-200/60 overflow-hidden shadow-sm shadow-slate-100">
+        <View className="bg-white rounded-[32px] border border-[#F0EAEB] overflow-hidden shadow-sm shadow-[#EFBCD5]/20" style={{ borderColor: '#F0EAEB' }}>
           {/* Main content */}
           <View className="p-8">
             {/* Header */}
             <View className="items-center mb-8">
-              <View className="w-16 h-16 bg-[#e0f2fe] rounded-2xl items-center justify-center mb-4">
-                <PawPrint size={32} color="#006699" />
+              <View className="w-16 h-16 bg-[#fcf1f5] border border-[#F0EAEB] rounded-2xl items-center justify-center mb-4" style={{ borderColor: '#F0EAEB' }}>
+                <PawPrint size={32} color="#C7739A" />
               </View>
-              <Text className="text-4xl font-bold text-[#006699] tracking-tight">
+              <Text className="text-4xl font-bold text-[#EFBCD5] tracking-tight">
                 Cuhp
               </Text>
-              <Text className="text-slate-500 text-sm mt-2 text-center font-medium">
+              <Text className="text-[#706065] text-sm mt-2 text-center font-medium">
                 Welcome back. Please enter your details.
               </Text>
             </View>
@@ -110,7 +111,7 @@ export default function LoginScreen() {
             {/* Input fields */}
             <View className="gap-y-6">
               <View>
-                <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 pl-1">
+                <Text className="text-[11px] font-bold text-[#706065] uppercase tracking-widest mb-2.5 pl-1">
                   Email Address
                 </Text>
                 <Input
@@ -119,15 +120,15 @@ export default function LoginScreen() {
                   placeholder="hello@example.com"
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  icon={<Mail size={20} color="#cbd5e1" />}
+                  icon={<Mail size={20} color="#706065" />}
                   className="mb-0"
-                  inputClassName="text-slate-800"
-                  style={{ borderRadius: 9999, height: 54 }}
+                  inputClassName="text-[#1f1a1d]"
+                  style={{ borderRadius: 9999, height: 54, borderColor: '#F0EAEB' }}
                 />
               </View>
 
               <View>
-                <Text className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 pl-1">
+                <Text className="text-[11px] font-bold text-[#706065] uppercase tracking-widest mb-2.5 pl-1">
                   Password
                 </Text>
                 <Input
@@ -136,10 +137,10 @@ export default function LoginScreen() {
                   placeholder="••••••••"
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
-                  icon={<Lock size={20} color="#cbd5e1" />}
+                  icon={<Lock size={20} color="#706065" />}
                   className="mb-0"
-                  inputClassName="text-slate-800"
-                  style={{ borderRadius: 9999, height: 54 }}
+                  inputClassName="text-[#1f1a1d]"
+                  style={{ borderRadius: 9999, height: 54, borderColor: '#F0EAEB' }}
                   rightElement={
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
@@ -147,15 +148,15 @@ export default function LoginScreen() {
                       className="p-1 mr-1"
                     >
                       {showPassword ? (
-                        <EyeOff size={20} color="#cbd5e1" />
+                        <EyeOff size={20} color="#706065" />
                       ) : (
-                        <Eye size={20} color="#cbd5e1" />
+                        <Eye size={20} color="#706065" />
                       )}
                     </TouchableOpacity>
                   }
                 />
                 <TouchableOpacity activeOpacity={0.7} className="align-self-end self-end pr-1 mt-3">
-                  <Text className="text-[#006699] text-sm font-semibold">
+                  <Text className="text-[#C7739A] text-sm font-semibold">
                     Forgot password?
                   </Text>
                 </TouchableOpacity>
@@ -166,29 +167,30 @@ export default function LoginScreen() {
                 onPress={handleLogin}
                 disabled={loading}
                 activeOpacity={0.8}
-                className="w-full h-14 bg-[#006699] rounded-full items-center justify-center shadow-lg shadow-sky-900/10 mt-1"
+                className="w-full h-14 bg-[#EFBCD5] rounded-full items-center justify-center shadow-md shadow-[#EFBCD5]/40 mt-1"
               >
-                <Text className="text-white text-base font-bold">
+                <Text className="text-[#1f1a1d] text-base font-bold">
                   {loading ? 'Logging in...' : 'Login'}
                 </Text>
               </TouchableOpacity>
 
               {/* OR Separator */}
               <View className="flex-row items-center my-1 py-1">
-                <View className="flex-1 h-[1px] bg-slate-100" />
-                <Text className="mx-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <View className="flex-1 h-[1px] bg-[#F0EAEB]" />
+                <Text className="mx-4 text-[10px] font-bold text-[#706065] uppercase tracking-wider">
                   OR
                 </Text>
-                <View className="flex-1 h-[1px] bg-slate-100" />
+                <View className="flex-1 h-[1px] bg-[#F0EAEB]" />
               </View>
 
               {/* Continue with Google */}
               <TouchableOpacity
                 activeOpacity={0.8}
-                className="w-full h-14 bg-[#e9f0f8] rounded-full flex-row items-center justify-center border border-[#e2e8f0]/40"
+                style={{ borderColor: '#F0EAEB' }}
+                className="w-full h-14 bg-[#fcf1f5] rounded-full flex-row items-center justify-center border border-[#F0EAEB]"
               >
                 <GoogleIcon />
-                <Text className="text-[#006699] text-base font-semibold ml-3">
+                <Text className="text-[#706065] text-base font-semibold ml-3">
                   Continue with Google
                 </Text>
               </TouchableOpacity>
@@ -196,12 +198,12 @@ export default function LoginScreen() {
           </View>
 
           {/* Footer */}
-          <View className="bg-slate-50/80 py-5 border-t border-slate-100 items-center justify-center">
+          <View className="bg-[#FCFAF7] py-5 border-t border-[#F0EAEB] items-center justify-center" style={{ borderTopColor: '#F0EAEB' }}>
             <TouchableOpacity activeOpacity={0.7} className="flex-row">
-              <Text className="text-slate-500 text-sm font-medium">
+              <Text className="text-[#706065] text-sm font-medium">
                 Don't have an account?{' '}
               </Text>
-              <Text className="text-[#006699] text-sm font-bold">
+              <Text className="text-[#C7739A] text-sm font-bold">
                 Sign up
               </Text>
             </TouchableOpacity>

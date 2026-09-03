@@ -92,7 +92,7 @@ export default function GymScreen() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [formCatName, setFormCatName] = useState('');
-  const [formCatColor, setFormCatColor] = useState('#76baf9');
+  const [formCatColor, setFormCatColor] = useState('#EFBCD5');
   const [savingCategory, setSavingCategory] = useState(false);
 
   // Copy schedule state

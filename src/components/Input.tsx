@@ -54,7 +54,10 @@ export const Input: React.FC<InputProps> = ({
         </Text>
       ) : null}
 
-      <View className={`flex-row items-center border rounded-xl px-4 h-14 ${borderStyles}`}>
+      <View 
+        style={{ borderColor: isFocused ? Colors.primary : (error ? Colors.destructive : Colors.border) }}
+        className={`flex-row items-center border rounded-xl px-4 h-14 ${borderStyles}`}
+      >
         {icon ? <View className="mr-2">{icon}</View> : null}
 
         <TextInput

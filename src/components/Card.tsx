@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleProp, ViewStyle } from 'react-native';
+import { Colors } from '../theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -22,13 +23,13 @@ export const Card: React.FC<CardProps> = ({
 
   switch (variant) {
     case 'default':
-      cardStyles += ' bg-card border-border shadow-sm shadow-[#193665]/3';
+      cardStyles += ' bg-card border-[#F0EAEB] shadow-sm shadow-[#EFBCD5]/20';
       break;
     case 'flat':
-      cardStyles += ' bg-muted border-border';
+      cardStyles += ' bg-[#FCF1F5] border-[#F0EAEB]';
       break;
     case 'dark':
-      cardStyles += ' bg-foreground border-foreground shadow-sm shadow-primary/20';
+      cardStyles += ' bg-[#1f1a1d] border-[#1f1a1d] shadow-sm shadow-[#EFBCD5]/20';
       break;
     case 'orange':
       cardStyles += ' bg-streak-soft border-streak-border';
@@ -41,8 +42,10 @@ export const Card: React.FC<CardProps> = ({
       break;
   }
 
+  const defaultBorderStyle = variant === 'default' || variant === 'flat' ? { borderColor: Colors.border } : undefined;
+
   return (
-    <View className={`${cardStyles} ${className}`} style={style}>
+    <View className={`${cardStyles} ${className}`} style={[defaultBorderStyle, style]}>
       {children}
     </View>
   );

@@ -38,8 +38,8 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   return (
     <SafeAreaView
       edges={edges}
-      className={`flex-1 bg-muted ${className}`}
-      style={[{ flex: 1, backgroundColor: Colors.muted }, style]}
+      className={`flex-1 bg-background ${className}`}
+      style={[{ flex: 1, backgroundColor: Colors.background }, style]}
     >
       <StatusBar barStyle="dark-content" />
       {loading ? (

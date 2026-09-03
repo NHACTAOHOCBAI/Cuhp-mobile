@@ -70,21 +70,23 @@ export const WeekStrip: React.FC<WeekStripProps> = ({
     <View className="mb-2">
       {/* Month eyebrow & Nav buttons */}
       <View className="flex-row justify-between items-center px-6 pt-4 pb-1">
-        <Text className="text-foreground text-2xl font-black">{monthLabel}</Text>
+        <Text className="text-[#1f1a1d] text-2xl font-black">{monthLabel}</Text>
         
         {showNavButtons && (
           <View className="flex-row gap-2">
             <TouchableOpacity
               onPress={() => navigateWeek(-1)}
-              className="px-2.5 py-1.5 rounded-lg bg-muted border border-border/40"
+              style={{ borderColor: '#F0EAEB' }}
+              className="px-2.5 py-1.5 rounded-lg bg-[#fcf1f5] border border-[#F0EAEB]"
             >
-              <Text className="text-foreground text-xs font-bold">← Tuần trước</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">← Tuần trước</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigateWeek(1)}
-              className="px-2.5 py-1.5 rounded-lg bg-muted border border-border/40"
+              style={{ borderColor: '#F0EAEB' }}
+              className="px-2.5 py-1.5 rounded-lg bg-[#fcf1f5] border border-[#F0EAEB]"
             >
-              <Text className="text-foreground text-xs font-bold">Tuần sau →</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Tuần sau →</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -108,28 +110,29 @@ export const WeekStrip: React.FC<WeekStripProps> = ({
               key={dateStr}
               onPress={() => onSelectDate(dateStr, date)}
               activeOpacity={0.85}
+              style={{ borderColor: isSelected ? '#EFBCD5' : '#F0EAEB' }}
               className={`mr-2 items-center justify-center w-16 h-[88px] rounded-2xl border ${
                 isSelected
-                  ? 'bg-purple/5 border-purple shadow-sm shadow-purple/20'
-                  : 'bg-card border-border shadow-sm shadow-[#193665]/3'
+                  ? 'bg-[#fcf1f5] border-[#EFBCD5] shadow-sm shadow-[#EFBCD5]/30'
+                  : 'bg-white border-[#F0EAEB] shadow-sm shadow-[#EFBCD5]/10'
               }`}
             >
               <Text
                 className={`text-[10px] font-bold uppercase ${
-                  isSelected ? 'text-foreground' : 'text-muted-foreground'
+                  isSelected ? 'text-[#C7739A]' : 'text-[#706065]'
                 }`}
               >
                 {weekday}
               </Text>
               <Text
                 className={`text-lg font-black mt-1 ${
-                  isSelected ? 'text-foreground' : 'text-foreground/70'
+                  isSelected ? 'text-[#1f1a1d]' : 'text-[#1f1a1d]/70'
                 }`}
               >
                 {date.getDate()}
               </Text>
               {isSelected ? (
-                <View className="w-1.5 h-1.5 rounded-full bg-purple mt-1" />
+                <View className="w-1.5 h-1.5 rounded-full bg-[#EFBCD5] mt-1" />
               ) : (
                 <View className="h-1.5 mt-1" />
               )}

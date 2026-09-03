@@ -190,12 +190,12 @@ export default function EnglishHubScreen() {
   return (
     <MainLayout title="Cuhp" scroll={false}>
       {/* Screen Title */}
-      <Text className="text-[28px] font-black text-[#193665] px-6 pt-4 mb-3">
+      <Text className="text-[28px] font-black text-[#1f1a1d] px-6 pt-4 mb-3">
         English Hub
       </Text>
 
       {/* Segmented Control / Sub-tabs */}
-      <View className="flex-row bg-[#193665]/5 p-1 rounded-2xl mb-4 mx-6">
+      <View className="flex-row bg-[#fcf1f5] border border-[#F0EAEB] p-1 rounded-2xl mb-4 mx-6" style={{ borderColor: '#F0EAEB' }}>
         {subTabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
@@ -206,11 +206,13 @@ export default function EnglishHubScreen() {
               style={
                 isActive
                   ? {
-                      backgroundColor: Colors.card,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 2,
+                      backgroundColor: '#FFFFFF',
+                      borderWidth: 1,
+                      borderColor: '#F0EAEB',
+                      shadowColor: '#EFBCD5',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 4,
                       elevation: 2,
                     }
                   : undefined
@@ -218,7 +220,7 @@ export default function EnglishHubScreen() {
             >
               <Text
                 className="text-xs font-bold"
-                style={{ color: isActive ? Colors.foreground : Colors.iconMuted }}
+                style={{ color: isActive ? '#1f1a1d' : '#706065' }}
               >
                 {tab.label}
               </Text>
