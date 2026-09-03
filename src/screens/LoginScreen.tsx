@@ -63,7 +63,7 @@ export default function LoginScreen() {
     try {
       // Map email input to backend username login request
       const response = await loginRequest(email.trim(), password);
-      await login(response.token, response.user);
+      await login(response.token, response.user, response.refresh_token);
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

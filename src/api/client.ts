@@ -1,3 +1,4 @@
+import * as SecureStore from "expo-secure-store";
 import {
   VocabularyListParams,
   VocabularyListResponse,
@@ -19,20 +20,39 @@ import {
   GymStats,
   TodoQuadrant,
   SleepLog,
-  SleepStats
+  SleepStats,
+  AuthResponse
 } from "../types";
 
 export const API_URL = "https://cuhp-backend.onrender.com/api/v1";
 
+let onUnauthorizedHandler: (() => void) | null = null;
+let isRefreshing = false;
+let refreshSubscribers: ((newToken: string) => void)[] = [];
+
+export function setUnauthorizedHandler(handler: () => void) {
+  onUnauthorizedHandler = handler;
+}
+
+function onRefreshed(newToken: string) {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+}
+
+function addRefreshSubscriber(cb: (newToken: string) => void) {
+  refreshSubscribers.push(cb);
+}
+
 interface FetchOptions extends RequestInit {
   token?: string | null;
+  _isRetry?: boolean;
 }
 
 export async function apiFetch<T = unknown>(
   path: string,
   opts: FetchOptions = {}
 ): Promise<T> {
-  const { token, headers, ...rest } = opts;
+  const { token, headers, _isRetry, ...rest } = opts;
 
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -49,7 +69,62 @@ export async function apiFetch<T = unknown>(
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const url = `${API_URL}${cleanPath}`;
 
-  const res = await fetch(url, { ...rest, headers: finalHeaders });
+  let res = await fetch(url, { ...rest, headers: finalHeaders });
+
+  if (res.status === 401 && !_isRetry && !path.includes("/auth/")) {
+    const refreshToken = await SecureStore.getItemAsync("user-refresh-token");
+    if (refreshToken) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+
+          if (refreshRes.ok) {
+            const data: AuthResponse = await refreshRes.json();
+            await SecureStore.setItemAsync("user-token", data.token);
+            if (data.refresh_token) {
+              await SecureStore.setItemAsync("user-refresh-token", data.refresh_token);
+            }
+            isRefreshing = false;
+            onRefreshed(data.token);
+            return apiFetch<T>(path, { ...opts, token: data.token, _isRetry: true });
+          } else {
+            isRefreshing = false;
+            await SecureStore.deleteItemAsync("user-token");
+            await SecureStore.deleteItemAsync("user-refresh-token");
+            await SecureStore.deleteItemAsync("user-data");
+            if (onUnauthorizedHandler) {
+              onUnauthorizedHandler();
+            }
+          }
+        } catch {
+          isRefreshing = false;
+          await SecureStore.deleteItemAsync("user-token");
+          await SecureStore.deleteItemAsync("user-refresh-token");
+          await SecureStore.deleteItemAsync("user-data");
+          if (onUnauthorizedHandler) {
+            onUnauthorizedHandler();
+          }
+        }
+      } else {
+        return new Promise<T>((resolve, reject) => {
+          addRefreshSubscriber((newToken: string) => {
+            apiFetch<T>(path, { ...opts, token: newToken, _isRetry: true })
+              .then(resolve)
+              .catch(reject);
+          });
+        });
+      }
+    } else {
+      if (onUnauthorizedHandler) {
+        onUnauthorizedHandler();
+      }
+    }
+  }
 
   if (!res.ok) {
     let detail = `Lỗi kết nối: ${res.status}`;
@@ -72,7 +147,7 @@ export async function apiFetch<T = unknown>(
 }
 
 export async function loginRequest(username: string, password: string) {
-  return apiFetch<{ token: string; user: User }>("/auth/login", {
+  return apiFetch<AuthResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });

@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
 import { User } from "../types";
-import { apiFetch } from "../api/client";
+import { apiFetch, setUnauthorizedHandler } from "../api/client";
 
 interface AuthContextType {
   token: string | null;
   user: User | null;
   loading: boolean;
-  login: (token: string, user: User) => Promise<void>;
+  login: (token: string, user: User, refreshToken?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -19,7 +19,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(async () => {
+    try {
+      const currentToken = await SecureStore.getItemAsync("user-token");
+      if (currentToken) {
+        try {
+          await apiFetch("/auth/logout", { method: "POST", token: currentToken });
+        } catch {
+          // ignore
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      await SecureStore.deleteItemAsync("user-token");
+      await SecureStore.deleteItemAsync("user-refresh-token");
+      await SecureStore.deleteItemAsync("user-data");
+      setToken(null);
+      setUser(null);
+    }
+  }, []);
+
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+    });
+
     const bootstrapAsync = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync("user-token");
@@ -37,35 +62,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     bootstrapAsync();
-  }, []);
+  }, [logout]);
 
-  const login = async (newToken: string, newUser: User) => {
+  const login = async (newToken: string, newUser: User, newRefreshToken?: string) => {
     try {
       await SecureStore.setItemAsync("user-token", newToken);
       await SecureStore.setItemAsync("user-data", JSON.stringify(newUser));
+      if (newRefreshToken) {
+        await SecureStore.setItemAsync("user-refresh-token", newRefreshToken);
+      }
       setToken(newToken);
       setUser(newUser);
     } catch (e) {
       console.error("Lỗi lưu trữ thông tin đăng nhập:", e);
       throw new Error("Không thể lưu trữ session đăng nhập");
-    }
-  };
-
-  const logout = async () => {
-    try {
-      if (token) {
-        try {
-          await apiFetch("/auth/logout", { method: "POST", token });
-        } catch {
-          // ignore
-        }
-      }
-      await SecureStore.deleteItemAsync("user-token");
-      await SecureStore.deleteItemAsync("user-data");
-      setToken(null);
-      setUser(null);
-    } catch (e) {
-      console.error("Lỗi xóa thông tin đăng nhập:", e);
     }
   };
 

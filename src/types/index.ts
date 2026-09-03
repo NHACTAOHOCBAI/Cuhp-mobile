@@ -23,6 +23,14 @@ export interface AuthState {
   user: User | null;
 }
 
+export interface AuthResponse {
+  token: string;
+  refresh_token?: string;
+  expires_at: string;
+  refresh_expires_at?: string;
+  user: User;
+}
+
 export interface VocabularyItem {
   id: string;
   word: string;
