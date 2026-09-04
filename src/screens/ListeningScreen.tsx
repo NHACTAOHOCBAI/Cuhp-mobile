@@ -18,6 +18,10 @@ import { EmptyState } from '../components/EmptyState';
 import { Header } from '../components/Header';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Colors } from '../theme';
+import {
+  getReadingLevelLabel,
+  getReadingLevelVariant,
+} from '../utils/reading';
 
 interface ListeningScreenProps {
   hideHeader?: boolean;
@@ -90,32 +94,6 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
     }
   };
 
-  const getLevelVariant = (level: string) => {
-    switch (level) {
-      case 'easy':
-        return 'green';
-      case 'medium':
-        return 'yellow';
-      case 'hard':
-        return 'red';
-      default:
-        return 'zinc';
-    }
-  };
-
-  const getLevelLabel = (level: string) => {
-    switch (level) {
-      case 'easy':
-        return 'Easy';
-      case 'medium':
-        return 'Medium';
-      case 'hard':
-        return 'Hard';
-      default:
-        return level;
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
@@ -134,7 +112,10 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
             <Text className="text-base font-extrabold text-foreground flex-1 pr-3 leading-snug">
               {item.title}
             </Text>
-            <Badge label={getLevelLabel(item.level)} variant={getLevelVariant(item.level)} />
+            <Badge
+              label={getReadingLevelLabel(item.level)}
+              variant={getReadingLevelVariant(item.level)}
+            />
           </View>
 
           {item.description ? (

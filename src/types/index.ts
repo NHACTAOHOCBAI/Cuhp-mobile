@@ -76,8 +76,10 @@ export interface VocabularyReviewResponse {
 export interface AudioListItem {
   id: string;
   title: string;
-  level: "easy" | "medium" | "hard";
-  category: string;
+  // Backend stores `level` as a free-form string (see reading schema for the
+  // same pattern). Keep it untyped so admin-set values don't break the UI.
+  level?: string | null;
+  category?: string | null;
   duration: number; // in seconds
   description?: string;
   created_at: string;
@@ -88,11 +90,13 @@ export interface AudioTrack {
   id: string;
   title: string;
   url: string;
-  level: "easy" | "medium" | "hard";
-  category: string;
+  level?: string | null;
+  category?: string | null;
   duration: number;
   description?: string;
   transcript: string;
+  // Backend does not embed a translation in the audio track response; left
+  // optional for forward compatibility.
   translation?: string;
   created_at: string;
 }
@@ -119,10 +123,15 @@ export interface ReadingPassage {
   id: string;
   title: string;
   content: string;
-  translation: string;
-  level: "easy" | "medium" | "hard";
-  category: string;
+  // Backend stores `level` and `category` as free-form strings (CEFR like
+  // "A1"/"B2" or anything admin types). Treat as optional and untyped.
+  level?: string | null;
+  category?: string | null;
+  // Translation lives on its own endpoint and is not embedded in the passage
+  // response. Passages do not include an `image_url` field today; kept
+  // optional in case the backend grows it.
   image_url?: string;
+  user_id?: string;
   created_at: string;
 }
 
@@ -137,16 +146,30 @@ export interface TranslationPractice {
   id: string;
   user_id: string;
   passage_id: string;
-  user_translation: string;
+  // Backend column is `translation_content` (see backend/app/models.py and
+  // backend/app/schemas/reading.py). Use that exact name to avoid mismatches.
+  translation_content: string;
+  created_at?: string;
   updated_at: string;
+}
+
+export interface ReadingCommentUser {
+  id: string;
+  name: string;
+  initials: string;
+  role: string;
 }
 
 export interface ReadingComment {
   id: string;
   passage_id: string;
   user_id: string;
-  user_name: string;
+  // Backend returns a nested `user` object on ReadingCommentResponse. Keep
+  // the legacy `user_name` optional for backward compat with old callers.
+  user?: ReadingCommentUser;
+  user_name?: string;
   content: string;
+  selected_text?: string | null;
   created_at: string;
 }
 

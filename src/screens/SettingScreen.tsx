@@ -56,6 +56,31 @@ export default function SettingScreen() {
     loadFreezes();
   }, []);
 
+  // Hydrate the weekly-reports toggle from SecureStore on mount.
+  useEffect(() => {
+    const loadWeeklyReports = async () => {
+      try {
+        const stored = await SecureStore.getItemAsync('settings-weekly-reports');
+        if (stored !== null) {
+          setWeeklyReports(stored === 'true');
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    loadWeeklyReports();
+  }, []);
+
+  // Persist weekly-reports toggle whenever it changes.
+  const handleWeeklyReportsChange = async (value: boolean) => {
+    setWeeklyReports(value);
+    try {
+      await SecureStore.setItemAsync('settings-weekly-reports', String(value));
+    } catch (e) {
+      console.warn('Failed to persist weekly-reports setting:', e);
+    }
+  };
+
   const handleTargetChange = async (newTarget: number) => {
     if (newTarget < 1) return;
     try {
@@ -331,7 +356,7 @@ export default function SettingScreen() {
             </View>
             <Switch
               value={weeklyReports}
-              onValueChange={setWeeklyReports}
+              onValueChange={handleWeeklyReportsChange}
               trackColor={{ false: Colors.trackOff, true: '#EFBCD5' }}
               thumbColor={Platform.OS === 'android' ? Colors.background : undefined}
             />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BookOpen, Flame, Target, Sparkles, ArrowRight } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
@@ -357,7 +357,7 @@ export default function FlashcardScreen() {
               size="md"
               hapticType="light"
               onPress={() => {
-                /* TODO: open more menu */
+                Alert.alert('No extra actions', 'Additional actions are not available yet.');
               }}
               accessibilityLabel="More"
               icon={<MoreHorizontal size={18} color={Colors.foreground} />}

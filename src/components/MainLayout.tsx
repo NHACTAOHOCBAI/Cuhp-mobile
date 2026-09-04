@@ -38,7 +38,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const currentUser = user || authUser;
 
   const getInitials = (name: string) => {
-    if (!name) return 'A';
+    if (!name) return '';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -80,7 +80,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <Image source={{ uri: currentUser.avatar }} className="w-8 h-8 rounded-full mr-2.5" />
           ) : (
             <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-2.5" style={{ borderColor: '#F0EAEB' }}>
-              <Text className="text-[#7b5268] text-xs font-bold">{getInitials(currentUser?.name || 'Admin')}</Text>
+              <Text className="text-[#7b5268] text-xs font-bold">{getInitials(currentUser?.name || '')}</Text>
             </View>
           )}
           <Text className="text-2xl font-black text-[#EFBCD5] tracking-tight flex-shrink-1" numberOfLines={1}>

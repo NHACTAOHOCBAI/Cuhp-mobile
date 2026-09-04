@@ -52,6 +52,16 @@ function formatDateLocal(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
+// Render an estimated_time integer (minutes) as a compact human label,
+// e.g. 25 -> "~25 min", 90 -> "~1h 30m". Returns null when input is falsy.
+function formatEstimatedTime(minutes?: number | null): string | null {
+  if (!minutes || minutes <= 0) return null;
+  if (minutes < 60) return `~${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder > 0 ? `~${hours}h ${remainder}m` : `~${hours}h`;
+}
+
 // Render a YYYY-MM-DD string as e.g. "Aug 18" for the "Overdue" pill.
 function formatHumanDate(dateStr: string) {
   if (!dateStr) return '';
@@ -349,14 +359,18 @@ export default function TodoScreen() {
                 </Text>
               </View>
             ) : null}
-            {task.estimated_time ? (
-              <View className="flex-row items-center bg-muted rounded-full px-2.5 py-1">
-                <Clock size={12} color={Colors.iconMuted} />
-                <Text className="text-muted-foreground text-[11px] font-bold ml-1">
-                  Today, 2:00 PM
-                </Text>
-              </View>
-            ) : null}
+            {(() => {
+              const label = formatEstimatedTime(task.estimated_time);
+              if (!label) return null;
+              return (
+                <View className="flex-row items-center bg-muted rounded-full px-2.5 py-1">
+                  <Clock size={12} color={Colors.iconMuted} />
+                  <Text className="text-muted-foreground text-[11px] font-bold ml-1">
+                    {label}
+                  </Text>
+                </View>
+              );
+            })()}
             {task.scheduled_date && !task.due_date && !task.estimated_time ? (
               <View className="flex-row items-center bg-muted rounded-full px-2.5 py-1">
                 <Calendar size={12} color={Colors.iconMuted} />

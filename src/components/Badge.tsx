@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 
 interface BadgeProps {
   label: string;
-  variant?: 'zinc' | 'dark' | 'red' | 'green' | 'yellow';
+  variant?: 'zinc' | 'dark' | 'red' | 'green' | 'yellow' | 'pink';
   className?: string;
   textClassName?: string;
 }
@@ -42,6 +42,11 @@ export const Badge: React.FC<BadgeProps> = ({
     case 'yellow':
       badgeStyles += ' bg-warning/10 border-warning/30';
       textStyles += ' text-warning';
+      break;
+    case 'pink':
+      // Brand pink — matches web's hard-level badge (#EFBCD5/15 + #C7739A).
+      badgeStyles += ' bg-primary/15 border-primary/30';
+      textStyles += ' text-primary';
       break;
   }
 

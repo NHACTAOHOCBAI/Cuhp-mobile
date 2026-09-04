@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -27,6 +28,10 @@ import {
   deleteAudioComment
 } from '../api/client';
 import type { AudioTrack, AudioComment } from '../types';
+import {
+  getReadingLevelLabel,
+  getReadingLevelVariant,
+} from '../utils/reading';
 
 export default function ListeningDetailScreen() {
   const route = useRoute<any>();
@@ -66,9 +71,10 @@ export default function ListeningDetailScreen() {
         player.setActiveForLockScreen(true, {
           title: passage.title,
           artist: passage.category || "Cuhp English Hub",
-          albumTitle: passage.level === 'easy' ? 'Level: Easy' : passage.level === 'medium' ? 'Level: Medium' : 'Level: Hard',
-          // Use artworkUrl as defined in Expo AudioMetadata
-          artworkUrl: audioTrack.image || "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=150",
+          albumTitle: `Level: ${getReadingLevelLabel(passage.level)}`,
+          // No external artwork fallback — use the audio's own image, or let the
+          // OS show the default placeholder when null.
+          artworkUrl: audioTrack.image || null,
         });
       } catch (error) {
         console.warn('Could not update Lockscreen Controls:', error);
@@ -450,12 +456,12 @@ export default function ListeningDetailScreen() {
             {passage?.title}
           </Text>
         </View>
-        {passage?.level && (
+        {passage?.level ? (
           <Badge
-            label={passage.level === 'easy' ? 'Easy' : passage.level === 'medium' ? 'Medium' : 'Hard'}
-            variant={passage.level === 'easy' ? 'green' : passage.level === 'medium' ? 'yellow' : 'red'}
+            label={getReadingLevelLabel(passage.level)}
+            variant={getReadingLevelVariant(passage.level)}
           />
-        )}
+        ) : null}
       </View>
 
       {/* Embedded Audio Player controls */}

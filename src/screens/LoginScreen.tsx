@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Mail, Lock, Eye, EyeOff, PawPrint } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -13,6 +14,16 @@ import { loginRequest } from '../api/client';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Input } from '../components/Input';
 import { Colors } from '../theme';
+
+// Show a "coming soon" Alert for flows that are not yet implemented.
+// Keeps the buttons honest without inventing OAuth/registration logic.
+const showComingSoon = (feature: string) => {
+  Alert.alert(
+    'Coming soon',
+    `${feature} is not available yet. Please use your username and password to sign in for now.`,
+    [{ text: 'OK', style: 'default' }]
+  );
+};
 
 // SVG Google Icon
 const GoogleIcon = () => (
@@ -155,7 +166,11 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                   }
                 />
-                <TouchableOpacity activeOpacity={0.7} className="align-self-end self-end pr-1 mt-3">
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  className="align-self-end self-end pr-1 mt-3"
+                  onPress={() => showComingSoon('Password recovery')}
+                >
                   <Text className="text-[#C7739A] text-sm font-semibold">
                     Forgot password?
                   </Text>
@@ -188,6 +203,7 @@ export default function LoginScreen() {
                 activeOpacity={0.8}
                 style={{ borderColor: '#F0EAEB' }}
                 className="w-full h-14 bg-[#fcf1f5] rounded-full flex-row items-center justify-center border border-[#F0EAEB]"
+                onPress={() => showComingSoon('Google sign-in')}
               >
                 <GoogleIcon />
                 <Text className="text-[#706065] text-base font-semibold ml-3">
@@ -199,7 +215,11 @@ export default function LoginScreen() {
 
           {/* Footer */}
           <View className="bg-[#FCFAF7] py-5 border-t border-[#F0EAEB] items-center justify-center" style={{ borderTopColor: '#F0EAEB' }}>
-            <TouchableOpacity activeOpacity={0.7} className="flex-row">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className="flex-row"
+              onPress={() => showComingSoon('Account registration')}
+            >
               <Text className="text-[#706065] text-sm font-medium">
                 Don't have an account?{' '}
               </Text>

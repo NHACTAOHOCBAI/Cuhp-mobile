@@ -276,7 +276,7 @@ export async function fetchTranslationPractice(
 
 export async function saveTranslationPractice(
   passageId: string,
-  payload: { user_translation: string },
+  payload: { translation_content: string },
   token: string | null
 ): Promise<TranslationPractice> {
   return apiFetch<TranslationPractice>(`/reading/${passageId}/translation`, {
@@ -295,7 +295,7 @@ export async function fetchReadingComments(
 
 export async function createReadingComment(
   passageId: string,
-  payload: { content: string },
+  payload: { content: string; selected_text?: string | null },
   token: string | null
 ): Promise<ReadingComment> {
   return apiFetch<ReadingComment>(`/reading/${passageId}/comments`, {

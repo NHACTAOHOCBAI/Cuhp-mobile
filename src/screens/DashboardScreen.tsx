@@ -26,8 +26,8 @@ import { useAuth } from '../context/AuthContext';
 import { Colors } from '../theme';
 import { MainLayout } from '../components/MainLayout';
 import { Card } from '../components/Card';
-import { fetchReadingPassages, fetchAudios, fetchVocabularies, fetchUserProfile, fetchTodoStats, fetchExercisesByDate } from '../api/client';
-import type { User, TodoStats, WorkoutExercise } from '../types';
+import { fetchReadingPassages, fetchAudios, fetchVocabularies, fetchUserProfile, fetchTodos, fetchExercisesByDate } from '../api/client';
+import type { User, WorkoutExercise } from '../types';
 
 export default function DashboardScreen() {
   const { token } = useAuth();
@@ -36,7 +36,9 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userProfile, setUserProfile] = useState<User | null>(null);
-  const [todoStats, setTodoStats] = useState<TodoStats | null>(null);
+  const [todoTotal, setTodoTotal] = useState(0);
+  const [todoCompleted, setTodoCompleted] = useState(0);
+  const [todoPending, setTodoPending] = useState(0);
   const [counts, setCounts] = useState({
     vocab: 0,
     reading: 0,
@@ -50,14 +52,16 @@ export default function DashboardScreen() {
     if (!token) return;
     try {
       const todayStr = new Date().toISOString().split('T')[0];
-      const [profileData, vocabData, readingData, audioData, todoStatsData, gymData, storedFreezes] = await Promise.all([
+      const [profileData, vocabData, readingData, audioData, todoListData, gymData, storedFreezes] = await Promise.all([
         fetchUserProfile(token),
         fetchVocabularies({ page: 1, page_size: 1 }, token),
         fetchReadingPassages({ page: 1, page_size: 1 }, token),
         fetchAudios({ page: 1, page_size: 1 }, token),
-        fetchTodoStats(token).catch((e) => {
-          console.log('Could not load Todo stats:', e);
-          return null;
+        // Fetch the actual todo list and derive stats client-side. This avoids
+        // drift with the Tasks screen, which loads the same list directly.
+        fetchTodos({ scope: 'all', show_completed: true }, token).catch((e) => {
+          console.log('Could not load Todo tasks:', e);
+          return { items: [], total: 0 };
         }),
         fetchExercisesByDate(todayStr, token).catch((e) => {
           console.log('Could not load Gym exercises:', e);
@@ -67,7 +71,6 @@ export default function DashboardScreen() {
       ]);
 
       setUserProfile(profileData);
-      setTodoStats(todoStatsData);
       setGymExercises(gymData || []);
       if (storedFreezes !== null) {
         setStreakFreezes(parseInt(storedFreezes));
@@ -77,6 +80,16 @@ export default function DashboardScreen() {
         reading: readingData.total || 0,
         audio: audioData.total || 0
       });
+
+      // Derive todo stats from the real list to keep Dashboard in sync with the
+      // Tasks screen. `total` reflects `total` from the API (full count), while
+      // completed/pending are computed from the loaded page.
+      const items = todoListData?.items || [];
+      const completed = items.filter((t) => t?.completed).length;
+      const pending = items.filter((t) => t && !t.completed).length;
+      setTodoTotal(todoListData?.total ?? items.length);
+      setTodoCompleted(completed);
+      setTodoPending(pending);
     } catch (error) {
       console.error('Error loading Dashboard data:', error);
     } finally {
@@ -95,7 +108,7 @@ export default function DashboardScreen() {
   };
 
   const getInitials = (name: string) => {
-    if (!name) return 'A';
+    if (!name) return '';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -104,11 +117,33 @@ export default function DashboardScreen() {
       .slice(0, 2);
   };
 
+  // Compute real weekly activity: count words reviewed and exercises completed per day.
+  // Returns an array of 7 numbers [Mon..Sun] where each value is the day's activity score.
+  // Falls back to zeros when no data is available so the chart renders empty bars.
+  const weeklyActivity = React.useMemo(() => {
+    const buckets = [0, 0, 0, 0, 0, 0, 0];
+    const reviewed = userProfile?.words_reviewed_today ?? 0;
+    // Distribute today's reviewed count as the most recent contribution.
+    // Other days stay at 0 because the API only exposes today's count.
+    const today = new Date();
+    const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
+    buckets[todayIndex] = reviewed;
+    // Add today's completed gym exercises to today's bucket.
+    const completedToday = gymExercises?.filter((e) => e?.completed).length ?? 0;
+    buckets[todayIndex] += completedToday;
+    return buckets;
+  }, [userProfile?.words_reviewed_today, gymExercises]);
+
   const dailyTarget = userProfile?.daily_target ?? 10;
   const reviewedToday = userProfile?.words_reviewed_today ?? 0;
-  const progressRatio = Math.min(reviewedToday / dailyTarget, 1);
+  const progressRatio = dailyTarget > 0 ? Math.min(reviewedToday / dailyTarget, 1) : 0;
   const percentage = dailyTarget > 0 ? Math.round(progressRatio * 100) : 0;
   const remaining = Math.max(0, dailyTarget - reviewedToday);
+
+  // Defensive defaults: backend may send `null` or omit fields for an empty account,
+  // which would otherwise render as "undefined/undefined" in the activity rings.
+  const gymTotal = gymExercises?.length ?? 0;
+  const gymCompleted = gymExercises?.filter((e) => e?.completed).length ?? 0;
 
   if (loading) {
     return (
@@ -138,7 +173,7 @@ export default function DashboardScreen() {
       {/* Welcome Section */}
       <View className="mb-6 mt-2">
         <Text className="text-[28px] font-black text-[#1f1a1d] tracking-tight">
-          Hello {userProfile?.name || 'Admin'}! 👋
+          Hello {userProfile?.name?.trim() || 'there'}! 👋
         </Text>
         <Text className="text-[#706065] text-sm font-semibold mt-1">
           Ready for a smooth new day?
@@ -149,7 +184,7 @@ export default function DashboardScreen() {
           <View className="bg-orange-50 border border-orange-100 px-4 py-2 rounded-full flex-row items-center">
             <Flame size={14} color="#f97316" className="mr-1.5" />
             <Text className="text-xs font-semibold text-[#f97316]">
-              {userProfile?.current_streak ?? 12} day streak
+              {userProfile?.current_streak ?? 0} day streak
             </Text>
           </View>
           <View className="bg-amber-50 border border-amber-100 px-4 py-2 rounded-full flex-row items-center">
@@ -181,7 +216,7 @@ export default function DashboardScreen() {
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={2 * Math.PI * 48}
-                strokeDashoffset={2 * Math.PI * 48 * (1 - (gymExercises.length > 0 ? (gymExercises.filter(e => e.completed).length / gymExercises.length) : 0))}
+                strokeDashoffset={2 * Math.PI * 48 * (1 - (gymTotal > 0 ? (gymCompleted / gymTotal) : 0))}
                 strokeLinecap="round"
               />
 
@@ -195,7 +230,7 @@ export default function DashboardScreen() {
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={2 * Math.PI * 36}
-                strokeDashoffset={2 * Math.PI * 36 * (1 - (todoStats ? (todoStats.completed / (todoStats.total || 1)) : 0))}
+                strokeDashoffset={2 * Math.PI * 36 * (1 - (todoTotal > 0 ? (todoCompleted / todoTotal) : 0))}
                 strokeLinecap="round"
               />
 
@@ -225,8 +260,8 @@ export default function DashboardScreen() {
               <View>
                 <Text className="text-[10px] font-bold text-[#706065] uppercase">GYM WORKOUT</Text>
                 <Text className="text-[#1f1a1d] text-xs font-bold mt-0.5">
-                  {gymExercises.length > 0
-                    ? `${Math.round((gymExercises.filter(e => e.completed).length / gymExercises.length) * 100)}% (${gymExercises.filter(e => e.completed).length}/${gymExercises.length})`
+                  {gymTotal > 0
+                    ? `${Math.round((gymCompleted / gymTotal) * 100)}% (${gymCompleted}/${gymTotal})`
                     : '0% (No exercises yet)'}
                 </Text>
               </View>
@@ -237,8 +272,8 @@ export default function DashboardScreen() {
               <View>
                 <Text className="text-[10px] font-bold text-[#706065] uppercase">TODO TASKS</Text>
                 <Text className="text-[#1f1a1d] text-xs font-bold mt-0.5">
-                  {todoStats
-                    ? `${Math.round((todoStats.completed / (todoStats.total || 1)) * 100)}% (${todoStats.completed}/${todoStats.total})`
+                  {todoTotal > 0
+                    ? `${Math.round((todoCompleted / todoTotal) * 100)}% (${todoCompleted}/${todoTotal})`
                     : '0% (Empty)'}
                 </Text>
               </View>
@@ -275,8 +310,11 @@ export default function DashboardScreen() {
             const isToday = idx === todayIndex;
             const isFuture = idx > todayIndex;
 
-            const defaultHeights = [30, 50, 60, 85, 25, 45, 10];
-            const barHeight = defaultHeights[idx];
+            // Scale the activity count (0..N) into a pixel height (0..90). If no
+            // activity, render a minimal 4px "no data" bar so the chart stays visible.
+            const rawValue = weeklyActivity[idx] || 0;
+            const maxValue = Math.max(1, ...weeklyActivity);
+            const barHeight = rawValue === 0 ? 4 : Math.max(8, Math.round((rawValue / maxValue) * 90));
 
             return (
               <View key={dayLabel} className="items-center flex-1">
@@ -307,7 +345,9 @@ export default function DashboardScreen() {
         </View>
 
         <Text className="text-[#706065] text-[13px] italic leading-relaxed pl-1 pr-10">
-          "Ready for {remaining > 0 ? remaining : 15} new words today? Don't forget your chest workout this evening!"
+          {remaining > 0
+            ? `"Ready for ${remaining} more ${remaining === 1 ? 'word' : 'words'} today? Keep the streak going!"`
+            : '"Daily goal reached. Take a moment to celebrate 🎉"'}
         </Text>
 
         <View style={{ position: 'absolute', right: -12, bottom: -12, opacity: 0.08, transform: [{ rotate: '15deg' }] }}>
@@ -350,7 +390,11 @@ export default function DashboardScreen() {
           </View>
           <View>
             <Text className="text-[#1f1a1d] font-extrabold text-sm mb-1">Learn English</Text>
-            <Text className="text-[#706065] text-[11px] font-semibold">1 lesson left</Text>
+            <Text className="text-[#706065] text-[11px] font-semibold">
+              {counts.vocab > 0
+                ? `${counts.vocab} ${counts.vocab === 1 ? 'word' : 'words'} in notebook`
+                : 'No lessons yet'}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -366,7 +410,7 @@ export default function DashboardScreen() {
           <View>
             <Text className="text-[#1f1a1d] font-extrabold text-sm mb-1">Tasks</Text>
             <Text className="text-[#706065] text-[11px] font-semibold">
-              {todoStats?.pending ?? 3} Tasks Pending
+              {todoTotal > 0 ? `${todoPending} Tasks Pending` : 'No tasks yet'}
             </Text>
           </View>
         </TouchableOpacity>
