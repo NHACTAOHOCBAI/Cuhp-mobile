@@ -394,9 +394,9 @@ export async function scheduleSleepReminders(
         priority: Notifications.AndroidNotificationPriority.MAX,
       },
       trigger: {
+        type: 'daily',
         hour: bHour,
         minute: bMinute,
-        repeats: true,
       } as any,
     });
     await SecureStore.setItemAsync("notification-id-bedtime", bedtimeNotificationId);
@@ -412,9 +412,9 @@ export async function scheduleSleepReminders(
         priority: Notifications.AndroidNotificationPriority.MAX,
       },
       trigger: {
+        type: 'daily',
         hour: wHour,
         minute: wMinute,
-        repeats: true,
       } as any,
     });
     await SecureStore.setItemAsync("notification-id-wakeup", wakeupNotificationId);
