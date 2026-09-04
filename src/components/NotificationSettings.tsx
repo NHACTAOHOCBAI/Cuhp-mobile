@@ -25,7 +25,7 @@ export const NotificationSettings: React.FC = () => {
   const [startDropdownOpen, setStartDropdownOpen] = useState(false);
   const [endDropdownOpen, setEndDropdownOpen] = useState(false);
 
-  // Danh sách giờ (0 - 23)
+  // Hours list (0 - 23)
   const hoursList = Array.from({ length: 24 }, (_, i) => i);
 
   const handleTestNotification = () => {
@@ -39,15 +39,15 @@ export const NotificationSettings: React.FC = () => {
         <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
           <Bell size={16} color="#C7739A" />
         </View>
-        <Text className="text-[#1f1a1d] font-black text-base">Cấu hình thông báo</Text>
+        <Text className="text-[#1f1a1d] font-black text-base">Notification settings</Text>
       </View>
 
       <View className="border-t border-[#F0EAEB] pt-4 gap-y-4" style={{ borderTopColor: '#F0EAEB' }}>
-        {/* Bật/tắt nhắc nhở */}
+        {/* Enable / disable reminders */}
         <View className="flex-row items-center justify-between">
           <View className="flex-1 pr-4">
-            <Text className="text-[#1f1a1d] text-xs font-bold">Nhắc nhở học hàng ngày</Text>
-            <Text className="text-[#706065] text-[10px] mt-0.5">Nhận thông báo nhắc nhở học từ vựng</Text>
+            <Text className="text-[#1f1a1d] text-xs font-bold">Daily learning reminders</Text>
+            <Text className="text-[#706065] text-[10px] mt-0.5">Get notifications reminding you to review vocabulary</Text>
           </View>
           <Switch
             value={reminderEnabled}
@@ -66,24 +66,24 @@ export const NotificationSettings: React.FC = () => {
         {reminderEnabled && (
           <View className="bg-[#fcf1f5] rounded-2xl p-3 border border-[#F0EAEB]" style={{ borderColor: '#F0EAEB' }}>
             <Text className="text-[#C7739A] text-[10px] leading-normal font-medium">
-              💡 Hệ thống tự động chia đều giãn cách thông báo nhắc nhở trong thời gian thức để bạn hoàn thành mục tiêu học tập ({dailyTarget} từ/ngày).
+              💡 The system automatically spaces out reminders throughout your waking hours to help you hit your learning goal ({dailyTarget} words/day).
             </Text>
           </View>
         )}
 
         {reminderEnabled && (
           <>
-            {/* Cấu hình giờ giấc ngủ */}
+            {/* Sleep hours configuration */}
             <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
-              <Text className="text-[#1f1a1d] text-xs font-bold mb-2">Giờ yên lặng (Không làm phiền khi ngủ)</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold mb-2">Quiet hours (Do not disturb during sleep)</Text>
               <Text className="text-[#706065] text-[10px] mb-3">
-                Hệ thống sẽ không gửi thông báo trong khoảng thời gian này.
+                The system will not send notifications during this time range.
               </Text>
-              
+
               <View className="flex-row gap-x-3 z-50">
-                {/* Giờ bắt đầu ngủ */}
+                {/* Bedtime start */}
                 <View className="flex-1 relative">
-                  <Text className="text-[9px] font-bold text-[#706065] uppercase tracking-widest mb-1.5">Bắt đầu từ</Text>
+                  <Text className="text-[9px] font-bold text-[#706065] uppercase tracking-widest mb-1.5">From</Text>
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => {
@@ -121,9 +121,9 @@ export const NotificationSettings: React.FC = () => {
                   )}
                 </View>
 
-                {/* Giờ thức dậy */}
+                {/* Wake up time */}
                 <View className="flex-1 relative">
-                  <Text className="text-[9px] font-bold text-[#706065] uppercase tracking-widest mb-1.5">Thức dậy lúc</Text>
+                  <Text className="text-[9px] font-bold text-[#706065] uppercase tracking-widest mb-1.5">Wake at</Text>
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => {
@@ -163,16 +163,16 @@ export const NotificationSettings: React.FC = () => {
               </View>
             </View>
 
-            {/* Cá tính thông báo */}
+            {/* Notification personality */}
             <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
-              <Text className="text-[#1f1a1d] text-xs font-bold mb-3">Cá tính nhắc nhở</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold mb-3">Reminder personality</Text>
               <View className="flex-row bg-[#fcf1f5] border border-[#F0EAEB] rounded-2xl p-1 justify-between gap-x-1" style={{ borderColor: '#F0EAEB' }}>
                 {(['gentle', 'supportive', 'roast'] as const).map((p) => {
                   const isActive = notificationPersonality === p;
                   const labelMap = {
-                    gentle: '🌸 Nhẹ nhàng',
-                    supportive: '💪 Động viên',
-                    roast: '🔥 Cà khịa',
+                    gentle: '🌸 Gentle',
+                    supportive: '💪 Supportive',
+                    roast: '🔥 Roast',
                   };
                   return (
                     <TouchableOpacity
@@ -198,20 +198,20 @@ export const NotificationSettings: React.FC = () => {
                 })}
               </View>
               <Text className="text-[#706065] text-[9px] mt-2 italic pl-1">
-                {notificationPersonality === 'gentle' && 'Nhắc nhở lịch thiệp, dễ chịu để bạn thoải mái.'}
-                {notificationPersonality === 'supportive' && 'Lời khích lệ đầy nhiệt huyết và tích cực!'}
-                {notificationPersonality === 'roast' && 'Sát sao, hài hước và châm chọc nếu bạn lười biếng. 🔥'}
+                {notificationPersonality === 'gentle' && 'Polite, easy-going reminders so you stay comfortable.'}
+                {notificationPersonality === 'supportive' && 'Energetic, positive encouragement!'}
+                {notificationPersonality === 'roast' && 'Tight, funny, and teasing when you are lazy. 🔥'}
               </Text>
             </View>
 
-            {/* Nút gửi thử thông báo */}
+            {/* Send test notification button */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleTestNotification}
               style={{ borderColor: '#F0EAEB' }}
               className="mt-2 bg-[#EFBCD5] border border-[#F0EAEB] rounded-full py-3 items-center justify-center"
             >
-              <Text className="text-[#1f1a1d] text-xs font-black">Gửi thông báo học thử</Text>
+              <Text className="text-[#1f1a1d] text-xs font-black">Send test notification</Text>
             </TouchableOpacity>
           </>
         )}

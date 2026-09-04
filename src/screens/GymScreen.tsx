@@ -62,7 +62,7 @@ function formatDateLocal(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
-const WEEKDAY_NAMES = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function GymScreen() {
   const { token } = useAuth();
@@ -112,7 +112,7 @@ export default function GymScreen() {
       setCategories(catsRes || []);
       setExercises(exRes || []);
     } catch (error) {
-      console.error('Lỗi tải dữ liệu Gym:', error);
+      console.error('Error loading Gym data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -169,7 +169,7 @@ export default function GymScreen() {
 
   const handleSaveExercise = async () => {
     if (!formExName.trim() || !token) {
-      Alert.alert('Lỗi', 'Vui lòng nhập tên bài tập.');
+      Alert.alert('Error', 'Please enter exercise name.');
       return;
     }
 
@@ -196,17 +196,17 @@ export default function GymScreen() {
       setExerciseModalOpen(false);
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Lưu bài tập thất bại.');
+      Alert.alert('Error', 'Failed to save exercise.');
     } finally {
       setSavingExercise(false);
     }
   };
 
   const handleDeleteExercise = (ex: WorkoutExercise) => {
-    Alert.alert('Xác nhận xóa', `Xóa bài tập "${ex.name}" khỏi ngày hôm nay?`, [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm delete', `Delete exercise "${ex.name}" from today?`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           if (!token) return;
@@ -215,7 +215,7 @@ export default function GymScreen() {
             setExercises((prev) => prev.filter((e) => e.id !== ex.id));
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Xóa bài tập thất bại.');
+            Alert.alert('Error', 'Failed to delete exercise.');
           }
         }
       }
@@ -225,23 +225,23 @@ export default function GymScreen() {
   // Copy schedule forward
   const handleCopySchedule = async () => {
     if (exercises.length === 0) {
-      Alert.alert('Thông báo', 'Chưa có bài tập nào ở ngày này để sao chép.');
+      Alert.alert('Notice', 'No exercises on this day to copy.');
       return;
     }
     const weeks = parseInt(weeksToCopy) || 1;
     if (weeks < 1 || weeks > 12) {
-      Alert.alert('Lỗi', 'Vui lòng nhập số tuần từ 1 đến 12.');
+      Alert.alert('Error', 'Please enter a number of weeks between 1 and 12.');
       return;
     }
 
     setCopying(true);
     try {
       const res = await copyGymDayForward({ source_date: selectedDate, weeks_ahead: weeks }, token);
-      Alert.alert('Thành công 🎉', `Đã sao chép lịch tập thành công sang ${weeks} tuần tới.`);
+      Alert.alert('Success 🎉', `Successfully copied the schedule to ${weeks} upcoming weeks.`);
       setCopyModalOpen(false);
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Không thể áp dụng lịch cho các tuần tiếp theo.');
+      Alert.alert('Error', 'Could not apply schedule to upcoming weeks.');
     } finally {
       setCopying(false);
     }
@@ -264,7 +264,7 @@ export default function GymScreen() {
 
   const handleSaveCategory = async () => {
     if (!formCatName.trim() || !token) {
-      Alert.alert('Lỗi', 'Vui lòng nhập tên nhóm cơ.');
+      Alert.alert('Error', 'Please enter muscle group name.');
       return;
     }
 
@@ -286,17 +286,17 @@ export default function GymScreen() {
       setCategoryModalOpen(false);
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Lưu nhóm cơ thất bại.');
+      Alert.alert('Error', 'Failed to save muscle group.');
     } finally {
       setSavingCategory(false);
     }
   };
 
   const handleDeleteCategory = (cat: WorkoutCategory) => {
-    Alert.alert('Xác nhận xóa', `Tất cả bài tập thuộc nhóm cơ "${cat.name}" sẽ chuyển sang dạng Không phân loại. Bạn có chắc chắn?`, [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm delete', `All exercises in muscle group "${cat.name}" will become Unclassified. Are you sure?`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           if (!token) return;
@@ -305,7 +305,7 @@ export default function GymScreen() {
             setCategories((prev) => prev.filter((c) => c.id !== cat.id));
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Không thể xóa nhóm cơ.');
+            Alert.alert('Error', 'Could not delete muscle group.');
           }
         }
       }
@@ -321,9 +321,9 @@ export default function GymScreen() {
   };
 
   const getCategoryName = (catId?: string | null) => {
-    if (!catId) return 'Không phân loại';
+    if (!catId) return 'Unclassified';
     const cat = categories.find((c) => c.id === catId);
-    return cat ? cat.name : 'Không phân loại';
+    return cat ? cat.name : 'Unclassified';
   };
 
 
@@ -340,9 +340,9 @@ export default function GymScreen() {
           {totalEx > 0 && (
             <Card className="p-4 mb-4 flex-row items-center justify-between">
               <View className="flex-1">
-                <Text className="text-foreground font-extrabold text-sm mb-1">Tiến trình tập hôm nay</Text>
+                <Text className="text-foreground font-extrabold text-sm mb-1">Today's workout progress</Text>
                 <Text className="text-muted-foreground text-xs">
-                  Hoàn thành {completedEx}/{totalEx} bài tập ({pct}%)
+                  Completed {completedEx}/{totalEx} exercises ({pct}%)
                 </Text>
               </View>
               <Badge label={`${pct}%`} variant={pct === 100 ? 'green' : 'zinc'} />
@@ -352,7 +352,7 @@ export default function GymScreen() {
           {exercises.length === 0 ? (
             <View className="py-12 items-center">
               <Dumbbell size={28} color={Colors.iconMuted} />
-              <Text className="text-muted-foreground text-xs mt-2 text-center">Chưa có lịch tập trong ngày này.</Text>
+              <Text className="text-muted-foreground text-xs mt-2 text-center">No workout scheduled on this day.</Text>
             </View>
           ) : (
             exercises.map((ex) => (
@@ -391,7 +391,7 @@ export default function GymScreen() {
                         <Text className="text-muted-foreground text-[10px] font-semibold mt-0.5">{ex.weight} kg</Text>
                       ) : null}
                     </View>
-                    
+
                     <View className="flex-row gap-2 border-l border-border/40 pl-3">
                       <TouchableOpacity onPress={() => handleOpenExerciseEdit(ex)} className="p-1">
                         <Edit2 size={13} color={Colors.iconSubtle} />
@@ -409,7 +409,7 @@ export default function GymScreen() {
           {/* Copy day forward button */}
           {exercises.length > 0 && (
             <ButtonOutline
-              title="Sao chép lịch sang các tuần tới"
+              title="Copy schedule to upcoming weeks"
               onPress={() => setCopyModalOpen(true)}
               icon={<Copy size={14} color={Colors.foreground} />}
               className="mt-2 h-12"
@@ -426,17 +426,17 @@ export default function GymScreen() {
         <Card className="p-4 mb-4">
           <View className="flex-row items-center mb-1">
             <FolderOpen size={16} color={Colors.foreground} />
-            <Text className="text-foreground font-extrabold text-sm ml-1.5">Quản lý nhóm cơ</Text>
+            <Text className="text-foreground font-extrabold text-sm ml-1.5">Manage muscle groups</Text>
           </View>
           <Text className="text-muted-foreground text-xs leading-normal">
-            Phân loại bài tập của bạn theo nhóm cơ để kiểm soát khối lượng tập luyện đồng đều.
+            Categorize your exercises by muscle group to balance your training volume evenly.
           </Text>
         </Card>
 
         {categories.length === 0 ? (
           <View className="py-12 items-center">
             <FolderOpen size={28} color={Colors.iconMuted} />
-            <Text className="text-muted-foreground text-xs mt-2 text-center">Chưa có nhóm cơ nào.</Text>
+            <Text className="text-muted-foreground text-xs mt-2 text-center">No muscle groups yet.</Text>
           </View>
         ) : (
           categories.map((cat) => (
@@ -465,7 +465,7 @@ export default function GymScreen() {
 
   return (
     <MainLayout
-      title="Hỗ Trợ Tập Gym"
+      title="Gym Planner"
       scroll={false}
       headerRight={
         activeView === 'schedule' ? (
@@ -474,7 +474,7 @@ export default function GymScreen() {
             className="bg-foreground px-3 py-1.5 rounded-lg flex-row items-center"
           >
             <Plus size={12} color={Colors.background} />
-            <Text className="text-background text-[10px] font-bold ml-1">Thêm bài</Text>
+            <Text className="text-background text-[10px] font-bold ml-1">Add exercise</Text>
           </TouchableOpacity>
         ) : activeView === 'categories' ? (
           <TouchableOpacity
@@ -482,7 +482,7 @@ export default function GymScreen() {
             className="bg-foreground px-3 py-1.5 rounded-lg flex-row items-center"
           >
             <Plus size={12} color={Colors.background} />
-            <Text className="text-background text-[10px] font-bold ml-1">Nhóm cơ</Text>
+            <Text className="text-background text-[10px] font-bold ml-1">Muscle group</Text>
           </TouchableOpacity>
         ) : undefined
       }
@@ -504,12 +504,12 @@ export default function GymScreen() {
         tabs={[
           {
             value: 'schedule',
-            label: 'Lịch tập',
+            label: 'Schedule',
             icon: (color) => <CalendarDays size={12} color={color} />
           },
           {
             value: 'categories',
-            label: 'Nhóm cơ',
+            label: 'Muscle groups',
             icon: (color) => <FolderOpen size={12} color={color} />
           }
         ]}
@@ -544,28 +544,28 @@ export default function GymScreen() {
           <View className="bg-background rounded-t-3xl p-6 min-h-[480px] max-h-[85%]">
             <View className="flex-row justify-between items-center pb-3 border-b border-border/50">
               <Text className="text-lg font-black text-foreground">
-                {editingExerciseId ? 'Chỉnh Sửa Bài Tập' : 'Thêm Bài Tập Mới'}
+                {editingExerciseId ? 'Edit exercise' : 'Add new exercise'}
               </Text>
               <TouchableOpacity onPress={() => setExerciseModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-sm font-semibold">Đóng</Text>
+                <Text className="text-muted-foreground text-sm font-semibold">Close</Text>
               </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={{ paddingVertical: 4 }} showsVerticalScrollIndicator={false}>
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Tên bài tập*</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Exercise name*</Text>
                 <Input
                   value={formExName}
                   onChangeText={setFormExName}
-                  placeholder="Ví dụ: Bench Press"
+                  placeholder="e.g. Bench Press"
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Nhóm cơ phân loại</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Muscle group</Text>
                 <ChipGroup
                   data={[
-                    { value: 'none', label: 'Không phân loại' },
+                    { value: 'none', label: 'Unclassified' },
                     ...categories.map((c) => ({ value: c.id, label: c.name }))
                   ]}
                   value={formExCategoryId || 'none'}
@@ -575,7 +575,7 @@ export default function GymScreen() {
 
               <View className="flex-row gap-4 mt-4">
                 <View className="flex-1">
-                  <Text className="text-foreground text-xs font-bold mb-1.5">Số hiệp (Sets)*</Text>
+                  <Text className="text-foreground text-xs font-bold mb-1.5">Sets*</Text>
                   <Input
                     value={formExSets}
                     onChangeText={setFormExSets}
@@ -584,7 +584,7 @@ export default function GymScreen() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-foreground text-xs font-bold mb-1.5">Số lần (Reps)*</Text>
+                  <Text className="text-foreground text-xs font-bold mb-1.5">Reps*</Text>
                   <Input
                     value={formExReps}
                     onChangeText={setFormExReps}
@@ -595,11 +595,11 @@ export default function GymScreen() {
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Mức tạ mỗi bên (kg)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Weight per side (kg)</Text>
                 <Input
                   value={formExWeight}
                   onChangeText={setFormExWeight}
-                  placeholder="Ví dụ: 20"
+                  placeholder="e.g. 20"
                   keyboardType="numeric"
                 />
               </View>
@@ -617,12 +617,12 @@ export default function GymScreen() {
                 >
                   {formExCompleted && <Check size={12} color="#ffffff" />}
                 </View>
-                <Text className="text-foreground text-sm font-semibold">Đã hoàn thành bài tập này</Text>
+                <Text className="text-foreground text-sm font-semibold">Completed this exercise</Text>
               </TouchableOpacity>
 
               <View className="mt-6 mb-8">
                 <ButtonPrimary
-                  title={editingExerciseId ? 'Lưu cập nhật' : 'Thêm bài tập'}
+                  title={editingExerciseId ? 'Save changes' : 'Add exercise'}
                   onPress={handleSaveExercise}
                   disabled={savingExercise || !formExName.trim()}
                   icon={savingExercise ? <ActivityIndicator size="small" color="#ffffff" /> : <Check size={18} color={Colors.primaryForeground} />}
@@ -645,32 +645,32 @@ export default function GymScreen() {
           <View className="bg-background rounded-t-3xl p-6 min-h-[300px]">
             <View className="flex-row justify-between items-center pb-3 border-b border-border/50">
               <Text className="text-lg font-black text-foreground">
-                {editingCategoryId ? 'Sửa Nhóm Cơ' : 'Thêm Nhóm Cơ Mới'}
+                {editingCategoryId ? 'Edit muscle group' : 'Add new muscle group'}
               </Text>
               <TouchableOpacity onPress={() => setCategoryModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-sm font-semibold">Đóng</Text>
+                <Text className="text-muted-foreground text-sm font-semibold">Close</Text>
               </TouchableOpacity>
             </View>
 
             <View className="mt-4">
-              <Text className="text-foreground text-xs font-bold mb-1.5">Tên nhóm cơ*</Text>
+              <Text className="text-foreground text-xs font-bold mb-1.5">Muscle group name*</Text>
               <Input
                 value={formCatName}
                 onChangeText={setFormCatName}
-                placeholder="Ví dụ: Ngực, Lưng, Đùi"
+                placeholder="e.g. Chest, Back, Legs"
               />
             </View>
 
             <View className="mt-4">
-              <Text className="text-foreground text-xs font-bold mb-1.5">Màu sắc hiển thị</Text>
+              <Text className="text-foreground text-xs font-bold mb-1.5">Display color</Text>
               <ChipGroup
                 data={[
-                  { value: '#76baf9', label: 'Xanh dương' },
-                  { value: '#22c55e', label: 'Xanh lá' },
-                  { value: '#f97316', label: 'Cam' },
-                  { value: '#ef4444', label: 'Đỏ' },
-                  { value: '#a855f7', label: 'Tím' },
-                  { value: '#eab308', label: 'Vàng' }
+                  { value: '#76baf9', label: 'Blue' },
+                  { value: '#22c55e', label: 'Green' },
+                  { value: '#f97316', label: 'Orange' },
+                  { value: '#ef4444', label: 'Red' },
+                  { value: '#a855f7', label: 'Purple' },
+                  { value: '#eab308', label: 'Yellow' }
                 ]}
                 value={formCatColor}
                 onChange={setFormCatColor}
@@ -679,7 +679,7 @@ export default function GymScreen() {
 
             <View className="mt-6 mb-8">
               <ButtonPrimary
-                title={editingCategoryId ? 'Lưu cập nhật' : 'Tạo nhóm cơ'}
+                title={editingCategoryId ? 'Save changes' : 'Create muscle group'}
                 onPress={handleSaveCategory}
                 disabled={savingCategory || !formCatName.trim()}
                 icon={savingCategory ? <ActivityIndicator size="small" color="#ffffff" /> : <Check size={18} color={Colors.primaryForeground} />}
@@ -700,17 +700,17 @@ export default function GymScreen() {
         <View className="flex-1 justify-center items-center bg-black/40 px-6">
           <Card className="w-full p-6">
             <View className="flex-row justify-between items-center pb-2 border-b border-border/40 mb-3">
-              <Text className="text-foreground font-black text-sm">Sao chép lịch trình</Text>
+              <Text className="text-foreground font-black text-sm">Copy schedule</Text>
               <TouchableOpacity onPress={() => setCopyModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-xs font-bold">Hủy</Text>
+                <Text className="text-muted-foreground text-xs font-bold">Cancel</Text>
               </TouchableOpacity>
             </View>
 
             <Text className="text-muted-foreground text-xs leading-normal mb-4">
-              Hệ thống sẽ sao chép toàn bộ bài tập của ngày {selectedDate} sang các tuần tiếp theo.
+              The system will copy all exercises from {selectedDate} to upcoming weeks.
             </Text>
 
-            <Text className="text-foreground text-xs font-bold mb-1.5">Số tuần muốn sao chép (1 - 12 tuần)*</Text>
+            <Text className="text-foreground text-xs font-bold mb-1.5">Number of weeks to copy (1 - 12 weeks)*</Text>
             <Input
               value={weeksToCopy}
               onChangeText={setWeeksToCopy}
@@ -719,9 +719,9 @@ export default function GymScreen() {
             />
 
             <View className="mt-5 flex-row gap-3">
-              <ButtonOutline title="Hủy bỏ" onPress={() => setCopyModalOpen(false)} className="flex-1 h-12" />
+              <ButtonOutline title="Cancel" onPress={() => setCopyModalOpen(false)} className="flex-1 h-12" />
               <ButtonPrimary
-                title="Áp dụng"
+                title="Apply"
                 onPress={handleCopySchedule}
                 disabled={copying || !weeksToCopy}
                 icon={copying ? <ActivityIndicator size="small" color="#ffffff" /> : <Copy size={16} color={Colors.primaryForeground} />}

@@ -72,13 +72,13 @@ export default function ReadingDetailScreen() {
 
       setPassage(passageData);
       if (translationData) {
-        // Bảo vệ: user_translation có thể null/undefined khi backend trả về không đầy đủ
+        // Guard: user_translation may be null/undefined when backend response is incomplete
         setTranslationDraft(translationData.user_translation || '');
       }
       setComments(commentsData || []);
     } catch (error) {
-      console.error('Lỗi tải chi tiết bài đọc:', error);
-      Alert.alert('Lỗi', 'Không thể kết nối để tải chi tiết bài đọc.');
+      console.error('Error loading reading details:', error);
+      Alert.alert('Error', 'Could not connect to load reading details.');
     } finally {
       setLoading(false);
     }
@@ -93,10 +93,10 @@ export default function ReadingDetailScreen() {
     setSavingTranslation(true);
     try {
       await saveTranslationPractice(passageId, { user_translation: translationDraft }, token);
-      Alert.alert('Thành công 🎉', 'Đã lưu bản dịch cá nhân của bạn.');
+      Alert.alert('Success 🎉', 'Your personal translation has been saved.');
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Không thể lưu bản dịch.');
+      Alert.alert('Error', 'Could not save translation.');
     } finally {
       setSavingTranslation(false);
     }
@@ -111,7 +111,7 @@ export default function ReadingDetailScreen() {
       setCommentInput('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Gửi bình luận thất bại.');
+      Alert.alert('Error', 'Failed to send comment.');
     } finally {
       setSendingComment(false);
     }
@@ -119,10 +119,10 @@ export default function ReadingDetailScreen() {
 
   const handleDeleteComment = async (commentId: string) => {
     if (!token) return;
-    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa bình luận này?', [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm', 'Are you sure you want to delete this comment?', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -130,7 +130,7 @@ export default function ReadingDetailScreen() {
             setComments((prev) => prev.filter((c) => c.id !== commentId));
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Xóa bình luận thất bại.');
+            Alert.alert('Error', 'Failed to delete comment.');
           }
         }
       }
@@ -138,7 +138,7 @@ export default function ReadingDetailScreen() {
   };
 
   const handleWordPress = async (word: string) => {
-    // Làm sạch từ vựng (bỏ dấu câu ở 2 đầu)
+    // Clean the word (strip punctuation at both ends)
     const cleanWord = word.replace(/^[^a-zA-Z]+|[^a-zA-Z]+$/g, '');
     if (!cleanWord || cleanWord.length < 2) return;
 
@@ -169,16 +169,16 @@ export default function ReadingDetailScreen() {
       await createVocabulary({
         word: lookupResult.word,
         pronunciation: lookupResult.pronunciation || '',
-        meaning: lookupResult.meaning || 'Chưa rõ nghĩa',
+        meaning: lookupResult.meaning || 'Unknown meaning',
         word_type: lookupResult.word_type || 'noun',
-        notes: `Tra từ bài đọc: "${passage?.title || ''}"`,
+        notes: `Looked up from reading: "${passage?.title || ''}"`,
         context_sentence: ''
       }, token);
-      Alert.alert('Chúc mừng! 🎉', `Đã lưu từ "${lookupResult.word}" vào sổ tay từ vựng.`);
+      Alert.alert('Congratulations! 🎉', `Saved word "${lookupResult.word}" to your vocabulary notebook.`);
       setLookupModalOpen(false);
     } catch (error) {
       console.error(error);
-      Alert.alert('Thất bại', 'Không thể lưu từ vựng. Từ này có thể đã tồn tại.');
+      Alert.alert('Failed', 'Could not save vocabulary. This word may already exist.');
     } finally {
       setSavingVocab(false);
     }
@@ -186,7 +186,7 @@ export default function ReadingDetailScreen() {
 
   const renderInteractiveText = (text: string) => {
     if (!text) return null;
-    // Tách văn bản thành danh sách từ giữ nguyên các dấu câu và khoảng trắng
+    // Split text into word tokens while keeping punctuation and whitespace
     const tokens = text.split(/(\b[a-zA-Z']+\b)/g);
 
     return tokens.map((tokenStr, idx) => {
@@ -214,8 +214,8 @@ export default function ReadingDetailScreen() {
   const renderContentTab = () => {
     if (!passage) return null;
 
-    // Phân tách bài viết thành các đoạn văn
-    // Bảo vệ: content/translation có thể là null/undefined khi backend không trả về đầy đủ
+    // Split passage into paragraphs
+    // Guard: content/translation may be null/undefined when backend response is incomplete
     const safeContent = passage.content || '';
     const safeTranslation = passage.translation || '';
     const enParagraphs = safeContent.split('\n\n').filter(Boolean);
@@ -224,7 +224,7 @@ export default function ReadingDetailScreen() {
     return (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 }}>
         <Text className="text-muted-foreground text-[11px] font-semibold mb-4 leading-normal">
-          💡 Mẹo: Chạm vào bất kỳ từ tiếng Anh nào trong bài viết để tra nghĩa nhanh và lưu vào sổ tay.
+          💡 Tip: Tap on any English word in the passage to quickly look it up and save it to your notebook.
         </Text>
 
         {enParagraphs.map((enPara, idx) => {
@@ -258,10 +258,10 @@ export default function ReadingDetailScreen() {
           <Card className="p-4 mb-4">
             <View className="flex-row items-center mb-2">
               <Languages size={16} color={Colors.foreground} />
-              <Text className="text-foreground font-extrabold text-sm ml-1.5">Luyện dịch của bạn</Text>
+              <Text className="text-foreground font-extrabold text-sm ml-1.5">Your translation practice</Text>
             </View>
             <Text className="text-muted-foreground text-xs leading-normal">
-              Viết bản dịch cá nhân của bạn cho bài đọc này. Đây là cách tuyệt vời để rèn luyện tư duy ngôn ngữ.
+              Write your personal translation for this passage. It's a great way to train your language thinking.
             </Text>
           </Card>
 
@@ -270,13 +270,13 @@ export default function ReadingDetailScreen() {
             numberOfLines={12}
             value={translationDraft}
             onChangeText={setTranslationDraft}
-            placeholder="Nhập bản dịch tiếng Việt của bạn ở đây..."
+            placeholder="Type your translation here..."
             className="bg-card border border-border rounded-2xl p-4 text-foreground text-sm leading-relaxed mb-5"
             style={{ minHeight: 240, textAlignVertical: 'top' }}
           />
 
           <ButtonPrimary
-            title="Lưu bản dịch"
+            title="Save translation"
             onPress={handleSaveTranslation}
             disabled={savingTranslation || !translationDraft.trim()}
             icon={savingTranslation ? <ActivityIndicator size="small" color="#ffffff" /> : <Save size={18} color={Colors.primaryForeground} />}
@@ -295,19 +295,19 @@ export default function ReadingDetailScreen() {
             <View className="py-12 items-center justify-center">
               <MessageSquare size={28} color={Colors.iconMuted} />
               <Text className="text-muted-foreground text-xs mt-2 text-center">
-                Chưa có bình luận nào. Hãy bắt đầu thảo luận!
+                No comments yet. Start the discussion!
               </Text>
             </View>
           ) : (
             comments.map((c) => {
               const isMine = user && c.user_id === user.id;
-              const formattedDate = c.created_at ? new Date(c.created_at).toLocaleDateString('vi-VN') : '';
+              const formattedDate = c.created_at ? new Date(c.created_at).toLocaleDateString('en-US') : '';
               return (
                 <Card key={c.id} className="mb-3.5 p-4">
                   <View className="flex-row justify-between items-center mb-1.5">
                     <View className="flex-row items-center">
-                      <Text className="text-foreground font-bold text-xs">{c.user_name || 'Học viên'}</Text>
-                      {isMine && <Text className="text-primary text-[9px] font-extrabold ml-1.5 uppercase bg-primary/10 px-1 py-0.5 rounded">Bạn</Text>}
+                      <Text className="text-foreground font-bold text-xs">{c.user_name || 'Student'}</Text>
+                      {isMine && <Text className="text-primary text-[9px] font-extrabold ml-1.5 uppercase bg-primary/10 px-1 py-0.5 rounded">You</Text>}
                     </View>
                     <Text className="text-muted-foreground text-[10px]">{formattedDate}</Text>
                   </View>
@@ -318,7 +318,7 @@ export default function ReadingDetailScreen() {
                       className="self-end mt-1.5 p-1 flex-row items-center"
                     >
                       <Trash2 size={12} color={Colors.destructive} />
-                      <Text className="text-destructive text-[10px] ml-1 font-semibold">Xóa</Text>
+                      <Text className="text-destructive text-[10px] ml-1 font-semibold">Delete</Text>
                     </TouchableOpacity>
                   )}
                 </Card>
@@ -335,7 +335,7 @@ export default function ReadingDetailScreen() {
             <TextInput
               value={commentInput}
               onChangeText={setCommentInput}
-              placeholder="Nhập bình luận thảo luận..."
+              placeholder="Type your discussion comment..."
               placeholderTextColor={Colors.iconMuted}
               className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-xl border border-border mr-3 text-xs"
               style={{ maxHeight: 80 }}
@@ -364,11 +364,11 @@ export default function ReadingDetailScreen() {
             onPress={() => navigation.goBack()}
             icon={<ArrowLeft size={20} color={Colors.foreground} />}
           />
-          <Text className="text-foreground font-black text-lg ml-3">Chi tiết bài đọc</Text>
+          <Text className="text-foreground font-black text-lg ml-3">Reading details</Text>
         </View>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color={Colors.foreground} />
-          <Text className="text-muted-foreground text-sm mt-3">Đang tải bài viết...</Text>
+          <Text className="text-muted-foreground text-sm mt-3">Loading passage...</Text>
         </View>
       </ScreenWrapper>
     );
@@ -391,7 +391,7 @@ export default function ReadingDetailScreen() {
         </View>
         {passage?.level && (
           <Badge
-            label={passage.level === 'easy' ? 'Dễ' : passage.level === 'medium' ? 'T.Bình' : 'Khó'}
+            label={passage.level === 'easy' ? 'Easy' : passage.level === 'medium' ? 'Medium' : 'Hard'}
             variant={passage.level === 'easy' ? 'green' : passage.level === 'medium' ? 'yellow' : 'red'}
           />
         )}
@@ -405,7 +405,7 @@ export default function ReadingDetailScreen() {
           style={activeTab === 'content' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
           <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'content' ? Colors.foreground : Colors.iconMuted }}>
-            Đọc bài
+            Read
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -414,7 +414,7 @@ export default function ReadingDetailScreen() {
           style={activeTab === 'translation' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
           <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'translation' ? Colors.foreground : Colors.iconMuted }}>
-            Luyện dịch
+            Translate
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -423,7 +423,7 @@ export default function ReadingDetailScreen() {
           style={activeTab === 'comments' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } : undefined}
         >
           <Text className="text-[10px] font-extrabold" style={{ color: activeTab === 'comments' ? Colors.foreground : Colors.iconMuted }}>
-            Thảo luận ({comments.length})
+            Discuss ({comments.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -456,7 +456,7 @@ export default function ReadingDetailScreen() {
                 />
               </View>
               <TouchableOpacity onPress={() => setLookupModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-sm font-semibold">Đóng</Text>
+                <Text className="text-muted-foreground text-sm font-semibold">Close</Text>
               </TouchableOpacity>
             </View>
 
@@ -465,7 +465,7 @@ export default function ReadingDetailScreen() {
               {lookupLoading ? (
                 <View className="items-center py-6">
                   <ActivityIndicator size="small" color={Colors.foreground} />
-                  <Text className="text-muted-foreground text-xs mt-2">Đang tra cứu từ điển...</Text>
+                  <Text className="text-muted-foreground text-xs mt-2">Looking up dictionary...</Text>
                 </View>
               ) : lookupResult ? (
                 <View>
@@ -477,15 +477,15 @@ export default function ReadingDetailScreen() {
                       </Text>
                     ) : null}
                   </View>
-                  <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-1">Định nghĩa</Text>
+                  <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-1">Definition</Text>
                   <Text className="text-foreground text-base font-extrabold mb-6 leading-snug">
-                    {lookupResult.meaning || 'Không tìm thấy nghĩa của từ này.'}
+                    {lookupResult.meaning || 'No definition found for this word.'}
                   </Text>
 
                   {/* Button save */}
                   {lookupResult.meaning ? (
                     <ButtonPrimary
-                      title="Lưu vào Sổ từ vựng"
+                      title="Save to vocabulary"
                       onPress={handleSaveToVocab}
                       disabled={savingVocab}
                       icon={savingVocab ? <ActivityIndicator size="small" color="#ffffff" /> : <Plus size={18} color={Colors.primaryForeground} />}
@@ -495,7 +495,7 @@ export default function ReadingDetailScreen() {
                 </View>
               ) : (
                 <View className="items-center py-6">
-                  <Text className="text-muted-foreground text-sm">Không tìm thấy kết quả tra cứu.</Text>
+                  <Text className="text-muted-foreground text-sm">No lookup results found.</Text>
                 </View>
               )}
             </View>

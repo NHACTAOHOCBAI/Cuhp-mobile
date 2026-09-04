@@ -67,7 +67,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Debounce search query để tránh gọi API trên mỗi keystroke (mobile-friendly)
+  // Debounce search query to avoid calling API on every keystroke (mobile-friendly)
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   // Modal State for Create/Edit
@@ -84,8 +84,8 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
   const [savingVocab, setSavingVocab] = useState(false);
 
   const subtitle = user
-    ? `Xin chào, ${user.name || 'bạn'}`
-    : 'Xin chào';
+    ? `Hello, ${user.name || 'there'}`
+    : 'Hello';
 
   const loadData = async (pageNum: number, isRefresh = false) => {
     if (pageNum > 1 && !hasMore && !isRefresh) return;
@@ -118,7 +118,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
       setPage(pageNum);
       setInitialLoaded(true);
     } catch (error) {
-      console.error('Lỗi tải từ vựng:', error);
+      console.error('Error loading vocabulary:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -185,10 +185,10 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
       if (result.word_type) {
         setFormWordType(result.word_type);
       }
-      Alert.alert('Thành công', `Đã tìm thấy định nghĩa cho từ "${formWord}".`);
+      Alert.alert('Success', `Definition found for "${formWord}".`);
     } catch (error) {
       console.error(error);
-      Alert.alert('Không tìm thấy', 'Không thể tự động tra cứu từ này. Bạn vui lòng tự điền định nghĩa.');
+      Alert.alert('Not found', 'Could not auto-lookup this word. Please fill in the definition manually.');
     } finally {
       setLookupLoading(false);
     }
@@ -217,7 +217,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
       setFormContext('');
       setFormNotes('');
       setModalOpen(true);
-      Alert.alert('Không tìm thấy', 'Không thể tự động tra cứu từ này. Bạn vui lòng tự điền định nghĩa.');
+      Alert.alert('Not found', 'Could not auto-lookup this word. Please fill in the definition manually.');
     } finally {
       setLookupLoading(false);
     }
@@ -225,7 +225,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   const handleSaveVocab = async () => {
     if (!formWord.trim() || !formMeaning.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ Từ vựng và Ý nghĩa.');
+      Alert.alert('Error', 'Please fill in both Word and Meaning.');
       return;
     }
 
@@ -242,26 +242,26 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
       if (editingId) {
         await updateVocabulary(editingId, payload, token);
-        Alert.alert('Thành công 🎉', `Đã cập nhật từ vựng "${formWord}".`);
+        Alert.alert('Success 🎉', `Updated vocabulary "${formWord}".`);
       } else {
         await createVocabulary(payload, token);
-        Alert.alert('Thành công 🎉', `Đã thêm từ vựng mới "${formWord}".`);
+        Alert.alert('Success 🎉', `Added new vocabulary "${formWord}".`);
       }
       setModalOpen(false);
       loadData(1, true);
     } catch (error) {
       console.error(error);
-      Alert.alert('Thất bại', 'Đã xảy ra lỗi khi lưu từ vựng.');
+      Alert.alert('Failed', 'An error occurred while saving the vocabulary.');
     } finally {
       setSavingVocab(false);
     }
   };
 
   const handleDeleteVocab = (item: VocabularyItem) => {
-    Alert.alert('Xác nhận xóa', `Bạn có chắc chắn muốn xóa từ "${item.word}" khỏi sổ tay?`, [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm delete', `Are you sure you want to delete "${item.word}" from your notebook?`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -269,7 +269,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
             loadData(1, true);
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Xóa từ vựng thất bại.');
+            Alert.alert('Error', 'Failed to delete vocabulary.');
           }
         }
       }
@@ -346,7 +346,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
         {item.notes ? (
           <View className="mt-3 bg-zinc-50/50 p-2.5 rounded-xl border border-zinc-100/50">
             <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-1">
-              Ghi chú
+              Notes
             </Text>
             <Text className="text-zinc-500 text-xs leading-relaxed select-text">
               {item.notes}
@@ -370,11 +370,11 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
     return (
       <EmptyState
         icon={<BookOpen size={28} color={Colors.iconMuted} />}
-        title="Không tìm thấy từ vựng nào"
+        title="No vocabulary found"
         body={
           searchQuery
-            ? 'Thử thay đổi từ khóa tìm kiếm của bạn.'
-            : 'Sổ từ vựng của bạn hiện tại đang trống.'
+            ? 'Try changing your search keyword.'
+            : 'Your vocabulary notebook is currently empty.'
         }
       />
     );
@@ -382,14 +382,14 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   const mainView = (
     <View className="flex-1 bg-transparent">
-      {/* Header cố định — tách ra ngoài FlatList để TextInput không bị re-mount khi search */}
+      {/* Fixed header — kept outside FlatList so TextInput doesn't re-mount on search */}
       <View className="px-6 pt-4">
         <View className="flex-row items-center bg-white border border-zinc-200/80 rounded-full px-5 h-12 shadow-sm shadow-[#193665]/2">
           <Search size={20} color="#a1a1aa" className="mr-3" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Tra từ nhanh..."
+            placeholder="Quick lookup..."
             placeholderTextColor="#a1a1aa"
             className="flex-1 text-[#193665] text-base h-full font-semibold"
             autoCapitalize="none"
@@ -413,7 +413,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListFooterComponent={renderFooter}
-        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Đang tải danh sách từ vựng..." /> : renderEmpty()}
+        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Loading vocabulary list..." /> : renderEmpty()}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 80 }}
         refreshControl={
           <RefreshControl
@@ -450,10 +450,10 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
             {/* Header Modal */}
             <View className="flex-row justify-between items-center pb-3 border-b border-border/50">
               <Text className="text-lg font-black text-foreground">
-                {editingId ? 'Sửa Từ Vựng' : 'Thêm Từ Vựng Mới'}
+                {editingId ? 'Edit vocabulary' : 'Add new vocabulary'}
               </Text>
               <TouchableOpacity onPress={() => setModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-sm font-semibold">Đóng</Text>
+                <Text className="text-muted-foreground text-sm font-semibold">Close</Text>
               </TouchableOpacity>
             </View>
 
@@ -462,11 +462,11 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
               {/* Word Row with lookup button */}
               <View className="mt-4 flex-row items-end gap-3.5">
                 <View className="flex-1">
-                  <Text className="text-foreground text-xs font-bold mb-1.5">Từ vựng (Tiếng Anh)*</Text>
+                  <Text className="text-foreground text-xs font-bold mb-1.5">Word (English)*</Text>
                   <Input
                     value={formWord}
                     onChangeText={setFormWord}
-                    placeholder="Ví dụ: wonderful"
+                    placeholder="e.g. wonderful"
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -482,7 +482,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
                     ) : (
                       <>
                         <SearchCode size={14} color={Colors.foreground} />
-                        <Text className="text-foreground text-xs font-bold ml-1">Tra từ</Text>
+                        <Text className="text-foreground text-xs font-bold ml-1">Lookup</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -490,18 +490,18 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Phiên âm (nếu có)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Pronunciation (if any)</Text>
                 <Input
                   value={formPronunciation}
                   onChangeText={setFormPronunciation}
-                  placeholder="Ví dụ: /ˈwʌndərfl/"
+                  placeholder="e.g. /ˈwʌndərfl/"
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Loại từ</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Word type</Text>
                 <ChipGroup
                   data={WORD_TYPES.filter(w => w.value !== 'all')}
                   value={formWordType}
@@ -510,30 +510,30 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Nghĩa của từ (Tiếng Việt)*</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Meaning*</Text>
                 <Input
                   value={formMeaning}
                   onChangeText={setFormMeaning}
-                  placeholder="Ví dụ: tuyệt vời, kỳ diệu"
+                  placeholder="e.g. wonderful, amazing"
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Ngữ cảnh (Câu ví dụ)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Context (Example sentence)</Text>
                 <Input
                   value={formContext}
                   onChangeText={setFormContext}
-                  placeholder="Ví dụ: The weather was wonderful."
+                  placeholder="e.g. The weather was wonderful."
                   multiline
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Ghi chú thêm</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Additional notes</Text>
                 <Input
                   value={formNotes}
                   onChangeText={setFormNotes}
-                  placeholder="Bất kỳ ghi nhớ hoặc cách dùng đặc biệt..."
+                  placeholder="Any memorization tricks or special usage..."
                   multiline
                 />
               </View>
@@ -541,7 +541,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
               {/* Action Button */}
               <View className="mt-6 mb-8">
                 <ButtonPrimary
-                  title={editingId ? 'Lưu cập nhật' : 'Thêm vào sổ tay'}
+                  title={editingId ? 'Save changes' : 'Add to notebook'}
                   onPress={handleSaveVocab}
                   disabled={savingVocab || !formWord.trim() || !formMeaning.trim()}
                   icon={savingVocab ? <ActivityIndicator size="small" color="#ffffff" /> : <Save size={18} color={Colors.primaryForeground} />}
@@ -561,7 +561,7 @@ export default function VocabularyScreen({ hideHeader = false }: VocabularyScree
 
   return (
     <ScreenWrapper scroll={false}>
-      <Header title="Sổ Từ Vựng" subtitle={subtitle} />
+      <Header title="Vocabulary Notebook" subtitle={subtitle} />
       {mainView}
     </ScreenWrapper>
   );

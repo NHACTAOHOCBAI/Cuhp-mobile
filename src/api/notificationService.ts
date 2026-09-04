@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 import { fetchVocabularies } from "./client";
 import { VocabularyItem } from "../types";
 
-// Cấu hình cách hiển thị thông báo khi app đang ở foreground
+// Configure how notifications behave when the app is in the foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -16,28 +16,28 @@ Notifications.setNotificationHandler({
 });
 
 /**
- * Đăng ký các nút tương tác nhanh (Notification Actions)
+ * Register quick interaction buttons (Notification Actions).
  */
 export async function registerNotificationCategory() {
   try {
     await Notifications.setNotificationCategoryAsync("vocab-reminder", [
       {
         identifier: "MARK_KNOWN",
-        buttonTitle: "✅ Đã thuộc",
+        buttonTitle: "✅ Got it",
         options: {
           opensAppToForeground: true,
         },
       },
       {
         identifier: "PRONOUNCE",
-        buttonTitle: "🔊 Phát âm",
+        buttonTitle: "🔊 Pronounce",
         options: {
           opensAppToForeground: true,
         },
       },
       {
         identifier: "MARK_FORGOTTEN",
-        buttonTitle: "❌ Ôn lại",
+        buttonTitle: "❌ Review again",
         options: {
           opensAppToForeground: true,
         },
@@ -47,7 +47,7 @@ export async function registerNotificationCategory() {
     await Notifications.setNotificationCategoryAsync("sleep-bedtime", [
       {
         identifier: "START_SLEEP",
-        buttonTitle: "🌙 Đi ngủ ngay",
+        buttonTitle: "🌙 Go to sleep now",
         options: {
           opensAppToForeground: true,
         },
@@ -57,27 +57,27 @@ export async function registerNotificationCategory() {
     await Notifications.setNotificationCategoryAsync("sleep-wakeup", [
       {
         identifier: "END_SLEEP",
-        buttonTitle: "☀️ Tôi đã thức dậy",
+        buttonTitle: "☀️ I just woke up",
         options: {
           opensAppToForeground: true,
         },
       },
     ]);
 
-    console.log("Đã đăng ký danh mục thông báo vocab-reminder, sleep-bedtime, sleep-wakeup");
+    console.log("Registered notification categories: vocab-reminder, sleep-bedtime, sleep-wakeup");
   } catch (error) {
-    console.warn("Lỗi đăng ký category thông báo:", error);
+    console.warn("Error registering notification categories:", error);
   }
 }
 
 /**
- * Khởi tạo kênh thông báo (Android Channel) với âm thanh nổi bật
+ * Initialize the Android notification channel with prominent sound.
  */
 export async function setupNotificationChannel(): Promise<boolean> {
   if (Platform.OS === "android") {
     try {
       await Notifications.setNotificationChannelAsync("vocab-alerts", {
-        name: "Nhắc nhở học từ vựng",
+        name: "Vocabulary review reminders",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: "#FF231F7C",
@@ -85,10 +85,10 @@ export async function setupNotificationChannel(): Promise<boolean> {
         enableVibrate: true,
         showBadge: true,
       });
-      console.log("Đã thiết lập kênh thông báo vocab-alerts cho Android");
+      console.log("Set up Android notification channel: vocab-alerts");
       return true;
     } catch (error) {
-      // Hoàn toàn im lặng trên Expo Go
+      // Stay silent on Expo Go
       return false;
     }
   }
@@ -96,22 +96,22 @@ export async function setupNotificationChannel(): Promise<boolean> {
 }
 
 /**
- * Yêu cầu quyền thông báo từ người dùng
+ * Request notification permission from the user.
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-  
+
   if (existingStatus !== "granted") {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
-  
+
   return finalStatus === "granted";
 }
 
 /**
- * Tính toán thời gian nhắc nhở tiếp theo, tránh khung giờ ngủ động
+ * Compute the next reminder trigger time, avoiding the dynamic sleep window.
  */
 function getNextTriggerDate(
   startDate: Date,
@@ -121,9 +121,9 @@ function getNextTriggerDate(
 ): Date {
   const date = new Date(startDate.getTime() + hoursOffset * 60 * 60 * 1000);
   const hour = date.getHours();
-  
+
   if (sleepStart > sleepEnd) {
-    // Ví dụ ngủ từ 22h tối đến 8h sáng hôm sau
+    // Example: sleep from 10pm to 8am the next day
     if (hour >= sleepStart || hour < sleepEnd) {
       if (hour >= sleepStart) {
         date.setDate(date.getDate() + 1);
@@ -131,22 +131,22 @@ function getNextTriggerDate(
       date.setHours(sleepEnd, 0, 0, 0);
     }
   } else {
-    // Ví dụ ngủ từ 0h sáng đến 6h sáng cùng ngày
+    // Example: sleep from 0am to 6am the same day
     if (hour >= sleepStart && hour < sleepEnd) {
       date.setHours(sleepEnd, 0, 0, 0);
     }
   }
-  
+
   return date;
 }
 
 /**
- * Lập lịch thông báo cho các từ vựng cần học tự động theo mục tiêu ngày
- * @param enabled Bật hay tắt nhắc nhở
- * @param personality Cá tính nhắc nhở ('gentle' | 'supportive' | 'roast')
- * @param sleepStart Giờ bắt đầu ngủ
- * @param sleepEnd Giờ thức dậy
- * @param dailyTarget Mục tiêu số từ học mỗi ngày
+ * Schedule notifications for vocabulary to review automatically based on the daily target.
+ * @param enabled Whether reminders are enabled
+ * @param personality Reminder personality ('gentle' | 'supportive' | 'roast')
+ * @param sleepStart Sleep start hour
+ * @param sleepEnd Wake-up hour
+ * @param dailyTarget Daily words goal
  */
 export async function scheduleVocabularyReminders(
   enabled: boolean,
@@ -156,40 +156,40 @@ export async function scheduleVocabularyReminders(
   dailyTarget: number = 5
 ) {
   try {
-    // 1. Huỷ tất cả các thông báo đã lập lịch trước đó
+    // 1. Cancel all previously scheduled notifications
     await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log("Đã xoá các thông báo đã lập lịch cũ");
+    console.log("Cleared previously scheduled notifications");
 
     if (!enabled) {
       return;
     }
 
-    // 2. Kiểm tra quyền thông báo
+    // 2. Check notification permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.warn("Không có quyền thông báo, không lập lịch nhắc nhở");
+      console.warn("No notification permission, skipping reminder scheduling");
       return;
     }
 
-    // 3. Lấy token để gọi API
+    // 3. Get token to call the API
     const token = await SecureStore.getItemAsync("user-token");
     if (!token) {
-      console.warn("Chưa đăng nhập, không thể lấy từ vựng để nhắc nhở");
+      console.warn("Not logged in, cannot load vocabulary for reminders");
       return;
     }
 
-    // 4. Lấy danh sách từ vựng cần học (tải bản ghi lớn hơn để sàng lọc thông minh)
+    // 4. Load the vocabulary list to learn (fetch a larger batch for smart filtering)
     let vocabItems: VocabularyItem[] = [];
     try {
-      // Tải tối đa 40 từ cần ôn tập
+      // Fetch up to 40 words due for review
       const res = await fetchVocabularies({ due: true, page_size: 40 }, token);
       vocabItems = res.items || [];
-      
-      // Nếu không đủ từ cần ôn tập, lấy thêm từ bình thường
+
+      // If not enough due words, fetch more from the regular list
       if (vocabItems.length < 15) {
         const resAll = await fetchVocabularies({ page_size: 40 }, token);
         const allItems = resAll.items || [];
-        // Gộp và loại trùng
+        // Merge and de-duplicate
         const existingIds = new Set(vocabItems.map(item => item.id));
         for (const item of allItems) {
           if (!existingIds.has(item.id)) {
@@ -198,27 +198,27 @@ export async function scheduleVocabularyReminders(
         }
       }
     } catch (e) {
-      console.warn("Lỗi khi tải từ vựng để lập lịch thông báo:", e);
+      console.warn("Error loading vocabulary for notification scheduling:", e);
       return;
     }
 
     if (vocabItems.length === 0) {
-      console.log("Không có từ vựng nào để lập lịch nhắc nhở");
+      console.log("No vocabulary to schedule reminders for");
       return;
     }
 
-    // Sắp xếp thông minh: Ưu tiên từ có hộp thấp nhất (chưa thuộc) -> tiếp theo là thời gian hẹn ôn gần nhất
+    // Smart sort: prioritize lowest box first (not yet learned), then earliest next_review_at
     vocabItems.sort((a, b) => {
       if (a.box_number !== b.box_number) {
-        return a.box_number - b.box_number; // Hộp 1, 2 lên đầu
+        return a.box_number - b.box_number; // Box 1, 2 first
       }
       const timeA = new Date(a.next_review_at || 0).getTime();
       const timeB = new Date(b.next_review_at || 0).getTime();
       return timeA - timeB;
     });
 
-    // 5. Tính toán khoảng cách thông báo tối ưu dựa theo giờ thức giấc và mục tiêu học
-    let wakeHours = 16; // Mặc định thức 16 tiếng
+    // 5. Compute optimal reminder spacing based on wake hours and daily goal
+    let wakeHours = 16; // Default: 16 hours awake
     if (sleepStart !== sleepEnd) {
       if (sleepStart > sleepEnd) {
         wakeHours = 24 - (sleepStart - sleepEnd);
@@ -226,14 +226,14 @@ export async function scheduleVocabularyReminders(
         wakeHours = 24 - (sleepEnd - sleepStart);
       }
     }
-    // Tính giãn cách = giờ thức / mục tiêu ngày, giới hạn từ 1h đến 12h
+    // Interval = wake hours / daily target, clamped between 1h and 12h
     const finalInterval = Math.max(1, Math.min(12, wakeHours / Math.max(1, dailyTarget)));
 
-    // 6. Thiết lập danh mục & kênh nếu chưa làm
+    // 6. Set up categories & channel if not done yet
     await registerNotificationCategory();
     const isChannelCreated = await setupNotificationChannel();
 
-    // 7. Lập lịch cho tối đa 15 thông báo
+    // 7. Schedule up to 15 notifications
     const now = new Date();
     let scheduledCount = 0;
 
@@ -249,22 +249,22 @@ export async function scheduleVocabularyReminders(
         triggerObj.channelId = "vocab-alerts";
       }
 
-      // Xác định tiêu đề và nội dung dựa trên cá tính
-      let title = `💡 Từ vựng cần nhớ: "${item.word}"`;
+      // Determine title and body based on personality
+      let title = `💡 Word to remember: "${item.word}"`;
       let body = `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}`;
 
       if (personality === "gentle") {
-        title = `🌸 Nhắc nhở nhẹ nhàng: "${item.word}"`;
-        body = `Một chút kiến thức hôm nay: ${item.meaning}. Dành 10 giây xem thử nhé!`;
+        title = `🌸 Gentle reminder: "${item.word}"`;
+        body = `A little knowledge for today: ${item.meaning}. Take 10 seconds to look!`;
       } else if (personality === "roast") {
-        title = `🥱 Ê lười ơi! Từ này nghĩa là gì: "${item.word}"?`;
-        body = `Đừng bảo bạn quên từ "${item.meaning}" này rồi nhé! Vào học ngay đi! 🔥`;
+        title = `🥱 Hey lazy! What does "${item.word}" mean?`;
+        body = `Don't tell me you forgot "${item.meaning}"! Open it and study now! 🔥`;
       } else { // supportive
-        title = `💪 Cùng ôn từ vựng nào: "${item.word}"`;
-        body = `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}. Bạn đang làm rất tốt, cố lên!`;
+        title = `💪 Let's review a word: "${item.word}"`;
+        body = `${item.meaning}${item.pronunciation ? ` • /${item.pronunciation}/` : ""}. You're doing great, keep it up!`;
       }
 
-      // Thêm thông báo
+      // Schedule the notification
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
@@ -273,26 +273,26 @@ export async function scheduleVocabularyReminders(
           categoryIdentifier: "vocab-reminder",
           sound: "default",
           vibrate: [0, 250, 250, 250],
-          priority: Notifications.AndroidNotificationPriority.MAX, // Mức ưu tiên cao nhất
+          priority: Notifications.AndroidNotificationPriority.MAX, // Highest priority
         },
         trigger: triggerObj,
       });
       scheduledCount++;
     }
 
-    console.log(`Đã lập lịch thành công ${scheduledCount} thông báo từ vựng (khoảng cách tự động ${finalInterval.toFixed(1)}h, giờ ngủ ${sleepStart}h - ${sleepEnd}h, mục tiêu ${dailyTarget} từ/ngày)`);
+    console.log(`Successfully scheduled ${scheduledCount} vocabulary notifications (auto interval ${finalInterval.toFixed(1)}h, sleep ${sleepStart}h - ${sleepEnd}h, target ${dailyTarget} words/day)`);
   } catch (error) {
-    console.warn("Lỗi trong quá trình lập lịch thông báo:", error);
+    console.warn("Error in notification scheduling:", error);
   }
 }
 
 /**
- * Gửi ngay lập tức một thông báo kiểm tra (Test Notification) sau 3 giây
+ * Send a test notification immediately (after 3 seconds).
  */
 export async function scheduleTestNotification(personality: "gentle" | "supportive" | "roast" = "supportive") {
   const hasPermission = await requestNotificationPermissions();
   if (!hasPermission) {
-    alert("Vui lòng cấp quyền thông báo trong cài đặt máy!");
+    alert("Please grant notification permission in your device settings!");
     return;
   }
 
@@ -307,18 +307,18 @@ export async function scheduleTestNotification(personality: "gentle" | "supporti
     triggerObj.channelId = "vocab-alerts";
   }
 
-  let title = '💡 Từ vựng mẫu: "Aesthetic"';
-  let body = 'Thẩm mỹ, có óc thẩm mỹ • /esˈθet.ɪk/. Nhấp để thử tương tác!';
+  let title = '💡 Sample word: "Aesthetic"';
+  let body = 'Means "relating to beauty" • /esˈθet.ɪk/. Tap to try the interactions!';
 
   if (personality === "gentle") {
-    title = '🌸 Thư giãn nhẹ nhàng cùng: "Aesthetic"';
-    body = 'Ý nghĩa là "Thẩm mỹ" • /esˈθet.ɪk/. Một ngày tuyệt vời nhé!';
+    title = '🌸 Relax a little with: "Aesthetic"';
+    body = 'It means "relating to beauty" • /esˈθet.ɪk/. Have a wonderful day!';
   } else if (personality === "roast") {
-    title = '🥱 Cơ bắp teo, não phẳng kìa! Nhớ từ: "Aesthetic" không?';
-    body = 'Ý nghĩa là "Thẩm mỹ" đấy đồ lười. Đừng có nằm lướt điện thoại nữa, học/tập ngay đi! 🔥';
+    title = '🥱 Brain flat yet? Remember "Aesthetic"?';
+    body = 'It means "relating to beauty", you lazy. Stop scrolling and study! 🔥';
   } else {
-    title = '💪 Động lực hôm nay: "Aesthetic"';
-    body = 'Có nghĩa là "Thẩm mỹ" • /esˈθet.ɪk/. Cố gắng khép kín các vòng tròn thói quen nhé!';
+    title = '💪 Today\'s motivation: "Aesthetic"';
+    body = 'It means "relating to beauty" • /esˈθet.ɪk/. Keep closing those habit rings!';
   }
 
   await Notifications.scheduleNotificationAsync({
@@ -336,7 +336,7 @@ export async function scheduleTestNotification(personality: "gentle" | "supporti
 }
 
 /**
- * Lập lịch thông báo đi ngủ và thức dậy hàng ngày
+ * Schedule daily bedtime and wake-up notifications.
  */
 export async function scheduleSleepReminders(
   enabled: boolean,
@@ -344,10 +344,10 @@ export async function scheduleSleepReminders(
   wakeupStr: string = "06:00"
 ) {
   try {
-    // Huỷ các thông báo giấc ngủ cũ
+    // Cancel previous sleep notifications
     const lastBedtimeId = await SecureStore.getItemAsync("notification-id-bedtime");
     const lastWakeupId = await SecureStore.getItemAsync("notification-id-wakeup");
-    
+
     if (lastBedtimeId) {
       await Notifications.cancelScheduledNotificationAsync(lastBedtimeId).catch(() => null);
     }
@@ -356,21 +356,21 @@ export async function scheduleSleepReminders(
     }
 
     if (!enabled) {
-      console.log("Nhắc nhở giấc ngủ bị tắt. Đã huỷ các thông báo cũ.");
+      console.log("Sleep reminders disabled. Old notifications cancelled.");
       return;
     }
 
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.warn("Không có quyền thông báo, không lập lịch nhắc nhở giấc ngủ");
+      console.warn("No notification permission, skipping sleep reminder scheduling");
       return;
     }
 
     await registerNotificationCategory();
-    
+
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("sleep-alerts", {
-        name: "Nhắc nhở giấc ngủ",
+        name: "Sleep reminders",
         importance: Notifications.AndroidImportance.MAX,
         sound: "default",
         enableVibrate: true,
@@ -378,16 +378,16 @@ export async function scheduleSleepReminders(
       }).catch(() => null);
     }
 
-    // Phân tích bedtimeStr (e.g. "22:00")
+    // Parse bedtimeStr (e.g. "22:00")
     const [bHour, bMinute] = bedtimeStr.split(":").map(Number);
-    // Phân tích wakeupStr (e.g. "06:00")
+    // Parse wakeupStr (e.g. "06:00")
     const [wHour, wMinute] = wakeupStr.split(":").map(Number);
 
-    // Lập lịch nhắc đi ngủ
+    // Schedule bedtime notification
     const bedtimeNotificationId = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "🌙 Đã đến giờ đi ngủ rồi!",
-        body: "Hãy gạt bỏ công việc và đi ngủ đúng giờ nhé. Bấm 'Đi ngủ ngay' để ghi nhận giờ ngủ của bạn.",
+        title: "🌙 It's bedtime!",
+        body: "Set work aside and get to bed on time. Tap 'Go to sleep now' to log your bedtime.",
         categoryIdentifier: "sleep-bedtime",
         sound: "default",
         vibrate: [0, 250, 250, 250],
@@ -401,11 +401,11 @@ export async function scheduleSleepReminders(
     });
     await SecureStore.setItemAsync("notification-id-bedtime", bedtimeNotificationId);
 
-    // Lập lịch nhắc thức dậy
+    // Schedule wake-up notification
     const wakeupNotificationId = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "☀️ Chào buổi sáng!",
-        body: "Đã đến lúc thức dậy. Đừng quên bấm 'Tôi đã thức dậy' để lưu giấc ngủ của bạn nhé.",
+        title: "☀️ Good morning!",
+        body: "Time to wake up. Don't forget to tap 'I just woke up' to log your sleep.",
         categoryIdentifier: "sleep-wakeup",
         sound: "default",
         vibrate: [0, 250, 250, 250],
@@ -419,9 +419,8 @@ export async function scheduleSleepReminders(
     });
     await SecureStore.setItemAsync("notification-id-wakeup", wakeupNotificationId);
 
-    console.log(`Đã lập lịch thành công thông báo nhắc giấc ngủ: Bedtime ${bedtimeStr}, Wakeup ${wakeupStr}`);
+    console.log(`Successfully scheduled sleep reminders: Bedtime ${bedtimeStr}, Wakeup ${wakeupStr}`);
   } catch (error) {
-    console.warn("Lỗi khi lập lịch nhắc nhở giấc ngủ:", error);
+    console.warn("Error scheduling sleep reminders:", error);
   }
 }
-

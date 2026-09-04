@@ -4,44 +4,44 @@
  */
 
 export const WORD_TYPES = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'noun', label: 'Danh từ' },
-  { value: 'verb', label: 'Động từ' },
-  { value: 'adjective', label: 'Tính từ' },
-  { value: 'adverb', label: 'Trạng từ' },
-  { value: 'pronoun', label: 'Đại từ' },
-  { value: 'preposition', label: 'Giới từ' },
-  { value: 'conjunction', label: 'Liên từ' },
-  { value: 'interjection', label: 'Thán từ' },
-  { value: 'other', label: 'Khác' },
+  { value: 'all', label: 'All' },
+  { value: 'noun', label: 'Noun' },
+  { value: 'verb', label: 'Verb' },
+  { value: 'adjective', label: 'Adjective' },
+  { value: 'adverb', label: 'Adverb' },
+  { value: 'pronoun', label: 'Pronoun' },
+  { value: 'preposition', label: 'Preposition' },
+  { value: 'conjunction', label: 'Conjunction' },
+  { value: 'interjection', label: 'Interjection' },
+  { value: 'other', label: 'Other' },
 ] as const;
 
 export type WordTypeValue = (typeof WORD_TYPES)[number]['value'];
 
 /**
  * Map a raw `word_type` string (case-insensitive, may be missing or unknown)
- * to its Vietnamese display label. Unknown values fall through to `'Khác'`.
+ * to its English display label. Unknown values fall through to `'Other'`.
  */
 export function getWordTypeLabel(type?: string | null): string {
   const normalized = type?.toLowerCase() || '';
   switch (normalized) {
     case 'noun':
-      return 'Danh từ';
+      return 'Noun';
     case 'verb':
-      return 'Động từ';
+      return 'Verb';
     case 'adjective':
-      return 'Tính từ';
+      return 'Adjective';
     case 'adverb':
-      return 'Trạng từ';
+      return 'Adverb';
     case 'pronoun':
-      return 'Đại từ';
+      return 'Pronoun';
     case 'preposition':
-      return 'Giới từ';
+      return 'Preposition';
     case 'conjunction':
-      return 'Liên từ';
+      return 'Conjunction';
     case 'interjection':
-      return 'Thán từ';
+      return 'Interjection';
     default:
-      return 'Khác';
+      return 'Other';
   }
 }

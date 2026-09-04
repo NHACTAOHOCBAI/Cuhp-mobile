@@ -51,7 +51,7 @@ export default function EnglishHubScreen() {
       setVocabCount(vocabList.total || 0);
       setDueVocabCount(dueVocabList.total || 0);
     } catch (error) {
-      console.error('Lỗi tải thống kê ôn tập trong Hub:', error);
+      console.error('Error loading review stats in Hub:', error);
     } finally {
       setLoadingStats(false);
       setRefreshing(false);
@@ -102,9 +102,9 @@ export default function EnglishHubScreen() {
               />
             </View>
             <View>
-              <Text className={typography.eyebrowSm}>Chuỗi streak</Text>
+              <Text className={typography.eyebrowSm}>Streak</Text>
               <Text className="text-foreground text-base font-black">
-                {currentUser?.current_streak || 0} ngày
+                {currentUser?.current_streak || 0} days
               </Text>
             </View>
           </Card>
@@ -118,7 +118,7 @@ export default function EnglishHubScreen() {
               />
             </View>
             <View className="flex-1">
-              <Text className={typography.eyebrowSm}>Mục tiêu ngày</Text>
+              <Text className={typography.eyebrowSm}>Daily goal</Text>
               <Text className="text-foreground text-base font-black">
                 {currentUser?.words_reviewed_today || 0}/{currentUser?.daily_target || 10}
               </Text>
@@ -130,7 +130,7 @@ export default function EnglishHubScreen() {
         <Card className="mb-5">
           <ProgressBar
             value={progressPercent}
-            label="Tiến trình ngày hôm nay"
+            label="Today's progress"
             trailingLabel={`${Math.round(progressPercent)}%`}
             tone="primary"
             footer={
@@ -138,7 +138,7 @@ export default function EnglishHubScreen() {
                 <View className="flex-row items-center">
                   <Sparkles size={12} color={Colors.warning} />
                   <Text className="text-foreground text-[11px] font-semibold ml-1">
-                    Đã hoàn thành mục tiêu ngày!
+                    Daily goal reached!
                   </Text>
                 </View>
               ) : null
@@ -148,23 +148,23 @@ export default function EnglishHubScreen() {
 
         {/* Vocabulary stats */}
         <Card variant="flat" className="mb-6 p-5">
-          <Text className={`${typography.eyebrowSm} mb-3`}>Thống kê ôn tập</Text>
+          <Text className={`${typography.eyebrowSm} mb-3`}>Review statistics</Text>
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-muted-foreground text-sm font-medium">Số từ cần ôn tập hôm nay:</Text>
+            <Text className="text-muted-foreground text-sm font-medium">Words due for review today:</Text>
             <Badge
-              label={`${dueVocabCount} từ đến hạn`}
+              label={`${dueVocabCount} due`}
               variant={dueVocabCount > 0 ? 'red' : 'green'}
             />
           </View>
           <View className="flex-row justify-between items-center">
-            <Text className="text-muted-foreground text-sm font-medium">Tổng số từ trong sổ tay:</Text>
-            <Text className="text-foreground text-sm font-bold">{vocabCount} từ</Text>
+            <Text className="text-muted-foreground text-sm font-medium">Total words in notebook:</Text>
+            <Text className="text-foreground text-sm font-bold">{vocabCount} words</Text>
           </View>
         </Card>
 
         {/* Button to start full-screen review */}
         <ButtonPrimary
-          title="Bắt đầu học Flashcard"
+          title="Start Flashcard session"
           disabled={vocabCount === 0}
           onPress={() => navigation.navigate('Flashcard')}
           icon={<ArrowRight size={18} color={Colors.primaryForeground} />}
@@ -173,7 +173,7 @@ export default function EnglishHubScreen() {
 
         {vocabCount === 0 ? (
           <Text className="text-destructive text-xs text-center mt-2.5">
-            Sổ tay của bạn hiện đang trống. Hãy thêm từ vựng mới để bắt đầu ôn tập.
+            Your notebook is currently empty. Add new vocabulary to begin reviewing.
           </Text>
         ) : null}
       </ScrollView>
@@ -181,10 +181,10 @@ export default function EnglishHubScreen() {
   };
 
   const subTabs: { key: SubTabKey; label: string }[] = [
-    { key: 'vocabulary', label: 'Từ vựng' },
-    { key: 'review', label: 'Ôn tập' },
-    { key: 'reading', label: 'Bài đọc' },
-    { key: 'listening', label: 'Nghe' },
+    { key: 'vocabulary', label: 'Vocabulary' },
+    { key: 'review', label: 'Review' },
+    { key: 'reading', label: 'Reading' },
+    { key: 'listening', label: 'Listening' },
   ];
 
   return (

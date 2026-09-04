@@ -65,7 +65,7 @@ export default function SettingScreen() {
       }
       triggerHaptic('success');
     } catch (err) {
-      console.error('Lỗi khi cập nhật mục tiêu hàng ngày:', err);
+      console.error('Error updating daily target:', err);
       triggerHaptic('error');
     }
   };
@@ -94,9 +94,9 @@ export default function SettingScreen() {
 
   const testVoice = () => {
     triggerHaptic('light');
-    const phrase = accent === 'en-US' 
-      ? 'Đây là bản đọc thử giọng Anh Mỹ với tốc độ tiêu chuẩn.' 
-      : 'Đây là bản đọc thử giọng Anh Anh với tốc độ tiêu chuẩn.';
+    const phrase = accent === 'en-US'
+      ? 'This is a sample of American English at standard speed.'
+      : 'This is a sample of British English at standard speed.';
     Speech.speak(phrase, {
       language: accent,
       pitch: 1.0,
@@ -137,8 +137,8 @@ export default function SettingScreen() {
               </View>
             )}
           </View>
-          
-          <Text className="text-[#1f1a1d] text-xl font-black">{user?.name || 'Người dùng Cuhp'}</Text>
+
+          <Text className="text-[#1f1a1d] text-xl font-black">{user?.name || 'Cuhp User'}</Text>
           <Text className="text-[#706065] text-xs mt-0.5">
             {user?.username ? `${user.username}@cuhp.app` : 'user@cuhp.app'}
           </Text>
@@ -146,9 +146,9 @@ export default function SettingScreen() {
           {/* Daily Streak Goal pill */}
           <View className="bg-[#fcf1f5] border border-[#F0EAEB] rounded-3xl px-5 py-4 mt-5 w-full items-center" style={{ borderColor: '#F0EAEB' }}>
             <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest mb-3">
-              MỤC TIÊU HỌC HÀNG NGÀY
+              DAILY LEARNING TARGET
             </Text>
-            
+
             <View className="flex-row items-center justify-between w-full px-2">
               <TouchableOpacity
                 onPress={() => {
@@ -161,11 +161,11 @@ export default function SettingScreen() {
               >
                 <Text className="text-[#C7739A] font-black text-lg">-</Text>
               </TouchableOpacity>
-              
+
               <Text className="text-[#1f1a1d] text-base font-black">
-                {dailyTarget} từ / ngày
+                {dailyTarget} words / day
               </Text>
-              
+
               <TouchableOpacity
                 onPress={() => {
                   if (dailyTarget < 50) {
@@ -185,11 +185,11 @@ export default function SettingScreen() {
             <View className="flex-row items-center">
               <Shield size={16} color={Colors.warning} className="mr-2" />
               <Text className="text-[#1f1a1d] text-[10px] font-bold uppercase tracking-wider">
-                Khiên Đóng Băng Streak
+                Streak Freeze Shields
               </Text>
             </View>
             <Text className="text-[#1f1a1d] text-xs font-black">
-              Đang có {streakFreezes}
+              Currently have {streakFreezes}
             </Text>
           </View>
         </View>
@@ -200,12 +200,12 @@ export default function SettingScreen() {
             <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
               <Volume2 size={16} color="#C7739A" />
             </View>
-            <Text className="text-[#1f1a1d] font-black text-base">Cấu hình giọng đọc</Text>
+            <Text className="text-[#1f1a1d] font-black text-base">Speech configuration</Text>
           </View>
 
           <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
-            <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest mb-2">GIỌNG PHÁT ÂM</Text>
-            
+            <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest mb-2">ACCENT</Text>
+
             {/* Custom Dropdown Trigger */}
             <TouchableOpacity
               activeOpacity={0.85}
@@ -214,7 +214,7 @@ export default function SettingScreen() {
               className="flex-row justify-between items-center bg-[#fcf1f5] border border-[#F0EAEB] rounded-full px-5 py-3.5 mb-2"
             >
               <Text className="text-[#1f1a1d] text-xs font-bold">
-                {accent === 'en-US' ? 'Tiếng Anh Mỹ (en-US)' : 'Tiếng Anh Anh (en-GB)'}
+                {accent === 'en-US' ? 'American English (en-US)' : 'British English (en-GB)'}
               </Text>
               {dropdownOpen ? <ChevronUp size={16} color="#706065" /> : <ChevronDown size={16} color="#706065" />}
             </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function SettingScreen() {
                   className={`px-4 py-3 rounded-xl ${accent === 'en-US' ? 'bg-[#EFBCD5]/20' : ''}`}
                 >
                   <Text className={`text-xs font-bold ${accent === 'en-US' ? 'text-[#C7739A]' : 'text-[#1f1a1d]'}`}>
-                    Tiếng Anh Mỹ (en-US)
+                    American English (en-US)
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -235,7 +235,7 @@ export default function SettingScreen() {
                   className={`px-4 py-3 rounded-xl ${accent === 'en-GB' ? 'bg-[#EFBCD5]/20' : ''}`}
                 >
                   <Text className={`text-xs font-bold ${accent === 'en-GB' ? 'text-[#C7739A]' : 'text-[#1f1a1d]'}`}>
-                    Tiếng Anh Anh (en-GB)
+                    British English (en-GB)
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -244,7 +244,7 @@ export default function SettingScreen() {
             {/* Speech Rate Slider Section */}
             <View className="mt-4">
               <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest">TỐC ĐỘ ĐỌC</Text>
+                <Text className="text-[10px] font-bold text-[#706065] uppercase tracking-widest">SPEECH RATE</Text>
                 <View className="bg-[#EFBCD5]/20 border border-[#F0EAEB] px-2 py-0.5 rounded" style={{ borderColor: '#F0EAEB' }}>
                   <Text className="text-[#C7739A] text-[10px] font-black">{speechRate.toFixed(2)}x</Text>
                 </View>
@@ -253,10 +253,10 @@ export default function SettingScreen() {
               {/* Custom Slider with steps */}
               <View className="flex-row items-center px-1 py-2">
                 <Accessibility size={16} color="#706065" className="mr-3" />
-                
+
                 <View className="flex-1 h-8 justify-center relative">
                   <View className="w-full h-1 bg-[#F0EAEB] rounded-full" />
-                  
+
                   {/* Render step points and handle selection */}
                   {rateSteps.map((step) => {
                     const index = rateSteps.indexOf(step);
@@ -271,9 +271,9 @@ export default function SettingScreen() {
                         style={{ left: leftPos as any, transform: [{ translateX: -8 }] }}
                         className="absolute w-4 h-4 justify-center items-center"
                       >
-                        <View 
+                        <View
                           style={isActive ? { transform: [{ scale: 1.25 }] } : undefined}
-                          className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-[#C7739A]' : 'bg-[#706065]/30'}`} 
+                          className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-[#C7739A]' : 'bg-[#706065]/30'}`}
                         />
                       </TouchableOpacity>
                     );
@@ -292,7 +292,7 @@ export default function SettingScreen() {
               className="mt-6 bg-[#EFBCD5] border border-[#F0EAEB] rounded-full py-3.5 items-center justify-center flex-row"
             >
               <Play size={14} color="#1f1a1d" className="mr-2" />
-              <Text className="text-[#1f1a1d] text-xs font-black">Nghe thử giọng đọc</Text>
+              <Text className="text-[#1f1a1d] text-xs font-black">Test voice</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -312,8 +312,8 @@ export default function SettingScreen() {
               <Moon size={16} color="#C7739A" />
             </View>
             <View className="flex-1">
-              <Text className="text-[#1f1a1d] font-black text-base">Cài đặt giấc ngủ</Text>
-              <Text className="text-[#706065] text-[10px] mt-0.5">Thời gian đi ngủ, thức dậy mục tiêu & Nhắc nhở</Text>
+              <Text className="text-[#1f1a1d] font-black text-base">Sleep settings</Text>
+              <Text className="text-[#706065] text-[10px] mt-0.5">Bedtime, wakeup goals & reminders</Text>
             </View>
           </View>
           <ChevronRight size={16} color="#706065" />
@@ -326,8 +326,8 @@ export default function SettingScreen() {
         <View className="bg-white border border-[#F0EAEB] rounded-3xl p-6 shadow-sm shadow-[#EFBCD5]/20 mb-5" style={{ borderColor: '#F0EAEB' }}>
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-[#1f1a1d] text-xs font-bold">Báo cáo tuần</Text>
-              <Text className="text-[#706065] text-[10px] mt-0.5">Tóm tắt tiến trình học tập qua email hàng tuần</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Weekly reports</Text>
+              <Text className="text-[#706065] text-[10px] mt-0.5">Weekly summary of learning progress via email</Text>
             </View>
             <Switch
               value={weeklyReports}
@@ -344,12 +344,12 @@ export default function SettingScreen() {
             <View className="w-8 h-8 rounded-full bg-[#fcf1f5] border border-[#F0EAEB] items-center justify-center mr-3" style={{ borderColor: '#F0EAEB' }}>
               <User size={16} color="#706065" />
             </View>
-            <Text className="text-[#1f1a1d] font-black text-base">Tài khoản</Text>
+            <Text className="text-[#1f1a1d] font-black text-base">Account</Text>
           </View>
 
           <View className="border-t border-[#F0EAEB] pt-4" style={{ borderTopColor: '#F0EAEB' }}>
             <Text className="text-[#706065] text-[10px] leading-normal mb-5">
-              Quản lý dữ liệu của bạn, gói đăng ký và bảo mật tài khoản.
+              Manage your data, subscription and account security.
             </Text>
 
             <TouchableOpacity
@@ -357,7 +357,7 @@ export default function SettingScreen() {
               style={{ borderColor: '#F0EAEB' }}
               className="border border-[#F0EAEB] bg-[#fcf1f5] rounded-full py-3.5 items-center justify-center mb-3"
             >
-              <Text className="text-[#1f1a1d] text-xs font-bold">Quản lý gói đăng ký</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Manage subscription</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -366,7 +366,7 @@ export default function SettingScreen() {
               className="bg-red-50 border border-red-100 rounded-full py-3.5 items-center justify-center flex-row"
             >
               <LogOut size={14} color={Colors.destructive} className="mr-2" />
-              <Text className="text-destructive text-xs font-bold">Đăng xuất</Text>
+              <Text className="text-destructive text-xs font-bold">Log out</Text>
             </TouchableOpacity>
           </View>
         </View>

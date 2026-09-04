@@ -17,7 +17,7 @@ import GymScreen from '../screens/GymScreen';
 import SettingScreen from '../screens/SettingScreen';
 import SleepTrackerScreen from '../screens/SleepTrackerScreen';
 
-// Bọc ErrorBoundary để bắt lỗi runtime và in stack trace
+// Wrap with ErrorBoundary to catch runtime errors and print stack trace
 const ReadingDetailWithBoundary = () => (
   <ErrorBoundary>
     <ReadingDetailScreen />

@@ -23,7 +23,7 @@ interface ProgressBarProps {
   trailingLabel?: string;
   tone?: Tone;
   thickness?: Thickness;
-  /** Optional small row beneath the bar (e.g. "Đã hoàn thành mục tiêu ngày!"). */
+  /** Optional small row beneath the bar (e.g. "Daily goal reached!"). */
   footer?: React.ReactNode;
   className?: string;
 }

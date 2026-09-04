@@ -29,12 +29,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [accent, setAccentState] = useState<SpeechAccent>("en-US");
   const [speechRate, setSpeechRateState] = useState<number>(0.9);
-  const [reminderEnabled, setReminderEnabledState] = useState<boolean>(true); // Mặc định là bật
+  const [reminderEnabled, setReminderEnabledState] = useState<boolean>(true); // Enabled by default
   const [notificationPersonality, setNotificationPersonalityState] = useState<NotificationPersonality>("supportive");
-  const [sleepStartHour, setSleepStartHourState] = useState<number>(22); // Mặc định 22h
-  const [sleepEndHour, setSleepEndHourState] = useState<number>(8); // Mặc định 8h sáng
+  const [sleepStartHour, setSleepStartHourState] = useState<number>(22); // Default 10pm
+  const [sleepEndHour, setSleepEndHourState] = useState<number>(8); // Default 8am
 
-  // Lên lịch lại nhắc nhở mỗi khi mục tiêu học hàng ngày thay đổi
+  // Re-schedule reminders whenever the daily learning target changes
   useEffect(() => {
     scheduleVocabularyReminders(
       reminderEnabled,
@@ -86,7 +86,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setSleepEndHourState(currentSleepEnd);
         }
 
-        // Tự động lập lịch lại mỗi lần mở app để cập nhật từ vựng mới nhất
+        // Automatically reschedule on every app launch to refresh with the latest vocabulary
         await scheduleVocabularyReminders(
           currentEnabled,
           currentPersonality,
@@ -95,7 +95,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           dailyTarget
         );
       } catch (e) {
-        console.warn("Lỗi tải cài đặt:", e);
+        console.warn("Error loading settings:", e);
       }
     };
     loadSettings();
@@ -106,7 +106,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       await SecureStore.setItemAsync("settings-accent", newAccent);
       setAccentState(newAccent);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt accent:", e);
+      console.error("Error saving accent setting:", e);
     }
   };
 
@@ -115,7 +115,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       await SecureStore.setItemAsync("settings-rate", String(newRate));
       setSpeechRateState(newRate);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt speech rate:", e);
+      console.error("Error saving speech rate setting:", e);
     }
   };
 
@@ -125,7 +125,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setReminderEnabledState(enabled);
       await scheduleVocabularyReminders(enabled, notificationPersonality, sleepStartHour, sleepEndHour, dailyTarget);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt reminderEnabled:", e);
+      console.error("Error saving reminderEnabled setting:", e);
     }
   };
 
@@ -135,7 +135,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setNotificationPersonalityState(newPersonality);
       await scheduleVocabularyReminders(reminderEnabled, newPersonality, sleepStartHour, sleepEndHour, dailyTarget);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt notificationPersonality:", e);
+      console.error("Error saving notificationPersonality setting:", e);
     }
   };
 
@@ -145,7 +145,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSleepStartHourState(hour);
       await scheduleVocabularyReminders(reminderEnabled, notificationPersonality, hour, sleepEndHour, dailyTarget);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt sleepStartHour:", e);
+      console.error("Error saving sleepStartHour setting:", e);
     }
   };
 
@@ -155,7 +155,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSleepEndHourState(hour);
       await scheduleVocabularyReminders(reminderEnabled, notificationPersonality, sleepStartHour, hour, dailyTarget);
     } catch (e) {
-      console.error("Lỗi lưu cài đặt sleepEndHour:", e);
+      console.error("Error saving sleepEndHour setting:", e);
     }
   };
 
@@ -184,7 +184,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (context === undefined) {
-    throw new Error("useSettings phải được sử dụng bên trong SettingsProvider");
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 };

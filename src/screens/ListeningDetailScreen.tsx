@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -51,15 +50,15 @@ export default function ListeningDetailScreen() {
   const duration = (status.duration || 0) * 1000; // convert to ms for UI
   const position = (status.currentTime || 0) * 1000;
 
-  // Cập nhật nguồn âm thanh khi tải xong dữ liệu bài nghe
+  // Update audio source when audio data is loaded
   useEffect(() => {
     if (passage?.url && player) {
       player.replace(passage.url);
-      player.loop = isLooping; // Áp dụng trạng thái lặp lại
+      player.loop = isLooping; // Apply loop state
     }
   }, [passage, player]);
 
-  // Cập nhật thông tin lên Màn hình khóa khi trạng thái bài nghe thay đổi (nhất là khi duration đã được load)
+  // Update lock screen info when audio state changes (especially when duration is loaded)
   useEffect(() => {
     if (passage && player && status.isLoaded) {
       try {
@@ -67,12 +66,12 @@ export default function ListeningDetailScreen() {
         player.setActiveForLockScreen(true, {
           title: passage.title,
           artist: passage.category || "Cuhp English Hub",
-          albumTitle: passage.level === 'easy' ? 'Mức độ: Dễ' : passage.level === 'medium' ? 'Mức độ: Trung bình' : 'Mức độ: Khó',
-          // Sử dụng artworkUrl theo định nghĩa của Expo AudioMetadata
-          artworkUrl: audioTrack.image || "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=150", 
+          albumTitle: passage.level === 'easy' ? 'Level: Easy' : passage.level === 'medium' ? 'Level: Medium' : 'Level: Hard',
+          // Use artworkUrl as defined in Expo AudioMetadata
+          artworkUrl: audioTrack.image || "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=150",
         });
       } catch (error) {
-        console.warn('Không thể cập nhật Lockscreen Controls:', error);
+        console.warn('Could not update Lockscreen Controls:', error);
       }
     }
   }, [passage, player, status.isLoaded]);
@@ -84,7 +83,7 @@ export default function ListeningDetailScreen() {
           player.setActiveForLockScreen(false);
         }
       } catch (error) {
-        console.warn('Không thể hủy kích hoạt Lockscreen Controls:', error);
+        console.warn('Could not deactivate Lockscreen Controls:', error);
       }
     };
   }, [player]);
@@ -110,8 +109,8 @@ export default function ListeningDetailScreen() {
       setPassage(audioData);
       setComments(commentsData || []);
     } catch (error) {
-      console.error('Lỗi tải chi tiết bài nghe:', error);
-      Alert.alert('Lỗi', 'Không thể kết nối để tải chi tiết bài nghe.');
+      console.error('Error loading listening details:', error);
+      Alert.alert('Error', 'Could not connect to load listening details.');
     } finally {
       setLoading(false);
     }
@@ -127,7 +126,7 @@ export default function ListeningDetailScreen() {
       playsInSilentMode: true,
       shouldPlayInBackground: true,
       interruptionMode: 'doNotMix',
-    }).catch((e) => console.error('Lỗi setAudioModeAsync:', e));
+    }).catch((e) => console.error('Error setAudioModeAsync:', e));
   }, []);
 
   const handlePlayPause = () => {
@@ -221,7 +220,7 @@ export default function ListeningDetailScreen() {
       setCommentInput('');
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Gửi bình luận thất bại.');
+      Alert.alert('Error', 'Failed to send comment.');
     } finally {
       setSendingComment(false);
     }
@@ -229,10 +228,10 @@ export default function ListeningDetailScreen() {
 
   const handleDeleteComment = async (commentId: string) => {
     if (!token) return;
-    Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa bình luận này?', [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm', 'Are you sure you want to delete this comment?', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -240,7 +239,7 @@ export default function ListeningDetailScreen() {
             setComments((prev) => prev.filter((c) => c.id !== commentId));
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Xóa bình luận thất bại.');
+            Alert.alert('Error', 'Failed to delete comment.');
           }
         }
       }
@@ -257,7 +256,7 @@ export default function ListeningDetailScreen() {
 
   const renderTranscriptTab = () => {
     if (!passage) return null;
-    const enParagraphs = passage.transcript.split('\n\n').filter(Boolean);
+    const enParagraphs = passage.transcript?.split('\n\n').filter(Boolean) || [];
     const viParagraphs = passage.translation ? passage.translation.split('\n\n').filter(Boolean) : [];
 
     return (
@@ -294,7 +293,7 @@ export default function ListeningDetailScreen() {
               <Text className="text-foreground font-extrabold text-sm ml-1.5">Shadow Dictation</Text>
             </View>
             <Text className="text-muted-foreground text-xs leading-normal">
-              Nghe audio và ghi lại những gì bạn nghe được vào ô nhập liệu dưới đây để kiểm tra khả năng bắt từ của mình.
+              Listen to the audio and type what you hear in the input box below to test your listening comprehension.
             </Text>
           </Card>
 
@@ -305,13 +304,13 @@ export default function ListeningDetailScreen() {
                 numberOfLines={8}
                 value={dictationInput}
                 onChangeText={setDictationInput}
-                placeholder="Nghe và viết lại tại đây..."
+                placeholder="Listen and write it down here..."
                 className="bg-card border border-border rounded-2xl p-4 text-foreground text-sm leading-relaxed mb-5"
                 style={{ minHeight: 180, textAlignVertical: 'top' }}
               />
 
               <ButtonPrimary
-                title="Kiểm tra kết quả"
+                title="Check result"
                 onPress={handleCheckDictation}
                 disabled={!dictationInput.trim()}
                 icon={<Check size={18} color={Colors.primaryForeground} />}
@@ -321,7 +320,7 @@ export default function ListeningDetailScreen() {
           ) : (
             <View className="space-y-4">
               <Card className="p-5">
-                <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-3">Kết quả so khớp của bạn</Text>
+                <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-3">Your matching result</Text>
                 <View className="flex-row flex-wrap leading-relaxed pr-2">
                   {dictationResult.map((res, idx) => (
                     <Text
@@ -337,7 +336,7 @@ export default function ListeningDetailScreen() {
               </Card>
 
               <ButtonOutline
-                title="Luyện lại từ đầu"
+                title="Practice again from the start"
                 onPress={handleResetDictation}
                 icon={<RotateCcw size={16} color={Colors.foreground} />}
                 className="h-12 mt-4"
@@ -357,19 +356,19 @@ export default function ListeningDetailScreen() {
             <View className="py-12 items-center justify-center">
               <Headphones size={28} color={Colors.iconMuted} />
               <Text className="text-muted-foreground text-xs mt-2 text-center">
-                Chưa có thảo luận nào. Hãy bắt đầu hỏi đáp hoặc thảo luận!
+                No discussions yet. Start asking questions or discussing!
               </Text>
             </View>
           ) : (
             comments.map((c) => {
               const isMine = user && c.user_id === user.id;
-              const formattedDate = c.created_at ? new Date(c.created_at).toLocaleDateString('vi-VN') : '';
+              const formattedDate = c.created_at ? new Date(c.created_at).toLocaleDateString('en-US') : '';
               return (
                 <Card key={c.id} className="mb-3.5 p-4">
                   <View className="flex-row justify-between items-center mb-1.5">
                     <View className="flex-row items-center">
-                      <Text className="text-foreground font-bold text-xs">{c.user_name || 'Học viên'}</Text>
-                      {isMine && <Text className="text-primary text-[9px] font-extrabold ml-1.5 uppercase bg-primary/10 px-1 py-0.5 rounded">Bạn</Text>}
+                      <Text className="text-foreground font-bold text-xs">{c.user_name || 'Student'}</Text>
+                      {isMine && <Text className="text-primary text-[9px] font-extrabold ml-1.5 uppercase bg-primary/10 px-1 py-0.5 rounded">You</Text>}
                     </View>
                     <Text className="text-muted-foreground text-[10px]">{formattedDate}</Text>
                   </View>
@@ -380,7 +379,7 @@ export default function ListeningDetailScreen() {
                       className="self-end mt-1.5 p-1 flex-row items-center"
                     >
                       <Trash2 size={12} color={Colors.destructive} />
-                      <Text className="text-destructive text-[10px] ml-1 font-semibold">Xóa</Text>
+                      <Text className="text-destructive text-[10px] ml-1 font-semibold">Delete</Text>
                     </TouchableOpacity>
                   )}
                 </Card>
@@ -397,7 +396,7 @@ export default function ListeningDetailScreen() {
             <TextInput
               value={commentInput}
               onChangeText={setCommentInput}
-              placeholder="Nhập bình luận thảo luận..."
+              placeholder="Type your discussion comment..."
               placeholderTextColor={Colors.iconMuted}
               className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-xl border border-border mr-3 text-xs"
               style={{ maxHeight: 80 }}
@@ -426,11 +425,11 @@ export default function ListeningDetailScreen() {
             onPress={() => navigation.goBack()}
             icon={<ArrowLeft size={20} color={Colors.foreground} />}
           />
-          <Text className="text-foreground font-black text-lg ml-3">Chi tiết bài nghe</Text>
+          <Text className="text-foreground font-black text-lg ml-3">Listening details</Text>
         </View>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color={Colors.foreground} />
-          <Text className="text-muted-foreground text-sm mt-3">Đang tải bài nghe...</Text>
+          <Text className="text-muted-foreground text-sm mt-3">Loading audio...</Text>
         </View>
       </ScreenWrapper>
     );
@@ -453,7 +452,7 @@ export default function ListeningDetailScreen() {
         </View>
         {passage?.level && (
           <Badge
-            label={passage.level === 'easy' ? 'Dễ' : passage.level === 'medium' ? 'T.Bình' : 'Khó'}
+            label={passage.level === 'easy' ? 'Easy' : passage.level === 'medium' ? 'Medium' : 'Hard'}
             variant={passage.level === 'easy' ? 'green' : passage.level === 'medium' ? 'yellow' : 'red'}
           />
         )}
@@ -506,8 +505,8 @@ export default function ListeningDetailScreen() {
             />
           </View>
 
-          <TouchableOpacity 
-            onPress={handleLoopToggle} 
+          <TouchableOpacity
+            onPress={handleLoopToggle}
             className={`w-14 items-center py-1.5 rounded-lg ${isLooping ? 'bg-zinc-200' : ''}`}
           >
             <Repeat size={16} color={isLooping ? Colors.foreground : Colors.iconMuted} />
@@ -522,7 +521,7 @@ export default function ListeningDetailScreen() {
           className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'transcript' ? 'bg-card' : ''}`}
         >
           <Text className={`text-[10px] font-extrabold ${activeTab === 'transcript' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Kịch bản
+            Transcript
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -530,7 +529,7 @@ export default function ListeningDetailScreen() {
           className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'dictation' ? 'bg-card' : ''}`}
         >
           <Text className={`text-[10px] font-extrabold ${activeTab === 'dictation' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Chép chính tả
+            Dictation
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -538,7 +537,7 @@ export default function ListeningDetailScreen() {
           className={`flex-1 py-2 rounded-lg items-center ${activeTab === 'comments' ? 'bg-card' : ''}`}
         >
           <Text className={`text-[10px] font-extrabold ${activeTab === 'comments' ? 'text-foreground' : 'text-muted-foreground'}`}>
-            Thảo luận ({comments.length})
+            Discuss ({comments.length})
           </Text>
         </TouchableOpacity>
       </View>

@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(JSON.parse(storedUser));
         }
       } catch (e) {
-        console.warn("Lỗi khôi phục session đăng nhập:", e);
+        console.warn("Error restoring login session:", e);
       } finally {
         setLoading(false);
       }
@@ -74,8 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(newToken);
       setUser(newUser);
     } catch (e) {
-      console.error("Lỗi lưu trữ thông tin đăng nhập:", e);
-      throw new Error("Không thể lưu trữ session đăng nhập");
+      console.error("Error storing login session:", e);
+      throw new Error("Unable to store login session");
     }
   };
 
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(updatedUser);
       }
     } catch (e) {
-      console.warn("Lỗi refresh user profile:", e);
+      console.warn("Error refreshing user profile:", e);
     }
   };
 
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth phải được sử dụng bên trong AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

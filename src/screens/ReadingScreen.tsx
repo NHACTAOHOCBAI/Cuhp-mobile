@@ -60,7 +60,7 @@ export default function ReadingScreen() {
       setPage(pageNum);
       setInitialLoaded(true);
     } catch (error) {
-      console.error('Lỗi tải danh sách bài đọc:', error);
+      console.error('Error loading reading list:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -100,20 +100,20 @@ export default function ReadingScreen() {
   const getLevelLabel = (level: string) => {
     switch (level) {
       case 'easy':
-        return 'Dễ';
+        return 'Easy';
       case 'medium':
-        return 'Trung bình';
+        return 'Medium';
       case 'hard':
-        return 'Khó';
+        return 'Hard';
       default:
         return level;
     }
   };
 
   const renderItem = ({ item }: { item: ReadingPassage }) => {
-    // Bảo vệ: content có thể undefined khi backend cũ chưa trả field này
+    // Guard: content may be undefined when older backend doesn't return this field
     const safeContent = item.content || '';
-    // Trích dẫn 120 ký tự đầu tiên của bài viết làm mô tả ngắn
+    // Extract the first 120 characters of the passage as a short description
     const excerpt = safeContent.length > 120 ? safeContent.substring(0, 120) + '...' : safeContent;
 
     return (
@@ -134,8 +134,8 @@ export default function ReadingScreen() {
           </Text>
 
           <View className="flex-row justify-between items-center border-t border-border/50 pt-2">
-            <Badge label={item.category || 'Chung'} variant="zinc" />
-            <Text className="text-foreground text-xs font-semibold">Đọc bài ngay →</Text>
+            <Badge label={item.category || 'General'} variant="zinc" />
+            <Text className="text-foreground text-xs font-semibold">Read now →</Text>
           </View>
         </Card>
       </TouchableOpacity>
@@ -155,8 +155,8 @@ export default function ReadingScreen() {
     return (
       <EmptyState
         icon={<BookOpen size={28} color={Colors.iconMuted} />}
-        title="Không tìm thấy bài đọc nào"
-        body="Hệ thống hiện tại chưa cập nhật tài liệu bài đọc nào."
+        title="No reading passages found"
+        body="There are currently no reading passages in the system."
       />
     );
   };
@@ -168,7 +168,7 @@ export default function ReadingScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListFooterComponent={renderFooter}
-        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Đang tải danh sách bài đọc..." /> : renderEmpty()}
+        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Loading reading list..." /> : renderEmpty()}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}
         refreshControl={
           <RefreshControl

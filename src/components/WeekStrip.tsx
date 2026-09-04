@@ -79,14 +79,14 @@ export const WeekStrip: React.FC<WeekStripProps> = ({
               style={{ borderColor: '#F0EAEB' }}
               className="px-2.5 py-1.5 rounded-lg bg-[#fcf1f5] border border-[#F0EAEB]"
             >
-              <Text className="text-[#1f1a1d] text-xs font-bold">← Tuần trước</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">← Prev week</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigateWeek(1)}
               style={{ borderColor: '#F0EAEB' }}
               className="px-2.5 py-1.5 rounded-lg bg-[#fcf1f5] border border-[#F0EAEB]"
             >
-              <Text className="text-[#1f1a1d] text-xs font-bold">Tuần sau →</Text>
+              <Text className="text-[#1f1a1d] text-xs font-bold">Next week →</Text>
             </TouchableOpacity>
           </View>
         )}

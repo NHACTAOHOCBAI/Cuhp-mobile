@@ -66,7 +66,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
       setPage(pageNum);
       setInitialLoaded(true);
     } catch (error) {
-      console.error('Lỗi tải danh sách bài nghe:', error);
+      console.error('Error loading listening list:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -106,11 +106,11 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
   const getLevelLabel = (level: string) => {
     switch (level) {
       case 'easy':
-        return 'Dễ';
+        return 'Easy';
       case 'medium':
-        return 'Trung bình';
+        return 'Medium';
       case 'hard':
-        return 'Khó';
+        return 'Hard';
       default:
         return level;
     }
@@ -145,12 +145,12 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
 
           <View className="flex-row justify-between items-center border-t border-border/50 pt-2">
             <View className="flex-row items-center">
-              <Badge label={item.category || 'Chung'} variant="zinc" className="mr-2" />
+              <Badge label={item.category || 'General'} variant="zinc" className="mr-2" />
               <Text className="text-muted-foreground text-[10px] font-semibold">
-                Thời lượng: {formatDuration(item.duration)}
+                Duration: {formatDuration(item.duration)}
               </Text>
             </View>
-            <Text className="text-foreground text-xs font-semibold">Nghe bài ngay →</Text>
+            <Text className="text-foreground text-xs font-semibold">Listen now →</Text>
           </View>
         </Card>
       </TouchableOpacity>
@@ -170,8 +170,8 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
     return (
       <EmptyState
         icon={<Headphones size={28} color={Colors.iconMuted} />}
-        title="Không tìm thấy bài nghe nào"
-        body="Hệ thống hiện tại chưa cập nhật tài liệu bài nghe nào."
+        title="No listening tracks found"
+        body="There are currently no listening tracks in the system."
       />
     );
   };
@@ -183,7 +183,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListFooterComponent={renderFooter}
-        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Đang tải danh sách bài nghe..." /> : renderEmpty()}
+        ListEmptyComponent={loading && !initialLoaded ? <LoadingState message="Loading listening list..." /> : renderEmpty()}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24 }}
         refreshControl={
           <RefreshControl
@@ -207,7 +207,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
 
   return (
     <ScreenWrapper scroll={false}>
-      <Header title="Luyện Nghe" />
+      <Header title="Listening Practice" />
       {content}
     </ScreenWrapper>
   );

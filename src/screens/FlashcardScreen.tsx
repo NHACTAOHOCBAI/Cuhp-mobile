@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  GestureResponderEvent,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BookOpen, Flame, Target, Sparkles, ArrowRight } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
+import { Colors, typography } from '../theme';
+import { ScreenWrapper } from '../components/ScreenWrapper';
+import { Card } from '../components/Card';
+import { Badge } from '../components/Badge';
+import { IconTile } from '../components/IconTile';
+import { ProgressBar } from '../components/ProgressBar';
+import { ButtonPrimary, ButtonOutline } from '../components/Button';
+import { IconButton } from '../components/IconButton';
+import { LoadingState } from '../components/LoadingState';
+import { EmptyState } from '../components/EmptyState';
+import {
+  fetchVocabularies,
+  reviewVocabulary,
+  fetchUserProfile,
+} from '../api/client';
+import { VocabularyItem, User } from '../types';
 import * as Speech from 'expo-speech';
+import { useSettings } from '../context/SettingsContext';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -18,41 +28,8 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import {
-  Volume2,
-  RotateCw,
-  Trophy,
-  X,
-  MoreHorizontal,
-  BookOpen,
-} from 'lucide-react-native';
-
-import { useAuth } from '../context/AuthContext';
-import { useSettings } from '../context/SettingsContext';
-import {
-  fetchVocabularies,
-  reviewVocabulary,
-  fetchUserProfile,
-} from '../api/client';
-import { VocabularyItem, User } from '../types';
-
-import { ScreenWrapper } from '../components/ScreenWrapper';
-import {
-  Button,
-  ButtonPrimary,
-  ButtonOutline,
-  triggerHaptic,
-} from '../components/Button';
-import { Card } from '../components/Card';
-import { Badge } from '../components/Badge';
-import { IconButton } from '../components/IconButton';
-import { IconTile } from '../components/IconTile';
-import { ProgressBar } from '../components/ProgressBar';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-
-import { Colors, typography } from '../theme';
+import { Volume2, RotateCw, Trophy, X, MoreHorizontal } from 'lucide-react-native';
+import { triggerHaptic } from '../components/Button';
 import { getWordTypeLabel } from '../utils/vocabulary';
 
 const SESSION_SIZE = 15;
@@ -61,7 +38,6 @@ const FLIP_DURATION_MS = 450;
 
 export default function FlashcardScreen() {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const { user, token, login } = useAuth();
   const { accent, speechRate } = useSettings();
 
@@ -155,7 +131,7 @@ export default function FlashcardScreen() {
         setGameState('review');
       }
     } catch (e) {
-      console.error('Lỗi khi tải dữ liệu Flashcard:', e);
+      console.error('Error loading Flashcard data:', e);
     } finally {
       setLoading(false);
     }
@@ -226,7 +202,7 @@ export default function FlashcardScreen() {
         });
       }
     } catch (err) {
-      console.error('Lỗi khi gửi kết quả Flashcard:', err);
+      console.error('Error submitting Flashcard result:', err);
     }
 
     setTimeout(() => {
@@ -249,8 +225,7 @@ export default function FlashcardScreen() {
   if (loading) {
     return (
       <ScreenWrapper scroll={false} edges={['top', 'left', 'right']}>
-        <GradientBackground />
-        <LoadingState message="Đang tải Flashcard..." />
+        <LoadingState message="Loading Flashcards..." />
       </ScreenWrapper>
     );
   }
@@ -260,7 +235,6 @@ export default function FlashcardScreen() {
   if (sessionItems.length === 0) {
     return (
       <ScreenWrapper scroll={false} edges={['top', 'left', 'right']}>
-        <GradientBackground />
         <View className="px-6 pt-3">
           <IconButton
             shape="circle"
@@ -268,16 +242,16 @@ export default function FlashcardScreen() {
             size="md"
             hapticType="light"
             onPress={() => navigation.goBack()}
-            accessibilityLabel="Đóng"
+            accessibilityLabel="Close"
             icon={<X size={18} color={Colors.foreground} />}
           />
         </View>
         <EmptyState
           icon={<BookOpen size={32} color={Colors.iconMuted} />}
-          title="Chưa có từ vựng"
-          body="Hãy thêm từ vựng mới vào sổ tay trước khi bắt đầu Flashcard."
+          title="No vocabulary yet"
+          body="Add new vocabulary to your notebook before starting Flashcards."
           action={{
-            label: 'Quay lại',
+            label: 'Back',
             onPress: () => navigation.goBack(),
             variant: 'outline',
           }}
@@ -294,11 +268,7 @@ export default function FlashcardScreen() {
 
     return (
       <ScreenWrapper scroll={false} edges={['top', 'left', 'right']}>
-        <GradientBackground />
-        <View
-          className="flex-1 justify-center px-6"
-          style={{ paddingBottom: insets.bottom + 24 }}
-        >
+        <View className="flex-1 justify-center px-6">
           <View className="items-center mb-6">
             <View className="mb-6">
               <IconTile
@@ -315,31 +285,30 @@ export default function FlashcardScreen() {
               />
             </View>
             <Text className="text-2xl font-extrabold text-foreground text-center tracking-tight">
-              {isExcellent ? 'Tuyệt Vời!' : 'Hoàn Thành!'}
+              {isExcellent ? 'Excellent!' : 'Completed!'}
             </Text>
             <Text className="text-muted-foreground text-sm text-center mt-2 max-w-[280px] leading-relaxed">
-              Bạn đã hoàn thành phiên Flashcard này. Hãy tiếp tục duy trì thói
-              quen học tập hàng ngày!
+              You finished this Flashcard session. Keep up your daily learning habit!
             </Text>
           </View>
 
           <Card className="items-center p-6 mb-6">
             <Text className={`${typography.eyebrowSm} mb-1`}>
-              Số từ đã thuộc lượt này
+              Words remembered this round
             </Text>
             <Text className="text-4xl font-black text-foreground mt-1">
               {score} / {sessionItems.length}
             </Text>
             <Text className="text-muted-foreground text-xs mt-2">
-              Đạt tỉ lệ chính xác {Math.round(ratio * 100)}%
+              Accuracy: {Math.round(ratio * 100)}%
             </Text>
           </Card>
 
           <View className="gap-3">
-            <ButtonPrimary onPress={restartSession} title="Ôn tập tiếp lượt mới" />
+            <ButtonPrimary onPress={restartSession} title="Start a new round" />
             <ButtonOutline
               onPress={() => navigation.goBack()}
-              title="Quay lại trang chủ"
+              title="Back to home"
             />
           </View>
         </View>
@@ -357,8 +326,6 @@ export default function FlashcardScreen() {
 
   return (
     <ScreenWrapper scroll={false} edges={['top', 'left', 'right']}>
-      <GradientBackground />
-
       <View className="flex-1">
         {/* Top row: close · pill · more */}
         <View className="px-6 pt-3 pb-2">
@@ -369,7 +336,7 @@ export default function FlashcardScreen() {
               size="md"
               hapticType="light"
               onPress={() => navigation.goBack()}
-              accessibilityLabel="Đóng"
+              accessibilityLabel="Close"
               icon={<X size={18} color={Colors.foreground} />}
             />
 
@@ -380,7 +347,7 @@ export default function FlashcardScreen() {
                 </Text>
               </View>
               <Text className="text-muted-foreground text-[11px] font-semibold mt-1.5">
-                Ôn tập: {currentIndex + 1}/{sessionItems.length}
+                Review: {currentIndex + 1}/{sessionItems.length}
               </Text>
             </View>
 
@@ -392,7 +359,7 @@ export default function FlashcardScreen() {
               onPress={() => {
                 /* TODO: open more menu */
               }}
-              accessibilityLabel="Thêm"
+              accessibilityLabel="More"
               icon={<MoreHorizontal size={18} color={Colors.foreground} />}
             />
           </View>
@@ -405,21 +372,20 @@ export default function FlashcardScreen() {
 
         {/* Flashcard with 3D flip animation */}
         <View className="flex-1 mx-6 my-2">
-          <Animated.View style={[styles.cardShell, frontStyle]} pointerEvents={isFlipped ? 'none' : 'auto'}>
-            <View className="flex-1 bg-card border border-border rounded-3xl p-6 items-center justify-between shadow-sm shadow-[#193665]/3 overflow-hidden">
-              {/* Background Pressable to handle flipping the card */}
-              <Pressable style={StyleSheet.absoluteFill} onPress={toggleFlip} />
+          <Animated.View style={[frontStyle]} pointerEvents={isFlipped ? 'none' : 'auto'}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={toggleFlip}
+              className="flex-1 bg-card border border-border rounded-3xl p-6 items-center justify-between shadow-sm shadow-[#193665]/3 overflow-hidden"
+            >
+              <Badge label="Front" variant="zinc" />
 
-              <View pointerEvents="none">
-                <Badge label="Mặt trước" variant="zinc" />
-              </View>
-
-              <View className="items-center w-full px-4" pointerEvents="box-none">
-                <Text className="text-3xl font-extrabold text-foreground text-center" pointerEvents="none">
+              <View className="items-center w-full px-4">
+                <Text className="text-3xl font-extrabold text-foreground text-center">
                   {currentItem.word}
                 </Text>
                 {currentItem.pronunciation ? (
-                  <Text className="text-muted-foreground text-base italic mt-2 text-center" pointerEvents="none">
+                  <Text className="text-muted-foreground text-base italic mt-2 text-center">
                     {currentItem.pronunciation}
                   </Text>
                 ) : null}
@@ -430,22 +396,22 @@ export default function FlashcardScreen() {
                     size="lg"
                     hapticType="light"
                     onPress={() => speakWord(currentItem.word)}
-                    accessibilityLabel={`Phát âm ${currentItem.word}`}
+                    accessibilityLabel={`Pronounce ${currentItem.word}`}
                     icon={<Volume2 size={20} color={Colors.foreground} />}
                   />
                 </View>
               </View>
 
-              <View className="flex-row items-center justify-center" pointerEvents="none">
+              <View className="flex-row items-center justify-center">
                 <RotateCw size={12} color={Colors.iconSubtle} />
                 <Text className="text-muted-foreground text-xs font-semibold ml-1.5">
-                  Chạm để lật xem nghĩa
+                  Tap to flip and see meaning
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </Animated.View>
 
-          <Animated.View style={[styles.cardShell, styles.backFace, backStyle]} pointerEvents={isFlipped ? 'auto' : 'none'}>
+          <Animated.View style={[backStyle]} pointerEvents={isFlipped ? 'auto' : 'none'}>
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={toggleFlip}
@@ -460,11 +426,11 @@ export default function FlashcardScreen() {
                 showsVerticalScrollIndicator={false}
                 className="w-full"
               >
-                <Badge label="Mặt sau" variant="dark" />
+                <Badge label="Back" variant="dark" />
 
                 <View className="items-center w-full my-6 px-4">
                   <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1.5 text-center">
-                    Ý nghĩa
+                    Meaning
                   </Text>
                   <Text className="text-2xl font-bold text-foreground text-center">
                     {currentItem.meaning}
@@ -483,7 +449,7 @@ export default function FlashcardScreen() {
                       className="p-4 mt-6 w-full mb-0 bg-muted border-border"
                     >
                       <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1 text-center">
-                        Ngữ cảnh (Câu chứa từ)
+                        Context (Example sentence)
                       </Text>
                       <Text className="text-foreground text-sm text-center italic leading-relaxed">
                         "{currentItem.context_sentence}"
@@ -494,7 +460,7 @@ export default function FlashcardScreen() {
                   {currentItem.notes ? (
                     <Card variant="flat" className="p-4 mt-6 w-full mb-0">
                       <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">
-                        Ghi chú
+                        Notes
                       </Text>
                       <Text className="text-muted-foreground text-sm text-center leading-relaxed">
                         {currentItem.notes}
@@ -506,7 +472,7 @@ export default function FlashcardScreen() {
                 <View className="flex-row items-center justify-center">
                   <RotateCw size={12} color={Colors.iconSubtle} />
                   <Text className="text-muted-foreground text-xs font-semibold ml-1.5">
-                    Chạm để quay lại mặt trước
+                    Tap to flip back to the front
                   </Text>
                 </View>
               </ScrollView>
@@ -515,69 +481,21 @@ export default function FlashcardScreen() {
         </View>
 
         {/* Bottom buttons — padding respects device safe-area */}
-        <View
-          className="flex-row w-full gap-3 px-6 pb-4"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) + 12 }}
-        >
-          <Button
-            variant="outline"
-            hapticType="none"
+        <View className="flex-row w-full gap-3 px-6 pb-4">
+          <TouchableOpacity
             onPress={() => handleAnswer(false)}
-            title="Chưa thuộc"
-            className="flex-1 h-14 rounded-2xl"
-            textClassName="text-destructive"
-          />
-          <Button
-            variant="primary"
-            hapticType="none"
+            className="flex-1 h-14 rounded-2xl border border-destructive items-center justify-center"
+          >
+            <Text className="text-destructive text-base font-bold">Don't know</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => handleAnswer(true)}
-            title="Đã thuộc"
-            className="flex-1 h-14 rounded-2xl bg-success active:bg-success/80 shadow-lg shadow-success/20"
-            textClassName="text-success-foreground"
-          />
+            className="flex-1 h-14 rounded-2xl bg-success items-center justify-center shadow-lg shadow-success/20"
+          >
+            <Text className="text-success-foreground text-base font-bold">Got it</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScreenWrapper>
   );
 }
-
-// ---------- Shared bits ----------
-
-const GradientBackground: React.FC = () => (
-  <View
-    style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: -1,
-    }}
-    pointerEvents="none"
-  >
-    <Svg width="100%" height="100%">
-      <Defs>
-        <LinearGradient id="flashcardBg" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0%" stopColor="#c2e6fb" stopOpacity="0.45" />
-          <Stop offset="45%" stopColor="#ffffff" stopOpacity="1" />
-          <Stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
-        </LinearGradient>
-      </Defs>
-      <Rect width="100%" height="100%" fill="url(#flashcardBg)" />
-    </Svg>
-  </View>
-);
-
-const styles = StyleSheet.create({
-  cardShell: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backfaceVisibility: 'hidden',
-  },
-  backFace: {
-    // Reanimated rotates this; the backfaceVisibility hides the mirrored face.
-  },
-});

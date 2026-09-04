@@ -48,7 +48,7 @@ export default function SleepTrackerScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<SleepStats | null>(null);
   const [logs, setLogs] = useState<SleepLog[]>([]);
-  
+
   // Realtime Sleep Tracking
   const [isSleeping, setIsSleeping] = useState(false);
   const [sleepStartTime, setSleepStartTime] = useState<Date | null>(null);
@@ -104,7 +104,7 @@ export default function SleepTrackerScreen() {
         setSleepStartTime(null);
       }
     } catch (e) {
-      console.error('Lỗi tải dữ liệu giấc ngủ:', e);
+      console.error('Error loading sleep data:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -150,9 +150,9 @@ export default function SleepTrackerScreen() {
       setSleepStartTime(now);
       setIsSleeping(true);
       triggerHaptic('success');
-      Alert.alert('Chúc ngủ ngon! 🌙', 'Thời gian bắt đầu ngủ đã được ghi nhận. Hãy gác điện thoại qua một bên và nghỉ ngơi nhé.');
+      Alert.alert('Sweet dreams! 🌙', 'Sleep start time recorded. Put your phone aside and rest.');
     } catch (e) {
-      Alert.alert('Lỗi', 'Không thể bắt đầu ghi nhận giấc ngủ.');
+      Alert.alert('Error', 'Could not start sleep tracking.');
     }
   };
 
@@ -169,18 +169,18 @@ export default function SleepTrackerScreen() {
         sleep_date: sleepDateStr,
         sleep_time_actual: sleepStartTime.toISOString(),
         wake_time_actual: wakeTime.toISOString(),
-        notes: 'Ghi nhận qua nút bấm app'
+        notes: 'Logged via app button'
       }, token);
 
       await SecureStore.deleteItemAsync('sleep-start-time');
       setIsSleeping(false);
       setSleepStartTime(null);
-      
+
       triggerHaptic('success');
-      Alert.alert('Chào buổi sáng! ☀️', 'Giấc ngủ của bạn đã được lưu lại thành công.');
+      Alert.alert('Good morning! ☀️', 'Your sleep has been saved successfully.');
       loadData();
     } catch (e: any) {
-      Alert.alert('Lỗi', e.message || 'Không thể lưu giấc ngủ của bạn.');
+      Alert.alert('Error', e.message || 'Could not save your sleep.');
     } finally {
       setLoading(false);
     }
@@ -189,12 +189,12 @@ export default function SleepTrackerScreen() {
   // Cancel ongoing sleep session
   const handleCancelSleep = async () => {
     Alert.alert(
-      'Hủy ghi nhận?',
-      'Bạn có muốn hủy bỏ phiên theo dõi giấc ngủ đang chạy không?',
+      'Cancel tracking?',
+      'Do you want to cancel the current sleep tracking session?',
       [
-        { text: 'Không', style: 'cancel' },
+        { text: 'No', style: 'cancel' },
         {
-          text: 'Hủy bỏ',
+          text: 'Cancel',
           style: 'destructive',
           onPress: async () => {
             await SecureStore.deleteItemAsync('sleep-start-time');
@@ -250,12 +250,12 @@ export default function SleepTrackerScreen() {
 
       await scheduleSleepReminders(reminderEnabled, bedtimeStr, waketimeStr);
       await refreshUser();
-      
+
       setIsSettingsChanged(false);
       triggerHaptic('success');
-      Alert.alert('Thành công 🎉', 'Đã lưu cài đặt giấc ngủ và cập nhật lịch nhắc nhở.');
+      Alert.alert('Success 🎉', 'Sleep settings saved and reminder schedule updated.');
     } catch (e: any) {
-      Alert.alert('Thất bại', e.message || 'Lỗi lưu cài đặt.');
+      Alert.alert('Failed', e.message || 'Error saving settings.');
     } finally {
       setLoading(false);
     }
@@ -267,9 +267,9 @@ export default function SleepTrackerScreen() {
     try {
       setLoading(true);
       const [year, month, day] = manualDate.split('-').map(Number);
-      
+
       const sleepDateTime = new Date(year, month - 1, day, manualBedtime.hour, manualBedtime.minute, 0);
-      
+
       let wakeDate = new Date(year, month - 1, day);
       if (manualWaketime.hour < manualBedtime.hour) {
         wakeDate.setDate(wakeDate.getDate() + 1);
@@ -280,16 +280,16 @@ export default function SleepTrackerScreen() {
         sleep_date: manualDate,
         sleep_time_actual: sleepDateTime.toISOString(),
         wake_time_actual: wakeDateTime.toISOString(),
-        notes: manualNotes || 'Nhập thủ công'
+        notes: manualNotes || 'Manual entry'
       }, token);
 
       setShowManualModal(false);
       setManualNotes('');
       triggerHaptic('success');
-      Alert.alert('Thành công', 'Đã lưu giấc ngủ thủ công.');
+      Alert.alert('Success', 'Manual sleep entry saved.');
       loadData();
     } catch (e: any) {
-      Alert.alert('Lỗi', e.message || 'Không thể tạo bản ghi.');
+      Alert.alert('Error', e.message || 'Could not create record.');
     } finally {
       setLoading(false);
     }
@@ -298,12 +298,12 @@ export default function SleepTrackerScreen() {
   // Delete sleep log
   const handleDeleteLog = (id: string) => {
     Alert.alert(
-      'Xóa bản ghi?',
-      'Bạn có chắc chắn muốn xóa bản ghi giấc ngủ này không?',
+      'Delete record?',
+      'Are you sure you want to delete this sleep record?',
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Xóa',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             if (!token) return;
@@ -313,7 +313,7 @@ export default function SleepTrackerScreen() {
               triggerHaptic('light');
               loadData();
             } catch (e: any) {
-              Alert.alert('Lỗi', e.message || 'Không thể xóa bản ghi.');
+              Alert.alert('Error', e.message || 'Could not delete record.');
             } finally {
               setLoading(false);
             }
@@ -332,7 +332,7 @@ export default function SleepTrackerScreen() {
   const getDayName = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
-      const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       return days[d.getDay()];
     } catch {
       return '';
@@ -341,10 +341,10 @@ export default function SleepTrackerScreen() {
 
   if (loading && !refreshing) {
     return (
-      <MainLayout title="Giấc ngủ" scroll={false}>
+      <MainLayout title="Sleep" scroll={false}>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#76baf9" />
-          <Text className="text-muted-foreground text-sm mt-3 font-medium">Đang tải dữ liệu giấc ngủ...</Text>
+          <Text className="text-muted-foreground text-sm mt-3 font-medium">Loading sleep data...</Text>
         </View>
       </MainLayout>
     );
@@ -352,7 +352,7 @@ export default function SleepTrackerScreen() {
 
   return (
     <MainLayout
-      title="Giấc ngủ"
+      title="Sleep"
       scroll={true}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#76baf9" />
@@ -368,7 +368,7 @@ export default function SleepTrackerScreen() {
           className="flex-row items-center bg-muted/40 border border-border/40 px-3.5 py-2 rounded-full"
         >
           <ChevronLeft size={16} color="#193665" className="mr-1" />
-          <Text className="text-[#193665] text-xs font-bold">Quay lại</Text>
+          <Text className="text-[#193665] text-xs font-bold">Back</Text>
         </TouchableOpacity>
       </View>
 
@@ -380,12 +380,12 @@ export default function SleepTrackerScreen() {
               <View className="absolute inset-0 rounded-full border border-purple/20 opacity-70 animate-pulse" style={{ transform: [{ scale: 1.1 }] }} />
               <Moon size={40} color="#a855f7" />
             </View>
-            
-            <Text className="text-purple font-extrabold text-[10px] tracking-widest uppercase">ĐANG THEO DÕI GIẤC NGỦ</Text>
+
+            <Text className="text-purple font-extrabold text-[10px] tracking-widest uppercase">TRACKING SLEEP</Text>
             <Text className="text-[#193665] text-3xl font-black mt-2 tracking-tight">{elapsedTime}</Text>
-            
+
             <Text className="text-muted-foreground text-xs mt-1">
-              Bắt đầu lúc: {sleepStartTime ? sleepStartTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+              Started at: {sleepStartTime ? sleepStartTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
             </Text>
 
             <View className="flex-row gap-x-3 w-full mt-6">
@@ -393,7 +393,7 @@ export default function SleepTrackerScreen() {
                 onPress={handleCancelSleep}
                 className="flex-1 py-4 bg-muted/30 border border-border/30 rounded-2xl items-center justify-center"
               >
-                <Text className="text-muted-foreground font-bold text-sm">Hủy bỏ</Text>
+                <Text className="text-muted-foreground font-bold text-sm">Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -401,7 +401,7 @@ export default function SleepTrackerScreen() {
                 className="flex-2 py-4 bg-primary rounded-2xl items-center justify-center flex-row shadow-sm"
               >
                 <Sun size={18} color="#193665" className="mr-2" />
-                <Text className="text-[#193665] font-extrabold text-sm">Tôi đã thức dậy 🌅</Text>
+                <Text className="text-[#193665] font-extrabold text-sm">I woke up 🌅</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -410,9 +410,9 @@ export default function SleepTrackerScreen() {
             <View className="w-20 h-20 rounded-full bg-muted/30 items-center justify-center mb-4 border border-border/10">
               <Moon size={32} color="#19366599" />
             </View>
-            <Text className="text-[#193665] text-base font-black">Nhấn nút khi bạn chuẩn bị đi ngủ</Text>
+            <Text className="text-[#193665] text-base font-black">Press the button when you're ready to sleep</Text>
             <Text className="text-muted-foreground text-xs text-center mt-2 px-6 leading-relaxed">
-              Nhắc nhở đi ngủ sẽ gửi thông báo mỗi đêm. Bạn cũng có thể bắt đầu phiên ngủ trực tiếp tại đây.
+              Bedtime reminders will be sent every night. You can also start a sleep session directly here.
             </Text>
 
             <TouchableOpacity
@@ -420,7 +420,7 @@ export default function SleepTrackerScreen() {
               className="w-full py-4 mt-6 bg-[#f3e8ff] border border-purple/10 rounded-2xl items-center justify-center flex-row"
             >
               <Moon size={16} color="#a855f7" className="mr-2" />
-              <Text className="text-purple font-black text-sm">Bắt đầu đi ngủ 🌌</Text>
+              <Text className="text-purple font-black text-sm">Start sleeping 🌌</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -429,28 +429,28 @@ export default function SleepTrackerScreen() {
       {/* Sleep Statistics Overview & Chart */}
       <Card className="p-5 mb-6">
         <View className="flex-row items-center justify-between mb-4 pb-2 border-b border-border/20">
-          <Text className="text-[#193665] font-black text-sm uppercase tracking-wide">Thống kê hoạt động</Text>
+          <Text className="text-[#193665] font-black text-sm uppercase tracking-wide">Activity stats</Text>
           <TrendingUp size={16} color="#76baf9" />
         </View>
 
         {/* Quick Stats Grid */}
         <View className="flex-row justify-between mb-6 gap-x-2">
           <View className="flex-1 bg-muted/30 p-3.5 rounded-2xl border border-border/20">
-            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Giờ ngủ TB</Text>
+            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Avg sleep</Text>
             <Text className="text-[#193665] text-base font-extrabold mt-1">{stats?.average_duration_hours ?? 0}h</Text>
           </View>
           <View className="flex-1 bg-muted/30 p-3.5 rounded-2xl border border-border/20">
-            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Đi ngủ TB</Text>
+            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Avg bedtime</Text>
             <Text className="text-[#193665] text-base font-extrabold mt-1">{stats?.average_bedtime ?? '--:--'}</Text>
           </View>
           <View className="flex-1 bg-muted/30 p-3.5 rounded-2xl border border-border/20">
-            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Thức dậy TB</Text>
+            <Text className="text-muted-foreground text-[10px] font-bold uppercase">Avg wakeup</Text>
             <Text className="text-[#193665] text-base font-extrabold mt-1">{stats?.average_waketime ?? '--:--'}</Text>
           </View>
         </View>
 
         {/* Simple Custom Bar Chart (7 days) */}
-        <Text className="text-muted-foreground text-xs font-semibold mb-3">Lịch sử ngủ 7 ngày qua</Text>
+        <Text className="text-muted-foreground text-xs font-semibold mb-3">Sleep history (last 7 days)</Text>
         <View className="h-32 flex-row justify-around items-end pt-4 pb-2 px-1 border-b border-border/20">
           {stats && stats.sleep_logs_7_days && stats.sleep_logs_7_days.length > 0 ? (
             stats.sleep_logs_7_days.map((log) => {
@@ -480,20 +480,20 @@ export default function SleepTrackerScreen() {
             })
           ) : (
             <View className="flex-1 justify-center items-center h-full">
-              <Text className="text-muted-foreground text-xs italic">Chưa có bản ghi giấc ngủ</Text>
+              <Text className="text-muted-foreground text-xs italic">No sleep records yet</Text>
             </View>
           )}
         </View>
-        
+
         {stats && stats.sleep_logs_7_days && stats.sleep_logs_7_days.length > 0 && (
           <View className="flex-row items-center mt-3 gap-x-4">
             <View className="flex-row items-center">
               <View className="w-2 h-2 rounded-full bg-[#76baf9] mr-1.5" />
-              <Text className="text-[10px] text-muted-foreground">Đạt mục tiêu (≥7h)</Text>
+              <Text className="text-[10px] text-muted-foreground">Target met (≥7h)</Text>
             </View>
             <View className="flex-row items-center">
               <View className="w-2 h-2 rounded-full bg-[#ef4444] mr-1.5" />
-              <Text className="text-[10px] text-muted-foreground">Thiếu giấc (&lt;7h)</Text>
+              <Text className="text-[10px] text-muted-foreground">Sleep deficit (&lt;7h)</Text>
             </View>
           </View>
         )}
@@ -504,7 +504,7 @@ export default function SleepTrackerScreen() {
         <View className="flex-row items-center justify-between pb-3 border-b border-border/20 mb-4">
           <View className="flex-row items-center">
             <Clock size={16} color="#193665" className="mr-2" />
-            <Text className="text-[#193665] font-black text-sm">Cài Đặt Mục Tiêu & Nhắc Nhở</Text>
+            <Text className="text-[#193665] font-black text-sm">Target Settings & Reminders</Text>
           </View>
           <Switch
             value={reminderEnabled}
@@ -521,7 +521,7 @@ export default function SleepTrackerScreen() {
         <View className="flex-row justify-between mb-4">
           {/* Target Bedtime */}
           <View className="flex-1 bg-muted/40 p-4 rounded-2xl border border-border/40 mr-2 items-center">
-            <Text className="text-muted-foreground text-xs font-semibold mb-2">Đi ngủ lý tưởng</Text>
+            <Text className="text-muted-foreground text-xs font-semibold mb-2">Ideal bedtime</Text>
             <View className="flex-row items-center gap-x-2">
               <View className="items-center">
                 <TouchableOpacity onPress={() => changeTime('bedtime', 'hour', 1)} className="p-1 bg-[#e0f2fe] rounded-md">
@@ -547,7 +547,7 @@ export default function SleepTrackerScreen() {
 
           {/* Target Waketime */}
           <View className="flex-1 bg-muted/40 p-4 rounded-2xl border border-border/40 ml-2 items-center">
-            <Text className="text-muted-foreground text-xs font-semibold mb-2">Thức dậy lý tưởng</Text>
+            <Text className="text-muted-foreground text-xs font-semibold mb-2">Ideal wakeup</Text>
             <View className="flex-row items-center gap-x-2">
               <View className="items-center">
                 <TouchableOpacity onPress={() => changeTime('waketime', 'hour', 1)} className="p-1 bg-[#e0f2fe] rounded-md">
@@ -577,7 +577,7 @@ export default function SleepTrackerScreen() {
             onPress={handleSaveSettings}
             className="w-full py-3.5 bg-secondary rounded-2xl items-center justify-center shadow-sm"
           >
-            <Text className="text-white font-extrabold text-sm">Lưu cài đặt giấc ngủ</Text>
+            <Text className="text-white font-extrabold text-sm">Save sleep settings</Text>
           </TouchableOpacity>
         )}
       </Card>
@@ -585,7 +585,7 @@ export default function SleepTrackerScreen() {
       {/* Sleep Logs History List */}
       <View className="mb-4">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-[#193665] font-black text-sm uppercase tracking-wide">Nhật ký giấc ngủ</Text>
+          <Text className="text-[#193665] font-black text-sm uppercase tracking-wide">Sleep journal</Text>
           <TouchableOpacity
             onPress={() => {
               setManualDate(new Date().toISOString().split('T')[0]);
@@ -595,7 +595,7 @@ export default function SleepTrackerScreen() {
             className="flex-row items-center bg-[#e0f2fe] px-3.5 py-2 rounded-full border border-primary/10"
           >
             <Plus size={14} color="#5c8edf" className="mr-1" />
-            <Text className="text-[#5c8edf] text-xs font-black">Ghi thủ công</Text>
+            <Text className="text-[#5c8edf] text-xs font-black">Log manually</Text>
           </TouchableOpacity>
         </View>
 
@@ -641,7 +641,7 @@ export default function SleepTrackerScreen() {
         ) : (
           <Card className="p-8 items-center justify-center border border-border/30 bg-white">
             <FileText size={32} color="#19366566" className="mb-2" />
-            <Text className="text-muted-foreground text-xs italic font-semibold">Chưa có bản ghi giấc ngủ nào</Text>
+            <Text className="text-muted-foreground text-xs italic font-semibold">No sleep records yet</Text>
           </Card>
         )}
       </View>
@@ -656,7 +656,7 @@ export default function SleepTrackerScreen() {
         <View className="flex-1 bg-black/40 justify-end">
           <View className="bg-card rounded-t-[32px] p-6 border-t border-border/40 shadow-2xl">
             <View className="flex-row items-center justify-between pb-4 border-b border-border/20 mb-5">
-              <Text className="text-[#193665] text-lg font-black">Ghi Nhận Thủ Công</Text>
+              <Text className="text-[#193665] text-lg font-black">Manual Entry</Text>
               <TouchableOpacity
                 onPress={() => {
                   triggerHaptic('light');
@@ -664,12 +664,12 @@ export default function SleepTrackerScreen() {
                 }}
                 className="px-3.5 py-1.5 bg-muted/40 border border-border/40 rounded-full"
               >
-                <Text className="text-muted-foreground text-xs font-bold">Đóng</Text>
+                <Text className="text-muted-foreground text-xs font-bold">Close</Text>
               </TouchableOpacity>
             </View>
 
             {/* Date input */}
-            <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Ngày đi ngủ (YYYY-MM-DD)</Text>
+            <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Sleep date (YYYY-MM-DD)</Text>
             <View className="flex-row items-center bg-muted/40 border border-border/40 rounded-2xl px-4 py-3.5 mb-4">
               <Calendar size={16} color="#19366599" className="mr-3" />
               <TextInput
@@ -684,7 +684,7 @@ export default function SleepTrackerScreen() {
             {/* Manual Bedtime */}
             <View className="flex-row justify-between mb-4">
               <View className="flex-1 bg-muted/40 p-4 rounded-2xl border border-border/40 mr-2 items-center">
-                <Text className="text-muted-foreground text-xs font-semibold mb-2">Giờ ngủ thực tế</Text>
+                <Text className="text-muted-foreground text-xs font-semibold mb-2">Actual bedtime</Text>
                 <View className="flex-row items-center gap-x-2">
                   <View className="items-center">
                     <TouchableOpacity onPress={() => setManualBedtime(prev => ({ ...prev, hour: (prev.hour + 1) % 24 }))} className="p-1 bg-[#e0f2fe] rounded-md">
@@ -710,7 +710,7 @@ export default function SleepTrackerScreen() {
 
               {/* Manual Waketime */}
               <View className="flex-1 bg-muted/40 p-4 rounded-2xl border border-border/40 ml-2 items-center">
-                <Text className="text-muted-foreground text-xs font-semibold mb-2">Giờ dậy thực tế</Text>
+                <Text className="text-muted-foreground text-xs font-semibold mb-2">Actual wakeup</Text>
                 <View className="flex-row items-center gap-x-2">
                   <View className="items-center">
                     <TouchableOpacity onPress={() => setManualWaketime(prev => ({ ...prev, hour: (prev.hour + 1) % 24 }))} className="p-1 bg-[#e0f2fe] rounded-md">
@@ -736,12 +736,12 @@ export default function SleepTrackerScreen() {
             </View>
 
             {/* Notes */}
-            <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Ghi chú (Tùy chọn)</Text>
+            <Text className="text-muted-foreground text-xs font-bold uppercase mb-2">Notes (Optional)</Text>
             <View className="bg-muted/40 border border-border/40 rounded-2xl px-4 py-3.5 mb-6">
               <TextInput
                 value={manualNotes}
                 onChangeText={setManualNotes}
-                placeholder="Đêm qua ngủ ngon..."
+                placeholder="Slept well last night..."
                 placeholderTextColor="#19366566"
                 className="text-[#193665] text-sm font-semibold p-0"
               />
@@ -752,7 +752,7 @@ export default function SleepTrackerScreen() {
               onPress={handleAddManualLog}
               className="w-full py-4 bg-secondary rounded-2xl items-center justify-center shadow-sm"
             >
-              <Text className="text-white font-extrabold text-sm">Lưu Bản Ghi</Text>
+              <Text className="text-white font-extrabold text-sm">Save Record</Text>
             </TouchableOpacity>
           </View>
         </View>

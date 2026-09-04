@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Trả về giá trị đã được debounce: chỉ cập nhật sau khi `value` không đổi
- * trong khoảng thời gian `delay` (ms). Phù hợp cho các ô input tìm kiếm
- * nhằm tránh gọi API / lọc danh sách liên tục trên mỗi keystroke.
+ * Returns a debounced value: only updates after `value` has not changed
+ * for `delay` milliseconds. Useful for search inputs to avoid hammering
+ * the API / filtering the list on every keystroke.
  *
- * @param value  Giá trị cần debounce (thường là state của TextInput).
- * @param delay  Thời gian chờ tính bằng mili-giây. Mặc định 300ms.
+ * @param value  The value to debounce (usually TextInput state).
+ * @param delay  Wait time in milliseconds. Defaults to 300ms.
  */
 export function useDebouncedValue<T>(value: T, delay: number = 300): T {
   const [debounced, setDebounced] = useState<T>(value);

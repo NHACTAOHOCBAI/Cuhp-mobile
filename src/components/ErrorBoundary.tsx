@@ -12,8 +12,9 @@ interface State {
 }
 
 /**
- * ErrorBoundary bắt lỗi runtime trong React tree và in ra stack trace
- * để dễ debug. Đặc biệt hữu ích cho lỗi "Cannot read property 'length' of undefined".
+ * ErrorBoundary catches runtime errors in the React tree and prints the stack trace
+ * for easier debugging. Especially useful for errors like
+ * "Cannot read property 'length' of undefined".
  */
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -45,7 +46,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <View style={{ flex: 1, backgroundColor: '#fff', padding: 20, paddingTop: 60 }}>
           <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#ef4444', marginBottom: 12 }}>
-            Đã xảy ra lỗi runtime
+            A runtime error has occurred
           </Text>
           <ScrollView style={{ flex: 1, backgroundColor: '#fef2f2', padding: 12, borderRadius: 8 }}>
             <Text style={{ fontFamily: 'monospace', fontSize: 12, color: '#7f1d1d' }}>
@@ -59,7 +60,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             onPress={this.reset}
             style={{ marginTop: 16, padding: 14, backgroundColor: '#3b82f6', borderRadius: 8, alignItems: 'center' }}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Thử lại</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Try again</Text>
           </TouchableOpacity>
         </View>
       );

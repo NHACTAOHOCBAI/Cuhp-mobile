@@ -1,67 +1,67 @@
-# 📱 Ứng Dụng Di Động Cuhp (Mobile App)
+# 📱 Cuhp Mobile App
 
-Ứng dụng di động của **Cuhp** được xây dựng trên nền tảng **React Native** kết hợp với **Expo SDK 57** và **TypeScript**. Ứng dụng cung cấp giao diện hiện đại, tối ưu hóa trải nghiệm trên màn hình nhỏ và đồng bộ hoàn hảo với toàn bộ dữ liệu, API của phiên bản Web hiện tại.
-
----
-
-## ✨ Các Tính Năng Chính
-
-### 1. 🏠 Trang Chủ & Tiến Trình (Dashboard)
-*   **Streak & Mục tiêu ngày**: Đếm chuỗi ngày học liên tục và hiển thị tỷ lệ hoàn thành mục tiêu học tập hàng ngày dưới dạng vòng tròn tiến độ động (SVG).
-*   **Biểu đồ đóng góp tuần**: Hiển thị mức độ hoạt động học tập hàng ngày trong tuần qua.
-*   **Lối tắt nhanh**: Điều hướng trực tiếp đến các phần chính (Học tiếng Anh, Todo, Tập Gym).
-
-### 2. 🇬🇧 Trung Tâm Học Tiếng Anh (English Hub)
-Gom nhóm toàn bộ các tính năng học tiếng Anh vào một tab lớn duy nhất tương tự phiên bản Web:
-*   **Sổ từ vựng (Vocabulary)**:
-    *   Quản lý danh sách từ vựng cá nhân (Thêm, Sửa, Xóa).
-    *   **Tra cứu nhanh từ điển**: Nhập từ tiếng Anh và nhấn "Tra từ" để tự động điền phát âm, dịch nghĩa và phân loại từ từ API.
-    *   Hỗ trợ phát âm từ vựng bằng giọng đọc máy (Expo Speech) dựa trên accent thiết lập.
-*   **Ôn tập Flashcards**: Ôn tập các từ vựng đã lưu theo phương pháp Lặp lại ngắt quãng (Leitner System) với giao diện thẻ lật mượt mà.
-*   **Đọc song ngữ (Reading)**:
-    *   Xem danh sách bài đọc phân loại theo cấp độ (Dễ, Trung bình, Khó) với màu sắc trực quan.
-    *   **Chạm vào từ để tra nghĩa**: Tách từ tự động trong bài đọc, chạm để hiển thị popup dịch nghĩa và cho phép lưu trực tiếp vào Sổ từ vựng cá nhân.
-    *   Thảo luận và lưu bản dịch cá nhân (Luyện dịch câu).
-*   **Nghe & Shadowing (Listening)**:
-    *   Trình phát Audio Player tích hợp (`expo-av`) kèm thanh progress scrubber tự vẽ, hỗ trợ tua nhanh bằng cách chạm thanh tiến trình.
-    *   Điều chỉnh tốc độ phát âm thanh (0.75x, 1x, 1.25x, 1.5x).
-    *   **Shadow Dictation**: Nghe chép chính tả và so khớp đúng/sai trực quan.
-
-### 3. 📅 Quản Lý Công Việc (Todo Tasks)
-*   **Lịch trình (Planner)**: Calendar strip chọn ngày trong tuần giúp lên kế hoạch làm việc từng ngày rõ ràng.
-*   **Hộp việc (Inbox)**: Nơi thu thập nhanh các công việc phát sinh chưa kịp lên lịch.
-*   **Ma trận Eisenhower (Matrix)**: Phân loại công việc khoa học theo 4 nhóm ưu tiên: *Làm ngay (Do), Lên lịch (Schedule), Ủy quyền (Delegate), Loại bỏ (Eliminate)*.
-
-### 4. 🏋️ Hỗ Trợ Tập Gym (Gym Planner)
-*   **Lịch tập**: Theo dõi danh sách bài tập của ngày, số Sets x Reps, cân nặng tạ (kg) và checkbox hoàn thành.
-*   **Sao chép lịch tập (Copy Day Forward)**: Sao chép toàn bộ lịch tập của ngày hiện tại sang các tuần tiếp theo một cách nhanh chóng.
-*   **Quản lý nhóm cơ**: CRUD các nhóm cơ chính kèm nhãn màu sắc phân biệt.
-*   **Thống kê nâng cao**: Biểu đồ cột SVG hiển thị tổng Volume tập luyện 7 ngày qua và lịch sử tiến trình nâng tạ tối đa (Max Weight) theo từng bài tập.
+The mobile application for **Cuhp**, built on **React Native** with **Expo SDK 57** and **TypeScript**. It delivers a modern UI optimized for small screens and stays in perfect sync with the data and APIs of the current Web version.
 
 ---
 
-## 🛠️ Công Nghệ Sử Dụng
+## ✨ Core Features
+
+### 1. 🏠 Home & Progress (Dashboard)
+*   **Streak & daily goal**: Counts the consecutive learning streak and displays the daily goal completion ratio as an animated SVG progress ring.
+*   **Weekly contribution chart**: Shows daily learning activity levels for the past week.
+*   **Quick shortcuts**: Direct navigation to main sections (Learn English, Todo, Gym).
+
+### 2. 🇬🇧 English Hub
+Groups every English-learning feature into a single tab mirroring the Web version:
+*   **Vocabulary notebook**:
+    *   Manage your personal word list (Add, Edit, Delete).
+    *   **Quick dictionary lookup**: Type an English word and tap "Lookup" to auto-fill pronunciation, meaning, and classification via the API.
+    *   Pronounce vocabulary with TTS (Expo Speech) using your configured accent.
+*   **Flashcards review**: Review saved vocabulary using the Leitner Spaced Repetition system with a smooth flipping card UI.
+*   **Bilingual reading**:
+    *   Browse reading passages classified by level (Easy, Medium, Hard) with intuitive colors.
+    *   **Tap a word to look it up**: Tap any word in the passage to open a definition popup and save it directly to your personal notebook.
+    *   Discussion and save your personal translation (Translation practice).
+*   **Listening & Shadowing**:
+    *   Built-in audio player (`expo-av`) with a custom progress scrubber that supports seeking by tapping the bar.
+    *   Adjustable playback speed (0.75x, 1x, 1.25x, 1.5x).
+    *   **Shadow Dictation**: Listen and transcribe, with visual correctness matching.
+
+### 3. 📅 Todo Tasks
+*   **Planner**: Calendar strip to pick a date and plan work day by day.
+*   **Inbox**: Quick collection spot for incoming tasks not yet scheduled.
+*   **Eisenhower Matrix**: Scientifically classify tasks into 4 priority groups: *Do First, Schedule, Delegate, Eliminate*.
+
+### 4. 🏋️ Gym Planner
+*   **Workout schedule**: Track today's exercise list, sets x reps, weight (kg), and completion checkbox.
+*   **Copy Day Forward**: Quickly copy today's workout plan to upcoming weeks.
+*   **Muscle group management**: CRUD muscle groups with color labels for visual differentiation.
+*   **Advanced stats**: SVG bar chart showing total volume over the last 7 days and history of max weight per exercise.
+
+---
+
+## 🛠️ Tech Stack
 
 *   **Framework**: React Native & Expo (SDK 57)
-*   **Ngôn ngữ**: TypeScript (đảm bảo type-safe 100%)
-*   **Styling**: NativeWind (Tailwind CSS cho React Native)
-*   **Navigation**: Expo Router / React Navigation (Bottom Tab Bar 5 tabs kết hợp Native Stack)
-*   **Thư viện đa phương tiện**: `expo-av` (Phát âm thanh), `expo-speech` (Phát âm giọng đọc), `react-native-svg` (Vẽ biểu đồ và vòng tiến trình).
+*   **Language**: TypeScript (100% type-safe)
+*   **Styling**: NativeWind (Tailwind CSS for React Native)
+*   **Navigation**: Expo Router / React Navigation (5-tab Bottom Tab Bar combined with Native Stack)
+*   **Multimedia libraries**: `expo-av` (audio playback), `expo-speech` (TTS), `react-native-svg` (charts & progress rings).
 
 ---
 
-## 📂 Cấu Trúc Thư Mục
+## 📂 Project Structure
 
 ```bash
 mobile/
 ├── src/
 │   ├── api/
-│   │   └── client.ts          # API Client kết nối Backend (Authentication, CRUD)
-│   ├── components/            # Các component dùng chung (Card, Badge, Button, Input...)
-│   ├── context/               # Quản lý State toàn cục (AuthContext, SettingsContext)
+│   │   └── client.ts          # API Client connected to Backend (Authentication, CRUD)
+│   ├── components/            # Shared components (Card, Badge, Button, Input...)
+│   ├── context/               # Global state management (AuthContext, SettingsContext)
 │   ├── navigation/
-│   │   └── AppNavigator.tsx   # Cấu hình định tuyến Bottom Tab Bar và Stack Screens
-│   ├── screens/               # Màn hình chính của ứng dụng
+│   │   └── AppNavigator.tsx   # Bottom Tab Bar routing & Stack Screens config
+│   ├── screens/               # Main app screens
 │   │   ├── DashboardScreen.tsx
 │   │   ├── EnglishHubScreen.tsx
 │   │   ├── VocabularyScreen.tsx
@@ -69,106 +69,106 @@ mobile/
 │   │   ├── ListeningDetailScreen.tsx
 │   │   ├── TodoScreen.tsx
 │   │   └── GymScreen.tsx
-│   ├── theme/                 # Định nghĩa bảng màu và style nền tảng
+│   ├── theme/                 # Color palette and base style definitions
 │   ├── types/
-│   │   └── index.ts           # Định nghĩa các TypeScript interfaces
-│   └── utils/                 # Các hàm tiện ích (vocabulary helpers, date format...)
-├── app.json                   # Cấu hình Expo App (tên, slug, plugins, SDK version)
-├── package.json               # Danh sách dependencies & kịch bản chạy
-└── tsconfig.json              # Cấu hình TypeScript compiler
+│   │   └── index.ts           # TypeScript interface definitions
+│   └── utils/                 # Helpers (vocabulary helpers, date format...)
+├── app.json                   # Expo App config (name, slug, plugins, SDK version)
+├── package.json               # Dependencies list & run scripts
+└── tsconfig.json              # TypeScript compiler config
 ```
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Ứng Dụng
+## 🚀 Installation & Running
 
-### Bước 1: Cài đặt Dependencies
-Trong thư mục `mobile`, chạy lệnh sau để tải các gói thư viện cần thiết:
+### Step 1: Install Dependencies
+Inside the `mobile` folder, run:
 ```bash
 npm install
 ```
 
-### Bước 2: Chạy Metro Bundler
-Để khởi động máy chủ đóng gói mã nguồn JavaScript, chạy lệnh sau:
+### Step 2: Start Metro Bundler
+To start the JavaScript bundler:
 ```bash
 npm run start
-# hoặc
+# or
 npx expo start
 ```
-*Mẹo: Nếu bạn vừa cài đặt thư viện native mới hoặc cập nhật code cấu hình, hãy khởi động lại bằng tùy chọn xóa cache:*
+*Tip: If you just installed a new native library or updated config code, restart with cache cleared:*
 ```bash
 npx expo start -c
 ```
 
-### Bước 3: Xem trên Thiết bị Di động (Expo Go)
-* **Kết nối chung mạng Wi-Fi**:
-  * Tải ứng dụng **Expo Go** trên Google Play Store (Android) hoặc Apple App Store (iOS).
-  * Đảm bảo điện thoại và máy tính chạy Metro Bundler đang kết nối **chung một mạng Wi-Fi**.
-  * Mở ứng dụng Expo Go trên điện thoại, chọn **Scan QR Code** và quét mã QR hiển thị ở terminal máy tính của bạn để mở app nhanh.
-* **Kết nối qua cáp USB / Máy ảo Android (Sử dụng ADB)**:
-  * Nếu bạn đang phát triển trên giả lập Android hoặc kết nối điện thoại qua cáp USB (đã bật USB Debugging), hãy chạy tuần tự các lệnh sau trong terminal:
+### Step 3: View on Device (Expo Go)
+* **Same Wi-Fi network**:
+  * Install **Expo Go** from Google Play Store (Android) or the Apple App Store (iOS).
+  * Make sure your phone and the Metro Bundler machine are on the **same Wi-Fi network**.
+  * Open Expo Go, tap **Scan QR Code**, and scan the QR displayed in the terminal to open the app quickly.
+* **USB cable / Android Emulator (using ADB)**:
+  * If you develop on an Android emulator or via USB (with USB Debugging enabled), run these commands in your terminal:
     ```bash
-    # Chuyển tiếp cổng kết nối Metro Bundler
+    # Forward Metro Bundler port
     adb reverse tcp:8081 tcp:8081
 
-    # Khởi động Metro Bundler
+    # Start Metro Bundler
     npx expo start
     ```
-    *(Sau đó bạn có thể mở ứng dụng trên điện thoại/máy ảo để kết nối trực tiếp đến máy chủ Metro tại localhost:8081).*
+    *(Afterwards you can open the app on your phone/emulator and connect directly to the Metro server at localhost:8081).*
 
-*Lưu ý: Vì Expo Go là môi trường ảo dựng sẵn, một số chức năng can thiệp hệ thống sâu như chạy nền âm thanh (Background Playback) có thể bị giới hạn hoặc ngắt kết nối sau vài phút do hệ điều hành Android thu hồi tài nguyên. Để trải nghiệm ứng dụng hoàn thiện nhất, bạn nên build ra file APK standalone (theo hướng dẫn bên dưới).*
+*Note: Because Expo Go is a sandboxed environment, deep system-level features like background audio playback may be limited or disconnected after a few minutes when Android reclaims resources. For the full app experience, build a standalone APK (see instructions below).*
 
 ---
 
-## 📦 Hướng Dẫn Build App Cài Đặt Standalone (Android APK)
+## 📦 Build Standalone App (Android APK)
 
-Ứng dụng đã được cấu hình sẵn dịch vụ **EAS Build (Expo Application Services)** với hồ sơ build `preview` để tạo ra file `.apk` cài đặt trực tiếp.
+The app is preconfigured with **EAS Build (Expo Application Services)** using the `preview` build profile to produce a directly installable `.apk`.
 
-### Bước 1: Chuẩn bị tài khoản Expo
-* Truy cập [expo.dev](https://expo.dev) để đăng ký một tài khoản Expo miễn phí (nếu chưa có).
+### Step 1: Set up an Expo account
+* Visit [expo.dev](https://expo.dev) and sign up for a free Expo account (if you don't have one).
 
-### Bước 2: Cài đặt & Đăng nhập EAS CLI
-Mở một terminal mới trong thư mục `mobile` và chạy lệnh đăng nhập:
+### Step 2: Install & log in to EAS CLI
+Open a new terminal in the `mobile` folder and run:
 ```bash
 npx eas-cli login
 ```
-*(Nhập tài khoản và mật khẩu Expo của bạn để liên kết dự án).*
+*(Enter your Expo credentials to link the project.)*
 
-### Bước 3: Chạy lệnh build file APK
-Gửi yêu cầu đóng gói ứng dụng lên máy chủ cloud của Expo bằng lệnh:
+### Step 3: Build the APK
+Send the build request to Expo's cloud servers:
 ```bash
 npx eas-cli build --platform android --profile preview
 ```
-*   Hệ thống sẽ hỏi bạn có muốn cấu hình tự động (như tạo Keystore chữ ký số cho app...) hay không $\rightarrow$ Chọn **Yes/Đồng ý** cho tất cả các câu hỏi.
-*   Máy chủ Expo sẽ tự động đóng gói dự án của bạn thành file `.apk` độc lập (quá trình này mất khoảng 5-10 phút).
+*   The system may ask whether you want to set things up automatically (e.g. create a Keystore for signing the app...) → Choose **Yes** for all prompts.
+*   Expo will package your project into a standalone `.apk` (takes about 5-10 minutes).
 
-### Bước 4: Tải file APK và cài đặt
-* Sau khi quá trình build hoàn thành, terminal sẽ xuất ra một **đường dẫn tải file `.apk` trực tiếp** và một **mã QR**.
-* Bạn chỉ cần quét mã QR bằng điện thoại để tải trực tiếp file APK về máy và cài đặt để kiểm thử các tính năng chạy nền như ứng dụng phát nhạc chuyên nghiệp.
+### Step 4: Download & install the APK
+* Once the build completes, the terminal prints a **direct `.apk` download link** and a **QR code**.
+* Just scan the QR with your phone to download the APK directly, then install it to test background features like a professional music player app.
 
 ---
 
-## 🔍 Khắc Phục Lỗi Thường Gặp (Troubleshooting)
+## 🔍 Troubleshooting
 
-### 1. Lỗi `Cannot find native module 'ExponentAV'` hoặc 'ExpoAudio'
-Lỗi này xảy ra khi Expo Go trên điện thoại của bạn chưa nhận dạng được module native mới cài đặt.
-* **Giải pháp 1: Xóa bộ nhớ đệm ứng dụng**:
-  * **Android**: Vào *Cài đặt -> Ứng dụng -> Expo Go -> Lưu trữ -> Xóa bộ nhớ đệm (Clear Cache) & Xóa dữ liệu (Clear Data)*.
-  * **iOS**: Gỡ cài đặt ứng dụng Expo Go trên điện thoại và cài đặt lại từ App Store.
-* **Giải pháp 2: Khởi động lại Metro Bundler xóa cache**: Chạy lệnh `npx expo start -c`.
+### 1. `Cannot find native module 'ExponentAV'` or 'ExpoAudio'
+This happens when Expo Go hasn't recognized a newly installed native module.
+* **Fix 1: Clear app cache**:
+  * **Android**: *Settings -> Apps -> Expo Go -> Storage -> Clear Cache & Clear Data*.
+  * **iOS**: Uninstall the Expo Go app on your phone and reinstall from the App Store.
+* **Fix 2: Restart Metro Bundler with cleared cache**: Run `npx expo start -c`.
 
-### 2. Kiểm tra lỗi kiểu TypeScript
-Đảm bảo mã nguồn không có bất kỳ lỗi biên dịch nào trước khi build:
+### 2. Check TypeScript type errors
+Make sure the code has no compile errors before building:
 ```bash
 npx tsc --noEmit
 ```
 
-### 3. Tự build native nội bộ (Development Client)
-Nếu bạn muốn build client chạy nội bộ để debug native trên thiết bị thật:
+### 3. Build native internally (Development Client)
+If you want to build an internal client to debug natively on a real device:
 ```bash
-# Thiết bị Android
+# Android device
 npx expo run:android
 
-# Thiết bị iOS (yêu cầu máy macOS)
+# iOS device (requires macOS)
 npx expo run:ios
 ```

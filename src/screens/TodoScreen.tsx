@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -95,7 +95,7 @@ export default function TodoScreen() {
 
 
 
-  // Active quadrant for the Ma trận view's task list (default "Do First").
+  // Active quadrant for the Matrix view's task list (default "Do First").
   const [activeQuadrant, setActiveQuadrant] = useState<TodoQuadrant>('do');
 
   const loadData = async () => {
@@ -108,7 +108,7 @@ export default function TodoScreen() {
       setTasks(tasksRes.items || []);
       setStats(statsRes);
     } catch (error) {
-      console.error('Lỗi tải dữ liệu Todo:', error);
+      console.error('Error loading Todo data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -127,7 +127,7 @@ export default function TodoScreen() {
   const handleToggle = async (task: TodoTask) => {
     if (!token) return;
     try {
-      // Cập nhật giao diện lập tức (optimistic update)
+      // Update UI optimistically
       setTasks((prev) =>
         prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t))
       );
@@ -137,7 +137,7 @@ export default function TodoScreen() {
       setStats(statsRes);
     } catch (error) {
       console.error(error);
-      loadData(); // Revert nếu lỗi
+      loadData(); // Revert on error
     }
   };
 
@@ -161,7 +161,7 @@ export default function TodoScreen() {
       setStats(statsRes);
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Thêm công việc nhanh thất bại.');
+      Alert.alert('Error', 'Failed to quick-add task.');
     } finally {
       setQuickAdding(false);
     }
@@ -189,7 +189,7 @@ export default function TodoScreen() {
 
   const handleSaveTask = async () => {
     if (!formTitle.trim() || !token) {
-      Alert.alert('Lỗi', 'Vui lòng điền tiêu đề công việc.');
+      Alert.alert('Error', 'Please enter the task title.');
       return;
     }
 
@@ -218,17 +218,17 @@ export default function TodoScreen() {
       setStats(statsRes);
     } catch (error) {
       console.error(error);
-      Alert.alert('Lỗi', 'Lưu công việc thất bại.');
+      Alert.alert('Error', 'Failed to save task.');
     } finally {
       setSavingTask(false);
     }
   };
 
   const handleDeleteTask = (task: TodoTask) => {
-    Alert.alert('Xác nhận xóa', `Bạn có chắc muốn xóa vĩnh viễn: "${task.title}"?`, [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm delete', `Are you sure you want to permanently delete: "${task.title}"?`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Xóa',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           if (!token) return;
@@ -239,7 +239,7 @@ export default function TodoScreen() {
             setStats(statsRes);
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Xóa công việc thất bại.');
+            Alert.alert('Error', 'Failed to delete task.');
           }
         }
       }
@@ -250,10 +250,10 @@ export default function TodoScreen() {
     const completedCount = tasks.filter((t) => t.completed).length;
     if (completedCount === 0) return;
 
-    Alert.alert('Xác nhận', `Bạn có chắc muốn dọn sạch ${completedCount} công việc đã hoàn thành?`, [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Confirm', `Are you sure you want to clear ${completedCount} completed tasks?`, [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Dọn dẹp',
+        text: 'Clear',
         style: 'destructive',
         onPress: async () => {
           if (!token) return;
@@ -264,7 +264,7 @@ export default function TodoScreen() {
             setStats(statsRes);
           } catch (error) {
             console.error(error);
-            Alert.alert('Lỗi', 'Không thể dọn dẹp công việc.');
+            Alert.alert('Error', 'Could not clear completed tasks.');
           }
         }
       }
@@ -386,7 +386,7 @@ export default function TodoScreen() {
             <View className="py-12 items-center">
               <Calendar size={28} color={Colors.iconMuted} />
               <Text className="text-muted-foreground text-xs mt-2 text-center">
-                Không có lịch trình công việc nào trong ngày {selectedDate}.
+                No tasks scheduled for {selectedDate}.
               </Text>
             </View>
           ) : (
@@ -410,17 +410,17 @@ export default function TodoScreen() {
         <Card className="p-4 mb-4">
           <View className="flex-row items-center mb-1">
             <Inbox size={16} color={Colors.foreground} />
-            <Text className="text-foreground font-extrabold text-sm ml-1.5">Hộp việc chung</Text>
+            <Text className="text-foreground font-extrabold text-sm ml-1.5">Inbox</Text>
           </View>
           <Text className="text-muted-foreground text-xs leading-normal">
-            Nơi lưu nhanh các công việc phát sinh chưa kịp lên lịch làm việc cụ thể.
+            Quick collection of incoming tasks not yet scheduled on a specific date.
           </Text>
         </Card>
 
         {inboxTasks.length === 0 ? (
           <View className="py-12 items-center">
             <Inbox size={28} color={Colors.iconMuted} />
-            <Text className="text-muted-foreground text-xs mt-2 text-center">Hộp thư công việc đang trống.</Text>
+            <Text className="text-muted-foreground text-xs mt-2 text-center">Your inbox is empty.</Text>
           </View>
         ) : (
           inboxTasks.map(renderTaskCard)
@@ -448,21 +448,21 @@ export default function TodoScreen() {
         key: 'schedule',
         label: 'Schedule',
         desc: 'Important, Not Urgent',
-        icon: <Calendar size={18} color={Colors.foreground} />,
+        icon: <Calendar size={20} color={Colors.foreground} />,
         badgeVariant: 'zinc'
       },
       {
         key: 'delegate',
         label: 'Delegate',
         desc: 'Urgent, Not Important',
-        icon: <Inbox size={18} color={Colors.destructive} />,
+        icon: <Inbox size={20} color={Colors.destructive} />,
         badgeVariant: 'red'
       },
       {
         key: 'eliminate',
         label: "Don't Do",
         desc: 'Neither',
-        icon: <Trash2 size={18} color={Colors.foreground} />,
+        icon: <Trash2 size={20} color={Colors.foreground} />,
         badgeVariant: 'zinc'
       }
     ];
@@ -524,7 +524,7 @@ export default function TodoScreen() {
             <View className="py-10 items-center">
               <Check size={28} color={Colors.iconMuted} />
               <Text className="text-muted-foreground text-xs mt-2 text-center">
-                Chưa có công việc nào trong nhóm này.
+                No tasks in this group yet.
               </Text>
             </View>
           ) : (
@@ -547,7 +547,7 @@ export default function TodoScreen() {
             onPress={handleClearCompleted}
             className="bg-red-50 border border-red-200/50 px-2.5 py-1 rounded-lg"
           >
-            <Text className="text-destructive text-[10px] font-bold">Dọn xong ({completedCount})</Text>
+            <Text className="text-destructive text-[10px] font-bold">Clear done ({completedCount})</Text>
           </TouchableOpacity>
         ) : undefined
       }
@@ -566,8 +566,8 @@ export default function TodoScreen() {
       <SegmentedControl<ViewMode>
         tabs={[
           { value: 'inbox', label: 'Inbox' },
-          { value: 'planner', label: 'Lịch trình' },
-          { value: 'matrix', label: 'Ma trận' }
+          { value: 'planner', label: 'Planner' },
+          { value: 'matrix', label: 'Matrix' }
         ]}
         value={activeView}
         onChange={setActiveView}
@@ -581,7 +581,7 @@ export default function TodoScreen() {
             <Input
               value={quickTitle}
               onChangeText={setQuickTitle}
-              placeholder={activeView === 'planner' ? 'Thêm việc nhanh vào ngày này...' : 'Thêm việc nhanh vào Hộp thư...'}
+              placeholder={activeView === 'planner' ? 'Quick add a task to this date...' : 'Quick add a task to Inbox...'}
               rightElement={
                 quickTitle ? (
                   <IconButton
@@ -640,33 +640,33 @@ export default function TodoScreen() {
             {/* Header Modal */}
             <View className="flex-row justify-between items-center pb-3 border-b border-border/50">
               <Text className="text-lg font-black text-foreground">
-                {editingId ? 'Chỉnh Sửa Công Việc' : 'Tạo Công Việc Mới'}
+                {editingId ? 'Edit Task' : 'Create New Task'}
               </Text>
               <TouchableOpacity onPress={() => setModalOpen(false)} className="p-1">
-                <Text className="text-muted-foreground text-sm font-semibold">Đóng</Text>
+                <Text className="text-muted-foreground text-sm font-semibold">Close</Text>
               </TouchableOpacity>
             </View>
 
             {/* Scrollable Form */}
             <ScrollView contentContainerStyle={{ paddingVertical: 4 }} showsVerticalScrollIndicator={false}>
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Tên công việc*</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Task name*</Text>
                 <Input
                   value={formTitle}
                   onChangeText={setFormTitle}
-                  placeholder="Ví dụ: Thiết kế giao diện di động"
+                  placeholder="e.g. Design mobile UI"
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Nhóm ma trận ưu tiên</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Priority matrix group</Text>
                 <ChipGroup
                   data={[
-                    { value: 'inbox', label: 'Hộp việc chung' },
-                    { value: 'do', label: 'Làm ngay' },
-                    { value: 'schedule', label: 'Lên lịch' },
-                    { value: 'delegate', label: 'Ủy quyền' },
-                    { value: 'eliminate', label: 'Loại bỏ' }
+                    { value: 'inbox', label: 'Inbox' },
+                    { value: 'do', label: 'Do First' },
+                    { value: 'schedule', label: 'Schedule' },
+                    { value: 'delegate', label: 'Delegate' },
+                    { value: 'eliminate', label: 'Eliminate' }
                   ]}
                   value={formQuadrant}
                   onChange={(val: any) => setFormQuadrant(val)}
@@ -674,33 +674,33 @@ export default function TodoScreen() {
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Ngày lập lịch (YYYY-MM-DD)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Scheduled date (YYYY-MM-DD)</Text>
                 <Input
                   value={formScheduledDate}
                   onChangeText={setFormScheduledDate}
-                  placeholder="Ví dụ: 2026-08-19"
+                  placeholder="e.g. 2026-08-19"
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Ngày hạn chót (YYYY-MM-DD)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Due date (YYYY-MM-DD)</Text>
                 <Input
                   value={formDueDate}
                   onChangeText={setFormDueDate}
-                  placeholder="Ví dụ: 2026-08-25"
+                  placeholder="e.g. 2026-08-25"
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
               </View>
 
               <View className="mt-4">
-                <Text className="text-foreground text-xs font-bold mb-1.5">Thời gian ước tính (phút)</Text>
+                <Text className="text-foreground text-xs font-bold mb-1.5">Estimated time (minutes)</Text>
                 <Input
                   value={formEstTime}
                   onChangeText={setFormEstTime}
-                  placeholder="Ví dụ: 60"
+                  placeholder="e.g. 60"
                   keyboardType="numeric"
                 />
               </View>
@@ -708,7 +708,7 @@ export default function TodoScreen() {
               {/* Action Button */}
               <View className="mt-6 mb-8">
                 <ButtonPrimary
-                  title={editingId ? 'Lưu cập nhật' : 'Tạo mới công việc'}
+                  title={editingId ? 'Save changes' : 'Create task'}
                   onPress={handleSaveTask}
                   disabled={savingTask || !formTitle.trim()}
                   icon={savingTask ? <ActivityIndicator size="small" color="#ffffff" /> : <Check size={18} color={Colors.primaryForeground} />}

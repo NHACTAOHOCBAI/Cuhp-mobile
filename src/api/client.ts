@@ -127,7 +127,7 @@ export async function apiFetch<T = unknown>(
   }
 
   if (!res.ok) {
-    let detail = `Lỗi kết nối: ${res.status}`;
+    let detail = `Connection error: ${res.status}`;
     try {
       const data = await res.json();
       if (data && typeof data === "object" && "detail" in data) {
