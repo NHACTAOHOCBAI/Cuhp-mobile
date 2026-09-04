@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
+import { isRunningInExpoGo } from 'expo';
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, Send, Trash2, Award, Headphones, RotateCw, Check, Repeat } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -31,6 +32,7 @@ import type { AudioTrack, AudioComment } from '../types';
 import {
   getReadingLevelLabel,
   getReadingLevelVariant,
+  stripHtml,
 } from '../utils/reading';
 
 export default function ListeningDetailScreen() {
@@ -65,7 +67,7 @@ export default function ListeningDetailScreen() {
 
   // Update lock screen info when audio state changes (especially when duration is loaded)
   useEffect(() => {
-    if (passage && player && status.isLoaded) {
+    if (passage && player && status.isLoaded && !isRunningInExpoGo()) {
       try {
         const audioTrack = passage as any;
         player.setActiveForLockScreen(true, {
@@ -85,7 +87,7 @@ export default function ListeningDetailScreen() {
   useEffect(() => {
     return () => {
       try {
-        if (player) {
+        if (player && !isRunningInExpoGo()) {
           player.setActiveForLockScreen(false);
         }
       } catch (error) {
@@ -183,7 +185,9 @@ export default function ListeningDetailScreen() {
 
   // Dictation logic
   const handleCheckDictation = () => {
-    const correctText = passage?.transcript || '';
+    // Transcripts may be stored as HTML (e.g. "<p>Hello world</p>"); strip
+    // the tags first so the word-by-word comparison sees clean prose.
+    const correctText = stripHtml(passage?.transcript || '');
 
     const clean = (text: string) => {
       return text
@@ -262,8 +266,14 @@ export default function ListeningDetailScreen() {
 
   const renderTranscriptTab = () => {
     if (!passage) return null;
-    const enParagraphs = passage.transcript?.split('\n\n').filter(Boolean) || [];
-    const viParagraphs = passage.translation ? passage.translation.split('\n\n').filter(Boolean) : [];
+    // Backend sometimes stores transcripts/translations as HTML (same issue
+    // the reading screens had). Strip tags before splitting into paragraphs.
+    const enParagraphs = stripHtml(passage.transcript)
+      .split(/\n\s*\n/)
+      .filter(Boolean);
+    const viParagraphs = stripHtml(passage.translation || '')
+      .split(/\n\s*\n/)
+      .filter(Boolean);
 
     return (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 }}>

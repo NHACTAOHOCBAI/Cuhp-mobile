@@ -126,3 +126,76 @@ export function extractContextSentence(
   }
   return null;
 }
+
+/**
+ * Strip HTML tags and decode the common named/numeric entities from a
+ * passage's content. Backend sometimes stores passages pasted from Google
+ * Docs / Word as full HTML — without stripping, mobile renders the literal
+ * tag soup (`<p dir="ltr" style="...">`) in plain text.
+ *
+ * Mirrors web's list-page strip pattern (`.replace(/<[^>]*>/g, " ")`) and
+ * the detail-page `DOMParser` based renderer — both of which end up giving
+ * the user clean prose. Mobile cannot render arbitrary HTML, so we strip
+ * to plain text before display.
+ *
+ * Conservative by design: this is for read-only display only. We do not
+ * try to preserve styling — that's out of scope per the plan.
+ */
+const HTML_ENTITY_MAP: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&apos;": "'",
+  "&nbsp;": " ",
+  "&mdash;": "—",
+  "&ndash;": "–",
+  "&hellip;": "…",
+  "&laquo;": "«",
+  "&raquo;": "»",
+  "&ldquo;": "“",
+  "&rdquo;": "”",
+  "&lsquo;": "‘",
+  "&rsquo;": "’",
+  "&copy;": "©",
+  "&reg;": "®",
+  "&trade;": "™",
+};
+
+export function stripHtml(input: string | null | undefined): string {
+  if (!input) return "";
+
+  let text = input;
+
+  // 1) Decode common named entities. Numeric entities (&#39;, &#x27;)
+  //    are handled in the regex pass below.
+  text = text.replace(/&[a-z]+;/gi, (m) => HTML_ENTITY_MAP[m.toLowerCase()] ?? m);
+
+  // 2) Decode numeric character references.
+  text = text.replace(/&#(\d+);/g, (_, code: string) => {
+    const n = parseInt(code, 10);
+    return Number.isFinite(n) ? String.fromCodePoint(n) : "";
+  });
+  text = text.replace(/&#x([0-9a-f]+);/gi, (_, code: string) => {
+    const n = parseInt(code, 16);
+    return Number.isFinite(n) ? String.fromCodePoint(n) : "";
+  });
+
+  // 3) Replace block-level tags with paragraph breaks so the structure
+  //    isn't lost.
+  text = text.replace(
+    /<\/?(p|div|br|h[1-6]|li|ul|ol|blockquote|pre|hr|tr|table|section|article)\s*\/?>/gi,
+    "\n"
+  );
+
+  // 4) Drop remaining tags.
+  text = text.replace(/<[^>]+>/g, "");
+
+  // 5) Collapse runs of whitespace inside a line, but keep `\n` so we can
+  //    split paragraphs cleanly downstream.
+  text = text.replace(/[ \t]+/g, " ");
+  text = text.replace(/[ \t]*\n[ \t]*(\n[ \t]*)+/g, "\n\n");
+  text = text.replace(/\n{3,}/g, "\n\n");
+
+  return text.trim();
+}

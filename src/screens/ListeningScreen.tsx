@@ -21,6 +21,7 @@ import { Colors } from '../theme';
 import {
   getReadingLevelLabel,
   getReadingLevelVariant,
+  stripHtml,
 } from '../utils/reading';
 
 interface ListeningScreenProps {
@@ -120,7 +121,7 @@ export default function ListeningScreen({ hideHeader = false }: ListeningScreenP
 
           {item.description ? (
             <Text className="text-muted-foreground text-xs leading-normal mb-3">
-              {item.description}
+              {stripHtml(item.description)}
             </Text>
           ) : null}
 

@@ -24,6 +24,7 @@ import {
   computePassageStats,
   getReadingLevelLabel,
   getReadingLevelVariant,
+  stripHtml,
 } from '../utils/reading';
 import {
   ReadingStorageKeys,
@@ -293,12 +294,12 @@ const ReadingCard: React.FC<ReadingCardProps> = React.memo(
     }, [passage.id]);
 
     const stats = useMemo(
-      () => computePassageStats(passage.content, vocabWords),
+      () => computePassageStats(stripHtml(passage.content), vocabWords),
       [passage.content, vocabWords]
     );
 
     const excerpt = useMemo(() => {
-      const text = (passage.content || '').trim();
+      const text = stripHtml(passage.content).trim();
       if (!text) return '';
       if (text.length <= 140) return text;
       return text.slice(0, 140) + '...';

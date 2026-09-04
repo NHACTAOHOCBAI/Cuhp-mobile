@@ -325,7 +325,7 @@ export default function FlashcardScreen() {
   const boxNumber = currentItem.box_number ?? 1;
 
   return (
-    <ScreenWrapper scroll={false} edges={['top', 'left', 'right']}>
+    <ScreenWrapper scroll={false} edges={['top', 'left', 'right', 'bottom']}>
       <View className="flex-1">
         {/* Top row: close · pill · more */}
         <View className="px-6 pt-3 pb-2">
@@ -370,9 +370,25 @@ export default function FlashcardScreen() {
           <ProgressBar value={progressPct} tone="primary" thickness="thin" />
         </View>
 
-        {/* Flashcard with 3D flip animation */}
-        <View className="flex-1 mx-6 my-2">
-          <Animated.View style={[frontStyle]} pointerEvents={isFlipped ? 'none' : 'auto'}>
+        {/* Flashcard with 3D flip animation.
+            Both faces are absolutely positioned inside a relative container
+            so they share the same slot during the flip — otherwise RN stacks
+            them vertically and the front face collapses to a sliver. */}
+        <View className="flex-1 mx-6 my-2 relative">
+          <Animated.View
+            style={[
+              frontStyle,
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backfaceVisibility: 'hidden',
+              } as any,
+            ]}
+            pointerEvents={isFlipped ? 'none' : 'auto'}
+          >
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={toggleFlip}
@@ -381,11 +397,17 @@ export default function FlashcardScreen() {
               <Badge label="Front" variant="zinc" />
 
               <View className="items-center w-full px-4">
-                <Text className="text-3xl font-extrabold text-foreground text-center">
+                <Text
+                  className="text-3xl font-extrabold text-foreground text-center"
+                  numberOfLines={3}
+                >
                   {currentItem.word}
                 </Text>
                 {currentItem.pronunciation ? (
-                  <Text className="text-muted-foreground text-base italic mt-2 text-center">
+                  <Text
+                    className="text-muted-foreground text-base italic mt-2 text-center"
+                    numberOfLines={2}
+                  >
                     {currentItem.pronunciation}
                   </Text>
                 ) : null}
@@ -411,7 +433,20 @@ export default function FlashcardScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          <Animated.View style={[backStyle]} pointerEvents={isFlipped ? 'auto' : 'none'}>
+          <Animated.View
+            style={[
+              backStyle,
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backfaceVisibility: 'hidden',
+              } as any,
+            ]}
+            pointerEvents={isFlipped ? 'auto' : 'none'}
+          >
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={toggleFlip}
@@ -432,7 +467,10 @@ export default function FlashcardScreen() {
                   <Text className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1.5 text-center">
                     Meaning
                   </Text>
-                  <Text className="text-2xl font-bold text-foreground text-center">
+                  <Text
+                    className="text-2xl font-bold text-foreground text-center"
+                    numberOfLines={4}
+                  >
                     {currentItem.meaning}
                   </Text>
 
@@ -480,13 +518,16 @@ export default function FlashcardScreen() {
           </Animated.View>
         </View>
 
-        {/* Bottom buttons — padding respects device safe-area */}
-        <View className="flex-row w-full gap-3 px-6 pb-4">
+        {/* Bottom buttons — clearance added so they sit clearly above the
+            system gesture bar on Android devices with a bottom inset. */}
+        <View
+          className="flex-row w-full gap-3 px-6"
+          style={{ paddingBottom: 20, marginBottom: 8 }}>
           <TouchableOpacity
             onPress={() => handleAnswer(false)}
             className="flex-1 h-14 rounded-2xl border border-destructive items-center justify-center"
           >
-            <Text className="text-destructive text-base font-bold">Don't know</Text>
+            <Text className="text-destructive text-base font-bold">Forgot</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => handleAnswer(true)}

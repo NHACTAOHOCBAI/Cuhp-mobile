@@ -63,6 +63,7 @@ import {
   extractContextSentence,
   getReadingLevelLabel,
   getReadingLevelVariant,
+  stripHtml,
 } from '../utils/reading';
 import {
   ReadingStorageKeys,
@@ -230,7 +231,9 @@ export default function ReadingDetailScreen() {
     const userWords = new Set(
       passageVocab.map((v) => (v.word || '').toLowerCase().trim()).filter(Boolean)
     );
-    return computePassageStats(passage.content, userWords);
+    // Strip HTML first — passages pasted from word processors arrive as
+    // raw HTML and would otherwise throw off the word count.
+    return computePassageStats(stripHtml(passage.content), userWords);
   }, [passage, passageVocab]);
 
   // -------- Save handlers --------
@@ -352,7 +355,7 @@ export default function ReadingDetailScreen() {
     }
 
     const contextSentence =
-      extractContextSentence(passage.content || '', phrase) || '';
+      extractContextSentence(stripHtml(passage.content || ''), phrase) || '';
 
     try {
       await createVocabulary(
@@ -488,10 +491,12 @@ export default function ReadingDetailScreen() {
 
   const renderReadTab = () => {
     if (!passage) return null;
-    const safeContent = passage.content || '';
+    // Backend often stores passages as HTML pasted from Google Docs/Word;
+    // strip it so the user sees clean prose on mobile (which can't render
+    // arbitrary HTML like the web app's DOMParser does).
+    const safeContent = stripHtml(passage.content);
     const paragraphs = safeContent.split(/\n\s*\n/).filter(Boolean);
-    const translationToShow =
-      savedTranslation?.translation_content || '';
+    const translationToShow = stripHtml(savedTranslation?.translation_content || '');
 
     return (
       <ScrollView
